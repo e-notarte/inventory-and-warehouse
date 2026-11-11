@@ -14,6 +14,7 @@
 
   <!-- Master On-Hand Inventory Data (paused for re-upload; re-enable script below when ready) -->
   <!-- <script src="on_hand_inventory_data.js"></script> -->
+  <script src="stocks_2025_data.js"></script>
 
   <style>
     :root {
@@ -2411,6 +2412,15 @@
               <span class="nav-badge" id="navRrMasterfileCount" style="display:none;">0</span>
             </a>
           </li>
+          <li class="nav-item" data-view="view-stocks-2025">
+            <a href="javascript:void(0)" onclick="switchView('view-stocks-2025', this)">
+              <div class="nav-label-wrap">
+                <i class="fa-solid fa-boxes-packing"></i>
+                <span>Stocks from 2025</span>
+              </div>
+              <span class="nav-badge" id="navStocks2025Count" style="display:none;">0</span>
+            </a>
+          </li>
         </ul>
 
       </div>
@@ -3379,6 +3389,72 @@
       </section>
 
       <!-- ============================================================== -->
+      <!-- VIEW 6F: STOCKS FROM 2025 (CARRY-OVER INVENTORY) -->
+      <!-- ============================================================== -->
+      <section id="view-stocks-2025" class="view-section">
+        <div class="view-header">
+          <div class="view-title-group">
+            <h2><i class="fa-solid fa-boxes-packing" style="color:var(--accent);"></i> Stocks from 2025</h2>
+            <p id="stocks2025Subtitle">Carry-over inventory from Stocks from 2025.xlsx. Add quantities to On-Hand Inventory after migrating existing RR records.</p>
+          </div>
+          <div class="view-action-group">
+            <button type="button" class="btn btn-outline" onclick="exportStocks2025CSV()">
+              <i class="fa-solid fa-file-csv"></i> Export CSV
+            </button>
+            <button type="button" class="btn btn-primary" onclick="postAllStocks2025ToInventory()">
+              <i class="fa-solid fa-plus-circle"></i> Add All 2025 Qty to On-Hand Inventory
+            </button>
+          </div>
+        </div>
+
+        <div class="data-card">
+          <div class="data-card-body">
+            <div class="toolbar-bar" style="flex-wrap:wrap; gap:10px;">
+              <div class="search-input-wrap" style="min-width:240px; flex:1;">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" id="stocks2025SearchInput"
+                  placeholder="Search item code, description, UOM, or date..."
+                  oninput="renderStocks2025Table()">
+              </div>
+              <div class="filter-pills-bar" style="flex-wrap:wrap;">
+                <button type="button" class="pill-btn active" id="stocks2025PillAll" onclick="filterStocks2025Pill('ALL', this)">All (0)</button>
+                <button type="button" class="pill-btn" onclick="filterStocks2025Pill('WITH_QTY', this)">With Qty (&gt;0)</button>
+                <button type="button" class="pill-btn" onclick="filterStocks2025Pill('ZERO_QTY', this)">Zero Qty (0)</button>
+                <button type="button" class="pill-btn" onclick="filterStocks2025Pill('NO_CODE', this)">Missing Code</button>
+                <button type="button" class="pill-btn" onclick="filterStocks2025Pill('PENDING_POST', this)">Pending Add</button>
+                <button type="button" class="pill-btn" onclick="filterStocks2025Pill('POSTED', this)">Added to Inventory</button>
+              </div>
+              <span id="stocks2025SummaryPill" class="po-line-items-badge">0 Items • 0 Qty</span>
+            </div>
+
+            <div tabindex="0" role="region" aria-labelledby="stocks2025TableCaption" class="table-wrapper">
+              <table class="data-table">
+                <caption id="stocks2025TableCaption" class="visually-hidden">
+                  Stocks from 2025 Carry-Over Inventory Register
+                </caption>
+                <thead>
+                  <tr>
+                    <th style="width:50px;">#</th>
+                    <th style="min-width:155px;">Item Code</th>
+                    <th>Description</th>
+                    <th>UOM</th>
+                    <th>2025 Qty</th>
+                    <th>Date</th>
+                    <th>Remarks</th>
+                    <th>Inventory Sync</th>
+                    <th style="text-align:center;">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="stocks2025TableBody">
+                  <!-- Populated via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================== -->
       <!-- VIEW 7: DIRECTORY REGISTER (MASTER DATA MAPPING) -->
       <!-- ============================================================== -->
       <section id="view-directory" class="view-section">
@@ -4208,6 +4284,7 @@
     const SRV_KEY = 'warehouse_services_data';
     const CPX_KEY = 'warehouse_capex_data';
     const RR_MASTERFILE_KEY = 'warehouse_rr_masterfile_backup';
+    const STOCKS_2025_STATE_KEY = 'warehouse_stocks_2025_state';
 
     let inventoryItems = [];
     let purchaseOrders = [];
@@ -4219,6 +4296,8 @@
     let serviceRecords = [];
     let capexRecords = [];
     let rrMasterfile = [];
+    let stocks2025Items = [];
+    let currentStocks2025Filter = 'ALL';
 
     const CATEGORY_REGISTRIES = {
       fixed_assets: {
@@ -5221,6 +5300,9 @@
       } catch (e) { rrMasterfile = []; }
       syncAllActiveRrsToMasterfile(false, true);
 
+      // 9. Stocks from 2025 Carry-Over Register
+      loadStocks2025();
+
       populateItemDropdowns();
       renderAll();
       initPoForm();
@@ -5253,6 +5335,7 @@
       renderServicesTable();
       renderCapexTable();
       renderRrMasterfileTable();
+      renderStocks2025Table();
       renderAllDirectoryRegistries();
       updateBadges();
     }
@@ -5275,6 +5358,7 @@
       setBadge('navServicesCount', serviceRecords.length);
       setBadge('navCapexCount', capexRecords.length);
       setBadge('navRrMasterfileCount', rrMasterfile.length);
+      setBadge('navStocks2025Count', stocks2025Items.length);
       const notifEl = document.getElementById('notifBadge');
       if (notifEl) {
         if (pendingSupCount > 0) {
@@ -7111,6 +7195,353 @@
     }
 
     // ==============================================================
+    // STOCKS FROM 2025 (CARRY-OVER INVENTORY)
+    // ==============================================================
+    function loadStocks2025() {
+      const source = typeof stocksFrom2025Data !== 'undefined'
+        ? stocksFrom2025Data
+        : (window.stocksFrom2025Data || null);
+      if (source && Array.isArray(source.items)) {
+        stocks2025Items = JSON.parse(JSON.stringify(source.items));
+      } else {
+        stocks2025Items = [];
+      }
+
+      try {
+        const savedState = JSON.parse(localStorage.getItem(STOCKS_2025_STATE_KEY) || '{}');
+        if (savedState && typeof savedState === 'object') {
+          stocks2025Items.forEach(row => {
+            const st = savedState[row.id];
+            if (st) {
+              if (st.item_code !== undefined) row.item_code = st.item_code;
+              if (st.posted_to_inventory !== undefined) row.posted_to_inventory = Boolean(st.posted_to_inventory);
+              if (st.posted_qty !== undefined) row.posted_qty = Number(st.posted_qty) || 0;
+              if (st.posted_at !== undefined) row.posted_at = st.posted_at;
+              if (st.posted_created_new !== undefined) row.posted_created_new = Boolean(st.posted_created_new);
+            }
+          });
+        }
+      } catch (e) { }
+    }
+
+    function saveStocks2025State() {
+      const stateMap = {};
+      stocks2025Items.forEach(row => {
+        if (row.posted_to_inventory || row._codeEdited) {
+          stateMap[row.id] = {
+            item_code: row.item_code || '',
+            posted_to_inventory: Boolean(row.posted_to_inventory),
+            posted_qty: Number(row.posted_qty) || 0,
+            posted_at: row.posted_at || '',
+            posted_created_new: Boolean(row.posted_created_new)
+          };
+        }
+      });
+      localStorage.setItem(STOCKS_2025_STATE_KEY, JSON.stringify(stateMap));
+    }
+
+    function filterStocks2025Pill(pill, btn) {
+      currentStocks2025Filter = pill;
+      document.querySelectorAll('#view-stocks-2025 .pill-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      renderStocks2025Table();
+    }
+
+    function updateStocks2025ItemCode(id, rawCode) {
+      const row = stocks2025Items.find(x => x.id === id);
+      if (!row || row.posted_to_inventory) return;
+      row.item_code = String(rawCode || '').trim();
+      row._codeEdited = true;
+      saveStocks2025State();
+      sbSyncBackground(() => sbUpsertRows('stocks_2025', [row], mapStocks2025ToSb, null, 'id'));
+      renderStocks2025Table();
+    }
+
+    function applyStock2025RowToInventory(row) {
+      const code = String(row.item_code || '').trim();
+      const qty = parseFloat(row.qty_2025) || 0;
+      if (!code || qty <= 0 || row.posted_to_inventory) return null;
+
+      let inv = inventoryItems.find(x =>
+        (x.item_code || '').toLowerCase() === code.toLowerCase() ||
+        (x.item_id || '').toLowerCase() === code.toLowerCase()
+      );
+      let createdNew = false;
+
+      if (!inv) {
+        inv = {
+          item_id: code,
+          item_code: code,
+          description: row.description || '2025 Carry-Over Stock',
+          uom: row.uom || 'PCS',
+          expense_account: '2025 Carry-Over Stock',
+          category: '2025 Carry-Over Stock',
+          stock_2025_qty: qty,
+          deliveries_2026_qty: 0,
+          total_received_qty: qty,
+          total_issued_qty: 0,
+          on_hand_qty: qty,
+          unit_cost: 0,
+          on_hand_value: 0,
+          status: qty > 5 ? 'In Stock' : qty > 0 ? 'Low Stock' : 'Out of Stock'
+        };
+        inventoryItems.unshift(inv);
+        createdNew = true;
+      } else {
+        inv.stock_2025_qty = (parseFloat(inv.stock_2025_qty) || 0) + qty;
+        inv.total_received_qty = (parseFloat(inv.total_received_qty) || 0) + qty;
+        inv.on_hand_qty = (parseFloat(inv.on_hand_qty) || 0) + qty;
+        inv.on_hand_value = inv.on_hand_qty * (parseFloat(inv.unit_cost) || 0);
+        inv.status = inv.on_hand_qty > 5 ? 'In Stock' : inv.on_hand_qty > 0 ? 'Low Stock' : 'Out of Stock';
+      }
+
+      row.posted_to_inventory = true;
+      row.posted_qty = qty;
+      row.posted_at = new Date().toISOString();
+      row.posted_created_new = createdNew;
+      return inv;
+    }
+
+    function postSingleStock2025ToInventory(id) {
+      const row = stocks2025Items.find(x => x.id === id);
+      if (!row) return;
+      if (!row.item_code) {
+        showSystemAlert('Missing Item Code', 'Please enter an Item Code for this item before adding its 2025 Qty to On-Hand Inventory.', false);
+        return;
+      }
+      if ((parseFloat(row.qty_2025) || 0) <= 0) {
+        showSystemAlert('Zero Quantity', 'This item has 0 quantity in Stocks from 2025.', false);
+        return;
+      }
+      if (row.posted_to_inventory) {
+        showSystemAlert('Already Added', `${row.item_code} was already added to On-Hand Inventory.`, true);
+        return;
+      }
+
+      const inv = applyStock2025RowToInventory(row);
+      if (!inv) return;
+      saveInventoryItems();
+      saveStocks2025State();
+      populateItemDropdowns();
+      populateSlipItemCodeDatalist();
+      sbSyncBackground(() => sbUpsertRows('on_hand_inventory', [inv], mapInventoryToSb, null, 'item_id'));
+      sbSyncBackground(() => sbUpsertRows('stocks_2025', [row], mapStocks2025ToSb, null, 'id'));
+      renderAll();
+      showSystemAlert('2025 Stock Added', `Added ${row.posted_qty} ${row.uom} of "${row.item_code}" (${row.description}) to On-Hand Inventory.`, true);
+    }
+
+    function reverseSingleStock2025FromInventory(id) {
+      const row = stocks2025Items.find(x => x.id === id);
+      if (!row || !row.posted_to_inventory) return;
+      const qty = parseFloat(row.posted_qty) || 0;
+      const code = String(row.item_code || '').trim();
+
+      showSystemConfirm(
+        'Reverse 2025 Stock Addition',
+        `Subtract ${qty} ${row.uom} of "${code}" back out of On-Hand Inventory and mark it as Pending?`,
+        () => {
+          const invIdx = inventoryItems.findIndex(x =>
+            (x.item_code || '').toLowerCase() === code.toLowerCase() ||
+            (x.item_id || '').toLowerCase() === code.toLowerCase()
+          );
+          if (invIdx !== -1) {
+            const inv = inventoryItems[invIdx];
+            inv.stock_2025_qty = Math.max(0, (parseFloat(inv.stock_2025_qty) || 0) - qty);
+            inv.total_received_qty = Math.max(0, (parseFloat(inv.total_received_qty) || 0) - qty);
+            inv.on_hand_qty = Math.max(0, (parseFloat(inv.on_hand_qty) || 0) - qty);
+            inv.on_hand_value = inv.on_hand_qty * (parseFloat(inv.unit_cost) || 0);
+            inv.status = inv.on_hand_qty > 5 ? 'In Stock' : inv.on_hand_qty > 0 ? 'Low Stock' : 'Out of Stock';
+
+            if (row.posted_created_new && inv.total_received_qty <= 0 && inv.on_hand_qty <= 0 && (inv.total_issued_qty || 0) <= 0) {
+              const removedId = inv.item_id;
+              inventoryItems.splice(invIdx, 1);
+              sbSyncBackground(() => sbDeleteRow('on_hand_inventory', removedId, 'item_id'));
+            } else {
+              sbSyncBackground(() => sbUpsertRows('on_hand_inventory', [inv], mapInventoryToSb, null, 'item_id'));
+            }
+          }
+
+          row.posted_to_inventory = false;
+          row.posted_qty = 0;
+          row.posted_at = '';
+          row.posted_created_new = false;
+          saveInventoryItems();
+          saveStocks2025State();
+          populateItemDropdowns();
+          sbSyncBackground(() => sbUpsertRows('stocks_2025', [row], mapStocks2025ToSb, null, 'id'));
+          renderAll();
+          showSystemAlert('2025 Stock Reversed', `Reversed ${qty} ${row.uom} of "${code}" from On-Hand Inventory.`, true);
+        }
+      );
+    }
+
+    function postAllStocks2025ToInventory() {
+      const ready = stocks2025Items.filter(r => !r.posted_to_inventory && (parseFloat(r.qty_2025) || 0) > 0 && String(r.item_code || '').trim());
+      const missingCodeWithQty = stocks2025Items.filter(r => !r.posted_to_inventory && (parseFloat(r.qty_2025) || 0) > 0 && !String(r.item_code || '').trim());
+
+      if (ready.length === 0) {
+        const msg = missingCodeWithQty.length > 0
+          ? `All coded items with Qty > 0 are already added. ${missingCodeWithQty.length} item(s) still need an Item Code entered.`
+          : 'All eligible Stocks from 2025 quantities have already been added to On-Hand Inventory.';
+        showSystemAlert('Nothing to Add', msg, false);
+        return;
+      }
+
+      const totalQty = ready.reduce((s, r) => s + (parseFloat(r.qty_2025) || 0), 0);
+      const extraNote = missingCodeWithQty.length > 0
+        ? ` (${missingCodeWithQty.length} item(s) with missing Item Code will remain skipped until coded.)`
+        : '';
+
+      showSystemConfirm(
+        'Add 2025 Stock Qty to Inventory',
+        `Add ${totalQty.toLocaleString()} total units across ${ready.length} coded item row(s) from Stocks from 2025 into On-Hand Inventory?${extraNote}`,
+        () => {
+          const touchedInv = new Map();
+          ready.forEach(row => {
+            const inv = applyStock2025RowToInventory(row);
+            if (inv) touchedInv.set(inv.item_id, inv);
+          });
+          saveInventoryItems();
+          saveStocks2025State();
+          populateItemDropdowns();
+          populateSlipItemCodeDatalist();
+          sbSyncBackground(() => sbUpsertRows('on_hand_inventory', Array.from(touchedInv.values()), mapInventoryToSb, null, 'item_id'));
+          sbSyncBackground(() => sbUpsertRows('stocks_2025', ready, mapStocks2025ToSb, null, 'id'));
+          renderAll();
+          showSystemAlert('2025 Stocks Added to Inventory', `Successfully added ${totalQty.toLocaleString()} units across ${ready.length} row(s) to On-Hand Inventory.`, true);
+        },
+        { confirmText: 'Add to Inventory', isDanger: false, icon: 'fa-solid fa-boxes-packing' }
+      );
+    }
+
+    function renderStocks2025Table() {
+      const tbody = document.getElementById('stocks2025TableBody');
+      if (!tbody) return;
+
+      const allPill = document.getElementById('stocks2025PillAll');
+      if (allPill) allPill.textContent = `All (${stocks2025Items.length})`;
+
+      const q = (document.getElementById('stocks2025SearchInput')?.value || '').toLowerCase().trim();
+      let list = stocks2025Items.slice();
+
+      if (currentStocks2025Filter === 'WITH_QTY') {
+        list = list.filter(r => (parseFloat(r.qty_2025) || 0) > 0);
+      } else if (currentStocks2025Filter === 'ZERO_QTY') {
+        list = list.filter(r => (parseFloat(r.qty_2025) || 0) <= 0);
+      } else if (currentStocks2025Filter === 'NO_CODE') {
+        list = list.filter(r => !String(r.item_code || '').trim());
+      } else if (currentStocks2025Filter === 'PENDING_POST') {
+        list = list.filter(r => !r.posted_to_inventory && (parseFloat(r.qty_2025) || 0) > 0);
+      } else if (currentStocks2025Filter === 'POSTED') {
+        list = list.filter(r => r.posted_to_inventory);
+      }
+
+      if (q) {
+        list = list.filter(r =>
+          (r.item_code || '').toLowerCase().includes(q) ||
+          (r.description || '').toLowerCase().includes(q) ||
+          (r.uom || '').toLowerCase().includes(q) ||
+          (r.date_delivered || '').toLowerCase().includes(q)
+        );
+      }
+
+      const summaryEl = document.getElementById('stocks2025SummaryPill');
+      if (summaryEl) {
+        const totalQty = list.reduce((s, r) => s + (parseFloat(r.qty_2025) || 0), 0);
+        const postedCount = list.filter(r => r.posted_to_inventory).length;
+        summaryEl.textContent = `${list.length} Items • ${totalQty.toLocaleString()} Qty • ${postedCount} Added`;
+      }
+
+      if (list.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="9" style="text-align:center; padding:42px 20px; color:var(--text-muted);">
+              <i class="fa-solid fa-boxes-packing" style="font-size:2rem; opacity:0.4; margin-bottom:10px; display:block; color:var(--accent);"></i>
+              <strong>No matching 2025 stock items</strong>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = list.map((r, idx) => {
+        const qty = parseFloat(r.qty_2025) || 0;
+        const hasCode = Boolean(String(r.item_code || '').trim());
+        let statusHtml = '';
+        let actionHtml = '';
+
+        if (r.posted_to_inventory) {
+          statusHtml = `<span class="status-badge active"><i class="fa-solid fa-circle-check"></i> Added (${r.posted_qty || qty})</span>`;
+          actionHtml = `
+            <button type="button" class="btn btn-outline btn-sm" onclick="reverseSingleStock2025FromInventory('${r.id}')" title="Reverse from On-Hand Inventory" style="color:#d97706; border-color:#fde68a;">
+              <i class="fa-solid fa-rotate-left"></i> Undo
+            </button>
+          `;
+        } else if (qty <= 0) {
+          statusHtml = `<span class="status-badge" style="background:#f1f5f9; color:#64748b;">Zero Qty</span>`;
+          actionHtml = `<span style="font-size:0.75rem; color:var(--text-muted);">—</span>`;
+        } else if (!hasCode) {
+          statusHtml = `<span class="status-badge warning">Needs Item Code</span>`;
+          actionHtml = `<span style="font-size:0.74rem; color:var(--text-muted);">Enter code first</span>`;
+        } else {
+          statusHtml = `<span class="status-badge in-progress">Pending Add</span>`;
+          actionHtml = `
+            <button type="button" class="btn btn-primary btn-sm" onclick="postSingleStock2025ToInventory('${r.id}')" style="background:#059669; border-color:#059669;">
+              <i class="fa-solid fa-plus"></i> Add Qty
+            </button>
+          `;
+        }
+
+        const codeCellHtml = r.posted_to_inventory
+          ? `<span class="code-badge">${escapeHtml(r.item_code)}</span>`
+          : `<input type="text"
+              class="slip-item-code-input"
+              style="min-width:130px; padding:4px 7px; font-size:0.74rem;"
+              value="${escapeHtml(r.item_code || '')}"
+              list="slipItemCodeList"
+              placeholder="Enter Item Code..."
+              autocorrect="off"
+              autocapitalize="none"
+              spellcheck="false"
+              aria-label="Item Code for ${escapeHtml(r.description)}"
+              onchange="updateStocks2025ItemCode('${r.id}', this.value)">`;
+
+        return `
+          <tr>
+            <th scope="row" style="color:var(--text-muted); font-weight:600;">${idx + 1}</th>
+            <td data-label="Item Code">${codeCellHtml}</td>
+            <td data-label="Description"><strong>${escapeHtml(r.description)}</strong></td>
+            <td data-label="UOM">${escapeHtml(r.uom || 'PCS')}</td>
+            <td data-label="2025 Qty"><strong style="color:${qty > 0 ? 'var(--primary)' : 'var(--text-muted)'};">${qty}</strong></td>
+            <td data-label="Date">${escapeHtml(r.date_delivered || '—')}</td>
+            <td data-label="Remarks" style="font-size:0.75rem; color:var(--text-muted);">${escapeHtml(r.remarks || 'STOCKS FROM 2025')}</td>
+            <td data-label="Inventory Sync">${statusHtml}</td>
+            <td data-label="Action" style="text-align:center; white-space:nowrap;">${actionHtml}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function exportStocks2025CSV() {
+      if (stocks2025Items.length === 0) return showSystemAlert('No Data', 'No 2025 stock items to export.', false);
+      const esc = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+      let csv = 'Row No,Item Code,Description,UOM,2025 Qty,Date Delivered,Remarks,Added to Inventory\n';
+      stocks2025Items.forEach((r, i) => {
+        csv += [
+          i + 1,
+          esc(r.item_code),
+          esc(r.description),
+          esc(r.uom),
+          r.qty_2025 || 0,
+          esc(r.date_delivered),
+          esc(r.remarks),
+          r.posted_to_inventory ? 'Yes' : 'No'
+        ].join(',') + '\n';
+      });
+      downloadCSV(csv, 'Stocks_From_2025.csv');
+    }
+
+    // ==============================================================
     // CSV EXPORTS
     // ==============================================================
 
@@ -8012,6 +8443,22 @@
       };
     }
 
+    function mapStocks2025ToSb(row) {
+      return {
+        id: String(row.id),
+        row_no: Number(row.row_no) || 0,
+        item_code: row.item_code || '',
+        description: row.description || '',
+        uom: row.uom || 'PCS',
+        qty_2025: Number(row.qty_2025) || 0,
+        date_delivered: normalizeIsoDate(row.date_delivered),
+        supplier: row.supplier || 'RECORDS FROM 2025 INVENTORY',
+        remarks: row.remarks || 'STOCKS FROM 2025',
+        posted_to_inventory: Boolean(row.posted_to_inventory),
+        posted_at: row.posted_at || null
+      };
+    }
+
     function resolveRrPrfNo(r) {
       if (r.prf_no) return String(r.prf_no);
       const linkedPo = purchaseOrders.find(p => p.po_no === r.po_no);
@@ -8453,6 +8900,32 @@
           return changed;
         };
 
+        const mergeStocks2025FromSb = async () => {
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/stocks_2025?select=*&limit=500`, { headers: sbHeaders() });
+          if (!res.ok) return null;
+          const rows = await res.json();
+          if (!Array.isArray(rows) || rows.length === 0) return null;
+          let changed = 0;
+          rows.forEach(r => {
+            const local = stocks2025Items.find(x => String(x.id) === String(r.id));
+            if (local) {
+              if (r.item_code && !local.item_code) {
+                local.item_code = r.item_code;
+                local._codeEdited = true;
+                changed++;
+              }
+              if (r.posted_to_inventory && !local.posted_to_inventory) {
+                local.posted_to_inventory = true;
+                local.posted_qty = Number(local.qty_2025) || 0;
+                local.posted_at = r.posted_at || '';
+                changed++;
+              }
+            }
+          });
+          if (changed > 0) saveStocks2025State();
+          return changed;
+        };
+
         await Promise.allSettled([
           mergeRegistry('projects_registry', regProjects, REG_PROJECTS_KEY, r => ({ id: r.id, name: r.project_name, location: r.location || '' })),
           mergeRegistry('departments_registry', regDepartments, REG_DEPTS_KEY, r => ({ id: r.id, name: r.department_name })),
@@ -8505,6 +8978,7 @@
             };
           }, true),
           mergeInventoryFromSb(),
+          mergeStocks2025FromSb(),
           mergeRegistry('fixed_assets_registry', fixedAssets, FA_KEY, mapCategoryFromSb, true),
           mergeRegistry('services_registry', serviceRecords, SRV_KEY, mapCategoryFromSb, true),
           mergeRegistry('capex_registry', capexRecords, CPX_KEY, mapCategoryFromSb, true),
@@ -8568,6 +9042,7 @@
         { label: 'RR Masterfile Register', table: 'rr_masterfile_registry', fn: () => sbUpsertRows('rr_masterfile_registry', rrMasterfile, mapRrMasterfileToSb, null, 'id') },
         { label: 'Material Issuances', table: 'material_issuances', fn: () => sbUpsertRows('material_issuances', materialIssuances, mapMisToSbFull, mapMisToSbCore, 'id') },
         { label: 'On-Hand Inventory', table: 'on_hand_inventory', fn: () => sbUpsertRows('on_hand_inventory', inventoryItems, mapInventoryToSb, null, 'item_id') },
+        { label: 'Stocks from 2025', table: 'stocks_2025', fn: () => sbUpsertRows('stocks_2025', stocks2025Items, mapStocks2025ToSb, null, 'id') },
         { label: 'Fixed Asset Registry', table: 'fixed_assets_registry', fn: () => sbUpsertRows('fixed_assets_registry', fixedAssets, mapCategoryRecordToSb, null, 'id') },
         { label: 'Services Registry', table: 'services_registry', fn: () => sbUpsertRows('services_registry', serviceRecords, mapCategoryRecordToSb, null, 'id') },
         { label: 'CAPEX Registry', table: 'capex_registry', fn: () => sbUpsertRows('capex_registry', capexRecords, mapCategoryRecordToSb, null, 'id') }
