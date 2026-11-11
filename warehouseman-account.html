@@ -2276,13 +2276,6 @@
 
     <!-- Header Actions -->
     <div class="header-right">
-      <button type="button" id="supabaseSyncBtn" onclick="syncAllDataToSupabase(true)"
-        title="Map &amp; Send All Encoded Data to Supabase"
-        style="display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:20px; border:1px solid rgba(252,174,22,0.45); background:rgba(252,174,22,0.14); color:var(--accent); font-size:0.74rem; font-weight:600; cursor:pointer; font-family:inherit; transition:all 0.2s;">
-        <i class="fa-solid fa-cloud-arrow-up" id="supabaseSyncIcon"></i>
-        <span id="supabaseSyncLabel">Sync DB</span>
-      </button>
-
       <button type="button" class="theme-toggle-btn" title="Toggle Dark/Light Mode" onclick="toggleTheme()"
         style="background:transparent; border:none;">
         <i class="fa-solid fa-moon" id="themeIcon"></i>
@@ -2394,7 +2387,6 @@
                 <i class="fa-solid fa-cubes"></i>
                 <span>Fixed Asset Registry</span>
               </div>
-              <span class="nav-badge" id="navFixedAssetsCount" style="display:none;">0</span>
             </a>
           </li>
           <li class="nav-item" data-view="view-services">
@@ -2403,7 +2395,6 @@
                 <i class="fa-solid fa-screwdriver-wrench"></i>
                 <span>Services</span>
               </div>
-              <span class="nav-badge" id="navServicesCount" style="display:none;">0</span>
             </a>
           </li>
           <li class="nav-item" data-view="view-capex">
@@ -2412,7 +2403,6 @@
                 <i class="fa-solid fa-landmark"></i>
                 <span>Capex</span>
               </div>
-              <span class="nav-badge" id="navCapexCount" style="display:none;">0</span>
             </a>
           </li>
           <li class="nav-item" data-view="view-rr-masterfile">
@@ -2421,7 +2411,6 @@
                 <i class="fa-solid fa-box-archive"></i>
                 <span>RR Masterfile Register</span>
               </div>
-              <span class="nav-badge" id="navRrMasterfileCount" style="display:none;">0</span>
             </a>
           </li>
           <li class="nav-item" data-view="view-stocks-2025">
@@ -2430,7 +2419,6 @@
                 <i class="fa-solid fa-boxes-packing"></i>
                 <span>Stocks from 2025</span>
               </div>
-              <span class="nav-badge" id="navStocks2025Count" style="display:none;">0</span>
             </a>
           </li>
         </ul>
@@ -2461,104 +2449,6 @@
             <p>Real-time physical stock turnover, purchase order pipeline, receiving inspections, and warehouse
               issuances.</p>
           </div>
-          <div class="view-action-group">
-            <button class="btn btn-outline" onclick="exportWarehouseSummaryCSV()">
-              <i class="fa-solid fa-file-csv"></i> Export Site Summary
-            </button>
-            <button class="btn btn-accent" onclick="openAddIssuanceModal()">
-              <i class="fa-solid fa-plus"></i> Log Material Issuance
-            </button>
-            <button class="btn btn-primary" onclick="openAddPoModal()">
-              <i class="fa-solid fa-file-invoice"></i> Record Purchase Order
-            </button>
-          </div>
-        </div>
-
-        <!-- TWO COLUMN DASHBOARD CARDS (EXACT PMIS DESIGN & COLORING) -->
-        <div style="display:grid; grid-template-columns: 2fr 1fr; gap:22px; margin-bottom:24px;">
-
-          <!-- LEFT CARD: STOCK VALUATION & CAPACITY -->
-          <div class="data-card">
-            <div class="data-card-header">
-              <div class="data-card-title">
-                <i class="fa-solid fa-boxes-packing" style="color:var(--accent);"></i>
-                <span>On-Hand Stock Movement vs. Storage Capacity</span>
-              </div>
-              <span class="status-badge in-progress" id="whScopeBadge">WH-01</span>
-            </div>
-            <div class="data-card-body">
-              <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:0.85rem;">
-                <span><strong>Catalog Items Tracked:</strong> <span id="dashCatalogCount">588 Items</span></span>
-                <span><strong>Total Stock Valuation:</strong> <span id="dashValuation"
-                    style="color:var(--success); font-weight:700;">₱ 5,068,655.10</span></span>
-              </div>
-              <div style="background:#e2e8f0; height:14px; border-radius:6px; overflow:hidden; margin-bottom:16px;">
-                <div
-                  style="background:linear-gradient(90deg, #0284c7, #10b981); width:68%; height:100%; border-radius:6px;">
-                </div>
-              </div>
-
-              <!-- Storage Details / Milestones list -->
-              <div style="display:flex; flex-direction:column; gap:10px; margin-top:14px;">
-                <div
-                  style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:var(--bg); border:1px solid var(--border); border-radius:6px; font-size:0.83rem;">
-                  <span><i class="fa-solid fa-circle-check" style="color:var(--success);"></i> <strong>In Stock Items
-                      (&gt; 5 units):</strong></span>
-                  <strong style="color:var(--success);" id="dashInStockCount">187 Items</strong>
-                </div>
-                <div
-                  style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:var(--bg); border:1px solid var(--border); border-radius:6px; font-size:0.83rem;">
-                  <span><i class="fa-solid fa-triangle-exclamation" style="color:var(--warning);"></i> <strong>Low Stock
-                      Watchlist (&lt;= 5 units):</strong></span>
-                  <strong style="color:var(--warning);" id="dashLowStockCount">319 Items</strong>
-                </div>
-                <div
-                  style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:var(--bg); border:1px solid var(--border); border-radius:6px; font-size:0.83rem;">
-                  <span><i class="fa-solid fa-circle-xmark" style="color:var(--danger);"></i> <strong>Depleted / Reorder
-                      Required:</strong></span>
-                  <strong style="color:var(--danger);" id="dashOutOfStockCount">82 Items</strong>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- RIGHT CARD: SITE DETAILS & KEY INFO -->
-          <div class="data-card">
-            <div class="data-card-header">
-              <div class="data-card-title">
-                <i class="fa-solid fa-compass" style="color:var(--accent);"></i>
-                <span>Site Details &amp; Key Info</span>
-              </div>
-              <span class="status-badge active">Active Store</span>
-            </div>
-            <div class="data-card-body" style="font-size:0.83rem; line-height:1.6;">
-              <div style="display:flex; flex-direction:column; gap:12px;">
-                <div
-                  style="padding:10px; border-radius:6px; background:var(--bg); border-left:4px solid var(--accent);">
-                  <div style="font-size:0.75rem; color:var(--text-muted); font-weight:600; text-transform:uppercase;">
-                    Primary Warehouse Location</div>
-                  <strong id="dashLocation">North Harbor Central Warehouse, Manila</strong>
-                </div>
-                <div
-                  style="padding:10px; border-radius:6px; background:var(--bg); border-left:4px solid var(--success);">
-                  <div style="font-size:0.75rem; color:var(--text-muted); font-weight:600; text-transform:uppercase;">
-                    Managing Department</div>
-                  <strong>Materials Management &amp; Logistics</strong>
-                </div>
-                <div style="padding:10px; border-radius:6px; background:var(--bg); border-left:4px solid var(--info);">
-                  <div style="font-size:0.75rem; color:var(--text-muted); font-weight:600; text-transform:uppercase;">
-                    Warehouse Custodian / Officer</div>
-                  <strong>Michael N. Antiquin (Storekeeper)</strong>
-                </div>
-                <div style="padding:10px; border-radius:6px; background:var(--bg); border-left:4px solid #f59e0b;">
-                  <div style="font-size:0.75rem; color:var(--text-muted); font-weight:600; text-transform:uppercase;">
-                    Operating Hours &amp; Delivery Intake</div>
-                  <strong>Mon - Sat (07:00 AM - 05:00 PM)</strong>
-                </div>
-              </div>
-            </div>
-          </div>
-
         </div>
 
         <!-- RECENT WAREHOUSE TRANSACTIONS TABLE -->
@@ -5443,11 +5333,6 @@
 
       const pendingSupCount = suppliesRequests.filter(s => s.status === 'Pending').length;
       setBadge('navSuppliesCount', pendingSupCount);
-      setBadge('navFixedAssetsCount', fixedAssets.length);
-      setBadge('navServicesCount', serviceRecords.length);
-      setBadge('navCapexCount', capexRecords.length);
-      setBadge('navRrMasterfileCount', rrMasterfile.length);
-      setBadge('navStocks2025Count', stocks2025Items.length);
       const notifEl = document.getElementById('notifBadge');
       if (notifEl) {
         if (pendingSupCount > 0) {
@@ -5463,6 +5348,11 @@
     // RENDER: DASHBOARD
     // ==============================================================
     function renderDashboard() {
+      const setDashText = (id, text) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = text;
+      };
+
       let totalVal = 0;
       let inStock = 0;
       let lowStock = 0;
@@ -5475,11 +5365,11 @@
         else outStock++;
       });
 
-      document.getElementById('dashCatalogCount').textContent = `${inventoryItems.length} Items`;
-      document.getElementById('dashValuation').textContent = formatCurrency(totalVal);
-      document.getElementById('dashInStockCount').textContent = `${inStock} Items`;
-      document.getElementById('dashLowStockCount').textContent = `${lowStock} Items`;
-      document.getElementById('dashOutOfStockCount').textContent = `${outStock} Items`;
+      setDashText('dashCatalogCount', `${inventoryItems.length} Items`);
+      setDashText('dashValuation', formatCurrency(totalVal));
+      setDashText('dashInStockCount', `${inStock} Items`);
+      setDashText('dashLowStockCount', `${lowStock} Items`);
+      setDashText('dashOutOfStockCount', `${outStock} Items`);
 
       // Recent Transactions
       const tbody = document.getElementById('dashMovementsTableBody');
