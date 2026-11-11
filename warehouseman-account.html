@@ -15,6 +15,7 @@
   <!-- Master On-Hand Inventory Data (paused for re-upload; re-enable script below when ready) -->
   <!-- <script src="on_hand_inventory_data.js"></script> -->
   <script src="stocks_2025_data.js"></script>
+  <script src="migrated_2026_data.js"></script>
 
   <style>
     :root {
@@ -4285,6 +4286,7 @@
     const CPX_KEY = 'warehouse_capex_data';
     const RR_MASTERFILE_KEY = 'warehouse_rr_masterfile_backup';
     const STOCKS_2025_STATE_KEY = 'warehouse_stocks_2025_state';
+    const MIGRATION_2026_KEY = 'warehouse_migrated_2026_applied_v1';
 
     let inventoryItems = [];
     let purchaseOrders = [];
@@ -4556,11 +4558,12 @@
       delete item.posted_created_new;
     }
 
-    function applyRrItemPosting(r, rowIdx, item, itemCode, target, normalizedType) {
+    function applyRrItemPosting(r, rowIdx, item, itemCode, target, normalizedType, options = {}) {
       const qty = parseFloat(item.qty) || 1;
       const cost = parseFloat(item.cost) || 0;
       const rowTotal = item.rowTotal !== undefined ? (parseFloat(item.rowTotal) || (qty * cost)) : (qty * cost);
       const uom = (item.uom || 'PCS').toUpperCase();
+      const deferPersist = Boolean(options.deferPersist);
 
       if (target.key === 'inventory') {
         let inv = inventoryItems.find(x =>
@@ -4596,9 +4599,11 @@
           inv.on_hand_value = inv.on_hand_qty * (parseFloat(inv.unit_cost) || 0);
           inv.status = inv.on_hand_qty > 5 ? 'In Stock' : inv.on_hand_qty > 0 ? 'Low Stock' : 'Out of Stock';
         }
-        saveInventoryItems();
-        populateItemDropdowns();
-        sbSyncBackground(() => sbUpsertRows('on_hand_inventory', [inv], mapInventoryToSb, null, 'item_id'));
+        if (!deferPersist) {
+          saveInventoryItems();
+          populateItemDropdowns();
+          sbSyncBackground(() => sbUpsertRows('on_hand_inventory', [inv], mapInventoryToSb, null, 'item_id'));
+        }
         item.posted_created_new = createdNew;
       } else if (CATEGORY_REGISTRIES[target.key]) {
         const cfg = CATEGORY_REGISTRIES[target.key];
@@ -4630,8 +4635,10 @@
           list.unshift(record);
         }
         cfg.setList(list);
-        localStorage.setItem(cfg.storageKey, JSON.stringify(list));
-        sbSyncBackground(() => sbUpsertRows(cfg.sbTable, [record], mapCategoryRecordToSb, null, 'id'));
+        if (!deferPersist) {
+          localStorage.setItem(cfg.storageKey, JSON.stringify(list));
+          sbSyncBackground(() => sbUpsertRows(cfg.sbTable, [record], mapCategoryRecordToSb, null, 'id'));
+        }
         item.posted_created_new = false;
       }
 
@@ -5303,6 +5310,9 @@
       // 9. Stocks from 2025 Carry-Over Register
       loadStocks2025();
 
+      // 10. Migrate 2026 PO & MRR records once per browser storage
+      migrate2026RecordsIfNeeded();
+
       populateItemDropdowns();
       renderAll();
       initPoForm();
@@ -5311,16 +5321,80 @@
       populateMisSuppliesDropdown();
     }
 
+    function migrate2026RecordsIfNeeded() {
+      if (localStorage.getItem(MIGRATION_2026_KEY) === '1') return;
+      const src = typeof migrated2026Data !== 'undefined'
+        ? migrated2026Data
+        : (window.migrated2026Data || null);
+      if (!src) return;
+
+      let poAdded = 0;
+      if (Array.isArray(src.purchaseOrders)) {
+        const existingPoIds = new Set(purchaseOrders.map(p => String(p.id)));
+        const existingPoNos = new Set(purchaseOrders.map(p => String(p.po_no || '').trim().toUpperCase()));
+        src.purchaseOrders.forEach(p => {
+          const poKey = String(p.po_no || '').trim().toUpperCase();
+          if (!existingPoIds.has(String(p.id)) && (!poKey || !existingPoNos.has(poKey))) {
+            purchaseOrders.push(JSON.parse(JSON.stringify(p)));
+            existingPoIds.add(String(p.id));
+            if (poKey) existingPoNos.add(poKey);
+            poAdded++;
+          }
+        });
+      }
+
+      let rrAdded = 0;
+      if (Array.isArray(src.receivingReports)) {
+        const existingRrIds = new Set(receivingReports.map(r => String(r.id)));
+        const existingRrKeys = new Set(receivingReports.map(r => `${String(r.rr_no || '').trim().toUpperCase()}||${String(r.po_no || '').trim().toUpperCase()}`));
+
+        src.receivingReports.forEach(rawRr => {
+          const rrKey = `${String(rawRr.rr_no || '').trim().toUpperCase()}||${String(rawRr.po_no || '').trim().toUpperCase()}`;
+          if (existingRrIds.has(String(rawRr.id)) || existingRrKeys.has(rrKey)) return;
+
+          const rr = JSON.parse(JSON.stringify(rawRr));
+          const normalizedType = normalizeItemType(rr.item_type || rr.expense_account || '');
+          const target = getRegistryTargetForItemType(normalizedType);
+
+          if (target && Array.isArray(rr.items)) {
+            rr.items.forEach((it, idx) => {
+              const code = String(it.item_code || '').trim();
+              if (code && !it.posted_target) {
+                applyRrItemPosting(rr, idx, it, code, target, normalizedType, { deferPersist: true });
+              }
+            });
+          }
+
+          receivingReports.push(rr);
+          syncRrToMasterfile(rr, 'Active', true);
+          existingRrIds.add(String(rr.id));
+          existingRrKeys.add(rrKey);
+          rrAdded++;
+        });
+      }
+
+      if (poAdded > 0) localStorage.setItem(PO_KEY, JSON.stringify(purchaseOrders));
+      if (rrAdded > 0) {
+        localStorage.setItem(RR_KEY, JSON.stringify(receivingReports));
+        localStorage.setItem(RR_MASTERFILE_KEY, JSON.stringify(rrMasterfile));
+        saveInventoryItems();
+        Object.values(CATEGORY_REGISTRIES).forEach(cfg => {
+          localStorage.setItem(cfg.storageKey, JSON.stringify(cfg.getList()));
+        });
+      }
+      localStorage.setItem(MIGRATION_2026_KEY, '1');
+    }
+
     function populateItemDropdowns() {
       const misSel = document.getElementById('mMisItemSelect');
       const adjSel = document.getElementById('mAdjItemSelect');
       if (misSel) {
         misSel.innerHTML = '<option value="">-- Choose Stock Item --</option>' +
-          inventoryItems.slice(0, 300).map(it => `<option value="${it.item_id}">${it.item_code}: ${it.description} (Bal: ${it.on_hand_qty} ${it.uom})</option>`).join('');
+          inventoryItems.map(it => `<option value="${it.item_id}">${it.item_code}: ${it.description} (Bal: ${it.on_hand_qty} ${it.uom})</option>`).join('');
       }
       if (adjSel) {
         adjSel.innerHTML = '<option value="">-- Choose Stock Item --</option>' +
-          inventoryItems.slice(0, 300).map(it => `<option value="${it.item_id}">${it.item_code}: ${it.description}</option>`).join('');
+          inventoryItems.map(it => `<option value="${it.item_id}">${it.item_code}: ${it.description}</option>`).join('');
       }
     }
 
@@ -5651,9 +5725,9 @@
       let maxNum = 0;
       purchaseOrders.forEach(p => {
         if (!p.po_no) return;
-        const m = p.po_no.match(/PO-(\d{4})-(\d+)/i) || p.po_no.match(/(\d+)$/);
+        const m = p.po_no.match(/^PO-(\d{4})-(\d+)/i);
         if (m) {
-          const n = parseInt(m[2] || m[1], 10);
+          const n = parseInt(m[2], 10);
           if (n > maxNum) maxNum = n;
         }
       });
@@ -6003,9 +6077,9 @@
       let maxNum = 0;
       receivingReports.forEach(r => {
         if (!r.rr_no) return;
-        const m = r.rr_no.match(/RR-(\d{4})-(\d+)/i) || r.rr_no.match(/(\d+)$/);
+        const m = r.rr_no.match(/^RR-(\d{4})-(\d+)/i);
         if (m) {
-          const n = parseInt(m[2] || m[1], 10);
+          const n = parseInt(m[2], 10);
           if (n > maxNum) maxNum = n;
         }
       });
