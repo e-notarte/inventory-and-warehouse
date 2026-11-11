@@ -206,6 +206,72 @@ CREATE TABLE IF NOT EXISTS on_hand_inventory (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- 12. FIXED ASSET REGISTRY (FROM RECEIVING REPORTS WITH ITEM TYPE = FIXED ASSETS)
+CREATE TABLE IF NOT EXISTS fixed_assets_registry (
+    id TEXT PRIMARY KEY,
+    item_code TEXT NOT NULL,
+    description TEXT NOT NULL,
+    item_type TEXT DEFAULT 'Fixed Assets',
+    qty NUMERIC(12,2) DEFAULT 1,
+    uom TEXT DEFAULT 'PCS',
+    unit_cost NUMERIC(12,2) DEFAULT 0.00,
+    total_amount NUMERIC(15,2) DEFAULT 0.00,
+    rr_id TEXT,
+    rr_no VARCHAR(50),
+    po_no VARCHAR(50),
+    date_received DATE DEFAULT CURRENT_DATE,
+    supplier_name VARCHAR(150),
+    project VARCHAR(150),
+    department VARCHAR(100),
+    condition VARCHAR(100) DEFAULT 'Accepted in Good Condition',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 13. SERVICES REGISTRY (FROM RECEIVING REPORTS WITH ITEM TYPE = SERVICES)
+CREATE TABLE IF NOT EXISTS services_registry (
+    id TEXT PRIMARY KEY,
+    item_code TEXT NOT NULL,
+    description TEXT NOT NULL,
+    item_type TEXT DEFAULT 'Services',
+    qty NUMERIC(12,2) DEFAULT 1,
+    uom TEXT DEFAULT 'LOT',
+    unit_cost NUMERIC(12,2) DEFAULT 0.00,
+    total_amount NUMERIC(15,2) DEFAULT 0.00,
+    rr_id TEXT,
+    rr_no VARCHAR(50),
+    po_no VARCHAR(50),
+    date_received DATE DEFAULT CURRENT_DATE,
+    supplier_name VARCHAR(150),
+    project VARCHAR(150),
+    department VARCHAR(100),
+    condition VARCHAR(100) DEFAULT 'Accepted in Good Condition',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 14. CAPEX REGISTRY (FROM RECEIVING REPORTS WITH ITEM TYPE = CAPITAL EXPENDITURE)
+CREATE TABLE IF NOT EXISTS capex_registry (
+    id TEXT PRIMARY KEY,
+    item_code TEXT NOT NULL,
+    description TEXT NOT NULL,
+    item_type TEXT DEFAULT 'Capital Expenditure',
+    qty NUMERIC(12,2) DEFAULT 1,
+    uom TEXT DEFAULT 'UNIT',
+    unit_cost NUMERIC(12,2) DEFAULT 0.00,
+    total_amount NUMERIC(15,2) DEFAULT 0.00,
+    rr_id TEXT,
+    rr_no VARCHAR(50),
+    po_no VARCHAR(50),
+    date_received DATE DEFAULT CURRENT_DATE,
+    supplier_name VARCHAR(150),
+    project VARCHAR(150),
+    department VARCHAR(100),
+    condition VARCHAR(100) DEFAULT 'Accepted in Good Condition',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- ====================================================================
 -- PART 3: ROW LEVEL SECURITY (RLS) POLICIES (IDEMPOTENT)
 -- ====================================================================
@@ -220,6 +286,9 @@ ALTER TABLE purchase_orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE receiving_reports ENABLE ROW LEVEL SECURITY;
 ALTER TABLE material_issuances ENABLE ROW LEVEL SECURITY;
 ALTER TABLE on_hand_inventory ENABLE ROW LEVEL SECURITY;
+ALTER TABLE fixed_assets_registry ENABLE ROW LEVEL SECURITY;
+ALTER TABLE services_registry ENABLE ROW LEVEL SECURITY;
+ALTER TABLE capex_registry ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Allow public read/write for projects_registry" ON projects_registry;
 CREATE POLICY "Allow public read/write for projects_registry" ON projects_registry FOR ALL USING (true) WITH CHECK (true);
@@ -253,3 +322,12 @@ CREATE POLICY "Allow public read/write for material_issuances" ON material_issua
 
 DROP POLICY IF EXISTS "Allow public read/write for on_hand_inventory" ON on_hand_inventory;
 CREATE POLICY "Allow public read/write for on_hand_inventory" ON on_hand_inventory FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow public read/write for fixed_assets_registry" ON fixed_assets_registry;
+CREATE POLICY "Allow public read/write for fixed_assets_registry" ON fixed_assets_registry FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow public read/write for services_registry" ON services_registry;
+CREATE POLICY "Allow public read/write for services_registry" ON services_registry FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow public read/write for capex_registry" ON capex_registry;
+CREATE POLICY "Allow public read/write for capex_registry" ON capex_registry FOR ALL USING (true) WITH CHECK (true);
