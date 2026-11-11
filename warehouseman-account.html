@@ -2854,9 +2854,11 @@
                 <label for="mrrPoSelect">
                   <i class="fa-regular fa-file-lines"></i> PO No. <span class="po-req">*</span>
                 </label>
-                <select id="mrrPoSelect" class="form-control-neat" onchange="onMrrPoChange(this.value)" required>
-                  <option value="">Select a Purchase Order</option>
-                </select>
+                <input type="text" id="mrrPoSelect" list="mrrPoOptions" class="form-control-neat"
+                  placeholder="Type or select a Purchase Order..."
+                  autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
+                  oninput="onMrrPoInput(this.value)" onchange="onMrrPoChange(this.value)" required>
+                <datalist id="mrrPoOptions"></datalist>
               </div>
 
               <!-- PO DATE -->
@@ -5412,6 +5414,7 @@
       renderRrMasterfileTable();
       renderStocks2025Table();
       renderAllDirectoryRegistries();
+      populateMrrPoDropdown();
       updateBadges();
     }
 
@@ -6101,65 +6104,114 @@
       calcMrrFormTotals();
     }
 
-    function populateMrrPoDropdown() {
-      const select = document.getElementById('mrrPoSelect');
-      if (!select) return;
-      const currentVal = select.value;
-      select.innerHTML = '<option value="">Select a Purchase Order</option>';
-      purchaseOrders.forEach(p => {
-        const opt = document.createElement('option');
-        opt.value = p.po_no;
-        opt.textContent = `${p.po_no} (${p.supplier_name || 'Supplier'} - ${formatCurrency(p.grand_total)})`;
-        select.appendChild(opt);
+    function getPendingPosWithoutRr() {
+      const rrPoSet = new Set(
+        receivingReports
+          .map(r => String(r.po_no || '').trim().toUpperCase())
+          .filter(Boolean)
+      );
+      return purchaseOrders.filter(p => {
+        const key = String(p.po_no || '').trim().toUpperCase();
+        return key && !rrPoSet.has(key);
       });
-      if (currentVal) select.value = currentVal;
+    }
+
+    function populateMrrPoDropdown() {
+      const datalist = document.getElementById('mrrPoOptions');
+      const input = document.getElementById('mrrPoSelect');
+      if (!datalist) return;
+      const pendingPos = getPendingPosWithoutRr();
+      datalist.innerHTML = pendingPos.map(p =>
+        `<option value="${escapeHtml(p.po_no)}">${escapeHtml(`${p.supplier_name || 'Supplier'} - ${formatCurrency(p.grand_total)}`)}</option>`
+      ).join('');
+      if (input) {
+        input.placeholder = pendingPos.length > 0
+          ? `Type or select PO No. (${pendingPos.length} pending)`
+          : 'All POs have Receiving Reports (type custom PO No.)';
+      }
+    }
+
+    function findMrrPoMatch(rawVal, allowPartialUnique = false) {
+      const query = String(rawVal || '').trim().toLowerCase();
+      if (!query) return null;
+      const exact = purchaseOrders.find(p => String(p.po_no || '').trim().toLowerCase() === query);
+      if (exact) return exact;
+      if (!allowPartialUnique) return null;
+      const pendingMatches = getPendingPosWithoutRr().filter(p =>
+        String(p.po_no || '').trim().toLowerCase().includes(query)
+      );
+      return pendingMatches.length === 1 ? pendingMatches[0] : null;
+    }
+
+    function applyPoToMrrForm(po) {
+      if (!po) return;
+      if (document.getElementById('mrrPoDateInput')) document.getElementById('mrrPoDateInput').value = po.date || '';
+      if (document.getElementById('mrrProjectInput')) document.getElementById('mrrProjectInput').value = po.project || '';
+      if (document.getElementById('mrrDeptInput')) document.getElementById('mrrDeptInput').value = po.department || '';
+      if (document.getElementById('mrrSupplierInput')) document.getElementById('mrrSupplierInput').value = po.supplier_name || '';
+
+      const tbody = document.getElementById('mrrItemsTableBody');
+      if (tbody) {
+        tbody.innerHTML = '';
+        if (po.items && Array.isArray(po.items) && po.items.length > 0) {
+          po.items.forEach(item => {
+            addMrrItemRow({
+              desc: item.desc,
+              qty: item.qty,
+              uom: item.uom,
+              cost: item.cost
+            });
+          });
+        } else if (po.items_desc) {
+          addMrrItemRow({
+            desc: po.items_desc,
+            qty: 1,
+            uom: 'Pcs',
+            cost: po.grand_total || 0
+          });
+        } else {
+          addMrrItemRow();
+        }
+      }
+      calcMrrFormTotals();
+    }
+
+    function clearMrrFormPoDetails() {
+      if (document.getElementById('mrrPoDateInput')) document.getElementById('mrrPoDateInput').value = '';
+      if (document.getElementById('mrrProjectInput')) document.getElementById('mrrProjectInput').value = '';
+      if (document.getElementById('mrrDeptInput')) document.getElementById('mrrDeptInput').value = '';
+      if (document.getElementById('mrrSupplierInput')) document.getElementById('mrrSupplierInput').value = '';
+      const tbody = document.getElementById('mrrItemsTableBody');
+      if (tbody) {
+        tbody.innerHTML = '';
+        addMrrItemRow();
+      }
+      calcMrrFormTotals();
+    }
+
+    function onMrrPoInput(poNo) {
+      const trimmed = String(poNo || '').trim();
+      if (!trimmed) {
+        clearMrrFormPoDetails();
+        return;
+      }
+      const exactPo = findMrrPoMatch(trimmed, false);
+      if (exactPo) {
+        applyPoToMrrForm(exactPo);
+      }
     }
 
     function onMrrPoChange(poNo) {
-      if (!poNo) {
-        if (document.getElementById('mrrPoDateInput')) document.getElementById('mrrPoDateInput').value = '';
-        if (document.getElementById('mrrProjectInput')) document.getElementById('mrrProjectInput').value = '';
-        if (document.getElementById('mrrDeptInput')) document.getElementById('mrrDeptInput').value = '';
-        if (document.getElementById('mrrSupplierInput')) document.getElementById('mrrSupplierInput').value = '';
-        const tbody = document.getElementById('mrrItemsTableBody');
-        if (tbody) {
-          tbody.innerHTML = '';
-          addMrrItemRow();
-        }
-        calcMrrFormTotals();
+      const trimmed = String(poNo || '').trim();
+      if (!trimmed) {
+        clearMrrFormPoDetails();
         return;
       }
-      const po = purchaseOrders.find(p => p.po_no === poNo);
+      const po = findMrrPoMatch(trimmed, true);
       if (po) {
-        if (document.getElementById('mrrPoDateInput')) document.getElementById('mrrPoDateInput').value = po.date || '';
-        if (document.getElementById('mrrProjectInput')) document.getElementById('mrrProjectInput').value = po.project || '';
-        if (document.getElementById('mrrDeptInput')) document.getElementById('mrrDeptInput').value = po.department || '';
-        if (document.getElementById('mrrSupplierInput')) document.getElementById('mrrSupplierInput').value = po.supplier_name || '';
-
-        const tbody = document.getElementById('mrrItemsTableBody');
-        if (tbody) {
-          tbody.innerHTML = '';
-          if (po.items && Array.isArray(po.items) && po.items.length > 0) {
-            po.items.forEach(item => {
-              addMrrItemRow({
-                desc: item.desc,
-                qty: item.qty,
-                uom: item.uom,
-                cost: item.cost
-              });
-            });
-          } else if (po.items_desc) {
-            addMrrItemRow({
-              desc: po.items_desc,
-              qty: 1,
-              uom: 'Pcs',
-              cost: po.grand_total || 0
-            });
-          } else {
-            addMrrItemRow();
-          }
-        }
-        calcMrrFormTotals();
+        const input = document.getElementById('mrrPoSelect');
+        if (input && input.value !== po.po_no) input.value = po.po_no;
+        applyPoToMrrForm(po);
       }
     }
 
@@ -6343,7 +6395,7 @@
 
       const itemsDesc = lineItems.map(item => `${item.desc} (${item.qty} ${item.uom})`).join(', ');
 
-      const linkedPo = purchaseOrders.find(p => p.po_no === poNo);
+      const linkedPo = findMrrPoMatch(poNo, false);
       const newRr = {
         id: 'rr_' + Date.now(),
         rr_no: rrNo,
