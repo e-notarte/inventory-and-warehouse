@@ -3134,6 +3134,7 @@
                     <th>Unit Cost</th>
                     <th>Total Value</th>
                     <th>Stock Status</th>
+                    <th style="text-align:center;">Actions</th>
                   </tr>
                 </thead>
                 <tbody id="stockTableBody">
@@ -6791,7 +6792,7 @@
       if (paginated.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="10" style="text-align:center; padding:36px; color:var(--text-muted);">
+            <td colspan="11" style="text-align:center; padding:36px; color:var(--text-muted);">
               No inventory catalog items match your search.
             </td>
           </tr>
@@ -6822,9 +6823,34 @@
             <td>${formatCurrency(i.unit_cost)}</td>
             <td><strong>${formatCurrency(i.on_hand_value || (i.on_hand_qty * i.unit_cost))}</strong></td>
             <td><span class="status-badge ${badgeClass}">${badgeText}</span></td>
+            <td style="text-align:center; white-space:nowrap;">
+              <button type="button" class="btn btn-outline btn-sm" onclick="deleteStockItem('${escapeHtml(i.item_id)}')" title="Delete Inventory Item" style="color:#ef4444; border-color:#fee2e2;">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </td>
           </tr>
         `;
       }).join('');
+    }
+
+    function deleteStockItem(itemId) {
+      const target = inventoryItems.find(x => String(x.item_id) === String(itemId));
+      if (!target) return;
+      const label = `${target.item_code || target.item_id} (${target.description})`;
+      showSystemConfirm('Delete Inventory Item', `Remove "${label}" from On-Hand Inventory (local storage & Supabase)?`, () => {
+        inventoryItems = inventoryItems.filter(x => String(x.item_id) !== String(itemId));
+        saveInventoryItems();
+        populateItemDropdowns();
+        populateSlipItemCodeDatalist();
+        sbSyncBackground(async () => {
+          await sbDeleteRow('on_hand_inventory', target.item_id, 'item_id');
+          if (target.item_code && target.item_code !== target.item_id) {
+            await sbDeleteRow('on_hand_inventory', target.item_code, 'item_code');
+          }
+        });
+        renderAll();
+        showSystemAlert('Inventory Item Deleted', `Removed "${label}" from On-Hand Inventory.`, true);
+      });
     }
 
     function filterStockPill(pill, btn) {
