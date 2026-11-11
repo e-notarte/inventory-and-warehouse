@@ -26,6 +26,9 @@
       --danger: #dc2626;
       --danger-bg: #fef2f2;
       --danger-border: #fecaca;
+      --success: #15803d;
+      --success-bg: #f0fdf4;
+      --success-border: #bbf7d0;
       --shadow-lg: 0 20px 45px -12px rgba(15, 23, 42, 0.22);
     }
 
@@ -38,6 +41,9 @@
       --danger: #fca5a5;
       --danger-bg: rgba(220, 38, 38, 0.14);
       --danger-border: rgba(248, 113, 113, 0.35);
+      --success: #86efac;
+      --success-bg: rgba(22, 163, 74, 0.15);
+      --success-border: rgba(74, 222, 128, 0.35);
     }
 
     * {
@@ -164,7 +170,7 @@
     }
 
     .auth-form {
-      padding: 26px 28px 28px;
+      padding: 0;
     }
 
     .form-field {
@@ -240,22 +246,125 @@
       color: var(--text);
     }
 
-    .error-banner {
+    [hidden] {
+      display: none !important;
+    }
+
+    .auth-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      padding: 16px 26px 0;
+    }
+
+    .auth-tab-btn {
+      min-height: 40px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      background: var(--bg);
+      color: var(--text-muted);
+      font: inherit;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      transition: background 0.16s, color 0.16s, border-color 0.16s;
+    }
+
+    .auth-tab-btn:hover {
+      color: var(--text);
+    }
+
+    .auth-tab-btn[aria-selected="true"] {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #ffffff;
+    }
+
+    .auth-tab-btn:focus-visible,
+    .auth-text-link:focus-visible,
+    .pw-toggle-btn:focus-visible,
+    .btn-signin:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .auth-body {
+      padding: 20px 26px 24px;
+    }
+
+    .error-banner,
+    .success-banner {
       display: none;
       align-items: flex-start;
       gap: 8px;
       padding: 10px 12px;
       margin-block-end: 1.15rem;
       border-radius: 8px;
-      background: var(--danger-bg);
-      border: 1px solid var(--danger-border);
-      color: var(--danger);
       font-size: 0.8rem;
       font-weight: 500;
     }
 
-    .error-banner.visible {
+    .error-banner {
+      background: var(--danger-bg);
+      border: 1px solid var(--danger-border);
+      color: var(--danger);
+    }
+
+    .success-banner {
+      background: var(--success-bg);
+      border: 1px solid var(--success-border);
+      color: var(--success);
+    }
+
+    .error-banner.visible,
+    .success-banner.visible {
       display: flex;
+    }
+
+    .field-label-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .field-label-row label {
+      margin-bottom: 0;
+    }
+
+    .field-hint {
+      margin-top: 5px;
+      font-size: 0.74rem;
+      color: var(--text-muted);
+    }
+
+    .auth-text-link {
+      background: transparent;
+      border: none;
+      padding: 4px 2px;
+      color: var(--primary);
+      font: inherit;
+      font-size: 0.76rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    body.dark-mode .auth-text-link {
+      color: var(--accent);
+    }
+
+    .auth-secondary-row {
+      margin-top: 12px;
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--text-muted);
     }
 
     .btn-signin {
@@ -318,73 +427,229 @@
   </header>
 
   <main class="auth-main">
-    <section class="auth-card" aria-labelledby="loginHeading">
+    <section class="auth-card" aria-labelledby="authHeading">
       <div class="auth-card-banner">
         <div class="auth-eyebrow">
           <i class="fa-solid fa-shield-halved"></i> Warehouseman Portal
         </div>
-        <h1 id="loginHeading">Sign in to Warehouse Dashboard</h1>
-        <p>Enter your R-II Builders email and password to continue.</p>
+        <h1 id="authHeading">Sign in to Warehouse Dashboard</h1>
+        <p id="authSubheading">Enter your R-II Builders email and password to continue.</p>
       </div>
 
-      <form id="loginForm" class="auth-form" method="POST" action="warehouseman-account.html" aria-labelledby="loginHeading" novalidate>
-        <div id="loginErrorMsg" class="error-banner" role="alert" aria-live="polite">
-          <i class="fa-solid fa-circle-exclamation" style="margin-top:2px;"></i>
-          <span id="loginErrorText"></span>
-        </div>
-
-        <div class="form-field">
-          <label for="loginEmail">
-            <i class="fa-regular fa-envelope"></i> Email Address <span class="req-star" aria-hidden="true">*</span>
-          </label>
-          <input
-            type="email"
-            id="loginEmail"
-            name="email"
-            class="form-input"
-            autocomplete="username"
-            autocorrect="off"
-            autocapitalize="none"
-            spellcheck="false"
-            enterkeyhint="next"
-            placeholder="name@riibuilders.com"
-            required>
-        </div>
-
-        <div class="form-field">
-          <label for="loginPassword">
-            <i class="fa-solid fa-lock"></i> Password <span class="req-star" aria-hidden="true">*</span>
-          </label>
-          <div class="input-wrap">
-            <input
-              type="password"
-              id="loginPassword"
-              name="password"
-              class="form-input with-toggle"
-              autocomplete="current-password"
-              enterkeyhint="done"
-              placeholder="Enter your password"
-              required>
-            <button
-              type="button"
-              id="togglePasswordBtn"
-              class="pw-toggle-btn"
-              aria-pressed="false"
-              aria-label="Show password">
-              <i class="fa-regular fa-eye" id="togglePasswordIcon"></i>
-            </button>
-          </div>
-        </div>
-
-        <button type="submit" id="loginSubmitBtn" class="btn-signin">
-          <i class="fa-solid fa-right-to-bracket"></i>
-          <span>Sign In</span>
+      <div id="authTabs" class="auth-tabs" role="tablist" aria-label="Account access mode">
+        <button type="button" id="tabSignIn" class="auth-tab-btn" role="tab" aria-selected="true" aria-controls="loginForm">
+          <i class="fa-solid fa-right-to-bracket"></i> Sign In
         </button>
+        <button type="button" id="tabSignUp" class="auth-tab-btn" role="tab" aria-selected="false" aria-controls="signupForm">
+          <i class="fa-solid fa-user-plus"></i> Create Account
+        </button>
+      </div>
+
+      <div class="auth-body">
+        <div id="authErrorMsg" class="error-banner" role="alert" aria-live="polite">
+          <i class="fa-solid fa-circle-exclamation" style="margin-top:2px;"></i>
+          <span id="authErrorText"></span>
+        </div>
+
+        <div id="authSuccessMsg" class="success-banner" role="status" aria-live="polite">
+          <i class="fa-solid fa-circle-check" style="margin-top:2px;"></i>
+          <span id="authSuccessText"></span>
+        </div>
+
+        <form id="loginForm" class="auth-form" method="POST" action="warehouseman-account.html" aria-labelledby="authHeading" novalidate>
+          <div class="form-field">
+            <label for="loginEmail">
+              <i class="fa-regular fa-envelope"></i> Email Address <span class="req-star" aria-hidden="true">*</span>
+            </label>
+            <input
+              type="email"
+              id="loginEmail"
+              name="email"
+              class="form-input"
+              autocomplete="username"
+              autocorrect="off"
+              autocapitalize="none"
+              spellcheck="false"
+              enterkeyhint="next"
+              placeholder="name@riibuilders.com"
+              required>
+          </div>
+
+          <div class="form-field">
+            <div class="field-label-row">
+              <label for="loginPassword">
+                <i class="fa-solid fa-lock"></i> Password <span class="req-star" aria-hidden="true">*</span>
+              </label>
+              <button type="button" id="openForgotBtn" class="auth-text-link">Forgot password?</button>
+            </div>
+            <div class="input-wrap">
+              <input
+                type="password"
+                id="loginPassword"
+                name="password"
+                class="form-input with-toggle"
+                autocomplete="current-password"
+                enterkeyhint="done"
+                placeholder="Enter your password"
+                required>
+              <button
+                type="button"
+                id="toggleLoginPasswordBtn"
+                class="pw-toggle-btn"
+                aria-pressed="false"
+                aria-label="Show password">
+                <i class="fa-regular fa-eye" id="toggleLoginPasswordIcon"></i>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" id="loginSubmitBtn" class="btn-signin">
+            <i class="fa-solid fa-right-to-bracket"></i>
+            <span>Sign In</span>
+          </button>
+        </form>
+
+        <form id="signupForm" class="auth-form" aria-labelledby="authHeading" hidden novalidate>
+          <div class="form-field">
+            <label for="signupFullName">
+              <i class="fa-regular fa-user"></i> Full Name <span class="req-star" aria-hidden="true">*</span>
+            </label>
+            <input
+              type="text"
+              id="signupFullName"
+              name="full-name"
+              class="form-input"
+              autocomplete="name"
+              enterkeyhint="next"
+              placeholder="Juan Dela Cruz"
+              required>
+          </div>
+
+          <div class="form-field">
+            <label for="signupEmail">
+              <i class="fa-regular fa-envelope"></i> Email Address <span class="req-star" aria-hidden="true">*</span>
+            </label>
+            <input
+              type="email"
+              id="signupEmail"
+              name="email"
+              class="form-input"
+              autocomplete="username"
+              autocorrect="off"
+              autocapitalize="none"
+              spellcheck="false"
+              enterkeyhint="next"
+              placeholder="name@riibuilders.com"
+              required>
+          </div>
+
+          <div class="form-field">
+            <label for="signupPassword">
+              <i class="fa-solid fa-lock"></i> New Password <span class="req-star" aria-hidden="true">*</span>
+            </label>
+            <div class="input-wrap">
+              <input
+                type="password"
+                id="signupPassword"
+                name="new-password"
+                class="form-input with-toggle"
+                autocomplete="new-password"
+                minlength="8"
+                enterkeyhint="done"
+                aria-describedby="signupPwHint"
+                placeholder="Minimum 8 characters"
+                required>
+              <button
+                type="button"
+                id="toggleSignupPasswordBtn"
+                class="pw-toggle-btn"
+                aria-pressed="false"
+                aria-label="Show password">
+                <i class="fa-regular fa-eye" id="toggleSignupPasswordIcon"></i>
+              </button>
+            </div>
+            <p id="signupPwHint" class="field-hint">Use at least 8 characters.</p>
+          </div>
+
+          <button type="submit" id="signupSubmitBtn" class="btn-signin">
+            <i class="fa-solid fa-user-plus"></i>
+            <span>Create Account</span>
+          </button>
+        </form>
+
+        <form id="forgotForm" class="auth-form" aria-labelledby="authHeading" hidden novalidate>
+          <div class="form-field">
+            <label for="forgotEmail">
+              <i class="fa-regular fa-envelope"></i> Account Email Address <span class="req-star" aria-hidden="true">*</span>
+            </label>
+            <input
+              type="email"
+              id="forgotEmail"
+              name="email"
+              class="form-input"
+              autocomplete="username"
+              autocorrect="off"
+              autocapitalize="none"
+              spellcheck="false"
+              enterkeyhint="done"
+              placeholder="name@riibuilders.com"
+              required>
+          </div>
+
+          <button type="submit" id="forgotSubmitBtn" class="btn-signin">
+            <i class="fa-regular fa-paper-plane"></i>
+            <span>Send Reset Link</span>
+          </button>
+
+          <div class="auth-secondary-row">
+            Remembered your password?
+            <button type="button" id="backToLoginFromForgotBtn" class="auth-text-link">Back to Sign In</button>
+          </div>
+        </form>
+
+        <form id="recoveryForm" class="auth-form" aria-labelledby="authHeading" hidden novalidate>
+          <div class="form-field">
+            <label for="recoveryPassword">
+              <i class="fa-solid fa-key"></i> New Password <span class="req-star" aria-hidden="true">*</span>
+            </label>
+            <div class="input-wrap">
+              <input
+                type="password"
+                id="recoveryPassword"
+                name="new-password"
+                class="form-input with-toggle"
+                autocomplete="new-password"
+                minlength="8"
+                enterkeyhint="done"
+                aria-describedby="recoveryPwHint"
+                placeholder="Minimum 8 characters"
+                required>
+              <button
+                type="button"
+                id="toggleRecoveryPasswordBtn"
+                class="pw-toggle-btn"
+                aria-pressed="false"
+                aria-label="Show password">
+                <i class="fa-regular fa-eye" id="toggleRecoveryPasswordIcon"></i>
+              </button>
+            </div>
+            <p id="recoveryPwHint" class="field-hint">Use at least 8 characters.</p>
+          </div>
+
+          <button type="submit" id="recoverySubmitBtn" class="btn-signin">
+            <i class="fa-solid fa-check"></i>
+            <span>Update Password</span>
+          </button>
+
+          <div class="auth-secondary-row">
+            <button type="button" id="backToLoginFromRecoveryBtn" class="auth-text-link">Back to Sign In</button>
+          </div>
+        </form>
 
         <div class="auth-footer-note">
           Authenticated accounts proceed directly to <strong>Warehouseman Dashboard</strong>.
         </div>
-      </form>
+      </div>
     </section>
   </main>
 
@@ -396,6 +661,7 @@
     import { supabase } from './supabase-client.js';
 
     const DASHBOARD_URL = 'warehouseman-account.html';
+    const MIN_PASSWORD_LEN = 8;
 
     // Theme initialization & toggle
     const themeIcon = document.getElementById('themeIcon');
@@ -410,16 +676,97 @@
       if (themeIcon) themeIcon.className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
     });
 
-    const form = document.getElementById('loginForm');
-    const emailInput = document.getElementById('loginEmail');
-    const passwordInput = document.getElementById('loginPassword');
-    const toggleBtn = document.getElementById('togglePasswordBtn');
-    const toggleIcon = document.getElementById('togglePasswordIcon');
-    const errorBox = document.getElementById('loginErrorMsg');
-    const errorText = document.getElementById('loginErrorText');
-    const submitBtn = document.getElementById('loginSubmitBtn');
+    const authHeading = document.getElementById('authHeading');
+    const authSubheading = document.getElementById('authSubheading');
+    const authTabs = document.getElementById('authTabs');
+    const tabSignIn = document.getElementById('tabSignIn');
+    const tabSignUp = document.getElementById('tabSignUp');
+
+    const errorBox = document.getElementById('authErrorMsg');
+    const errorText = document.getElementById('authErrorText');
+    const successBox = document.getElementById('authSuccessMsg');
+    const successText = document.getElementById('authSuccessText');
+
+    const loginForm = document.getElementById('loginForm');
+    const loginEmailInput = document.getElementById('loginEmail');
+    const loginPasswordInput = document.getElementById('loginPassword');
+    const loginSubmitBtn = document.getElementById('loginSubmitBtn');
+
+    const signupForm = document.getElementById('signupForm');
+    const signupFullNameInput = document.getElementById('signupFullName');
+    const signupEmailInput = document.getElementById('signupEmail');
+    const signupPasswordInput = document.getElementById('signupPassword');
+    const signupSubmitBtn = document.getElementById('signupSubmitBtn');
+
+    const forgotForm = document.getElementById('forgotForm');
+    const forgotEmailInput = document.getElementById('forgotEmail');
+    const forgotSubmitBtn = document.getElementById('forgotSubmitBtn');
+
+    const recoveryForm = document.getElementById('recoveryForm');
+    const recoveryPasswordInput = document.getElementById('recoveryPassword');
+    const recoverySubmitBtn = document.getElementById('recoverySubmitBtn');
+
+    const ALL_INPUTS = [
+      loginEmailInput,
+      loginPasswordInput,
+      signupFullNameInput,
+      signupEmailInput,
+      signupPasswordInput,
+      forgotEmailInput,
+      recoveryPasswordInput
+    ];
+
+    const VIEW_META = {
+      login: {
+        title: 'Sign in to Warehouse Dashboard',
+        subtitle: 'Enter your R-II Builders email and password to continue.',
+        form: loginForm,
+        showTabs: true,
+        focusEl: loginEmailInput
+      },
+      signup: {
+        title: 'Create Warehouse Account',
+        subtitle: 'Register your R-II Builders email to access the warehouse dashboard.',
+        form: signupForm,
+        showTabs: true,
+        focusEl: signupFullNameInput
+      },
+      forgot: {
+        title: 'Reset Your Password',
+        subtitle: 'Enter your account email and we will send you a password reset link.',
+        form: forgotForm,
+        showTabs: false,
+        focusEl: forgotEmailInput
+      },
+      recovery: {
+        title: 'Set New Password',
+        subtitle: 'Enter a new password (minimum 8 characters) to recover your account.',
+        form: recoveryForm,
+        showTabs: false,
+        focusEl: recoveryPasswordInput
+      }
+    };
+
+    const BUTTON_DEFAULTS = {
+      login: '<i class="fa-solid fa-right-to-bracket"></i><span>Sign In</span>',
+      signup: '<i class="fa-solid fa-user-plus"></i><span>Create Account</span>',
+      forgot: '<i class="fa-regular fa-paper-plane"></i><span>Send Reset Link</span>',
+      recovery: '<i class="fa-solid fa-check"></i><span>Update Password</span>'
+    };
+
+    let currentMode = 'login';
+
+    function clearMessages() {
+      if (errorBox) errorBox.classList.remove('visible');
+      if (errorText) errorText.textContent = '';
+      if (successBox) successBox.classList.remove('visible');
+      if (successText) successText.textContent = '';
+      ALL_INPUTS.forEach((el) => el?.removeAttribute('aria-invalid'));
+    }
 
     function showError(message, focusEl) {
+      if (successBox) successBox.classList.remove('visible');
+      if (successText) successText.textContent = '';
       if (errorText) errorText.textContent = message;
       if (errorBox) errorBox.classList.add('visible');
       if (focusEl) {
@@ -428,23 +775,62 @@
       }
     }
 
-    function clearError() {
+    function showSuccess(message) {
       if (errorBox) errorBox.classList.remove('visible');
       if (errorText) errorText.textContent = '';
-      emailInput?.removeAttribute('aria-invalid');
-      passwordInput?.removeAttribute('aria-invalid');
+      if (successText) successText.textContent = message;
+      if (successBox) successBox.classList.add('visible');
     }
 
-    emailInput?.addEventListener('input', clearError);
-    passwordInput?.addEventListener('input', clearError);
+    function setSubmitting(btn, loading, mode, loadingLabel) {
+      if (!btn) return;
+      btn.disabled = loading;
+      btn.innerHTML = loading
+        ? `<i class="fa-solid fa-spinner fa-spin"></i><span>${loadingLabel}</span>`
+        : BUTTON_DEFAULTS[mode];
+    }
 
-    toggleBtn?.addEventListener('click', () => {
-      const show = passwordInput.type === 'password';
-      passwordInput.type = show ? 'text' : 'password';
-      toggleBtn.setAttribute('aria-pressed', String(show));
-      toggleBtn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
-      if (toggleIcon) toggleIcon.className = show ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye';
-    });
+    function switchMode(mode, { preserveMessages = false, focus = true } = {}) {
+      const target = VIEW_META[mode] ? mode : 'login';
+      currentMode = target;
+      const cfg = VIEW_META[target];
+
+      if (!preserveMessages) {
+        clearMessages();
+      } else {
+        ALL_INPUTS.forEach((el) => el?.removeAttribute('aria-invalid'));
+      }
+
+      if (authHeading) authHeading.textContent = cfg.title;
+      if (authSubheading) authSubheading.textContent = cfg.subtitle;
+      if (authTabs) authTabs.hidden = !cfg.showTabs;
+      if (tabSignIn) tabSignIn.setAttribute('aria-selected', String(target === 'login'));
+      if (tabSignUp) tabSignUp.setAttribute('aria-selected', String(target === 'signup'));
+
+      [loginForm, signupForm, forgotForm, recoveryForm].forEach((f) => {
+        if (f) f.hidden = f !== cfg.form;
+      });
+
+      if (focus && cfg.focusEl) {
+        cfg.focusEl.focus();
+      }
+    }
+
+    function bindPasswordToggle(inputEl, btnEl, iconEl) {
+      if (!inputEl || !btnEl) return;
+      btnEl.addEventListener('click', () => {
+        const show = inputEl.type === 'password';
+        inputEl.type = show ? 'text' : 'password';
+        btnEl.setAttribute('aria-pressed', String(show));
+        btnEl.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+        if (iconEl) iconEl.className = show ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye';
+      });
+    }
+
+    function getRedirectUrl() {
+      const href = window.location.href || '';
+      return href.split('#')[0].split('?')[0];
+    }
 
     function persistSession(user) {
       const email = user?.email || '';
@@ -459,9 +845,76 @@
       if (user?.id) sessionStorage.setItem('userId', user.id);
     }
 
-    // Redirect immediately if already authenticated with an active Supabase session
+    function validateEmailInput(inputEl) {
+      const email = (inputEl?.value || '').trim();
+      if (!email) {
+        showError('Please enter your email address.', inputEl);
+        return null;
+      }
+      if (!inputEl.checkValidity()) {
+        showError('Please enter a valid email address.', inputEl);
+        return null;
+      }
+      return email;
+    }
+
+    ALL_INPUTS.forEach((el) => {
+      el?.addEventListener('input', () => {
+        el.removeAttribute('aria-invalid');
+        if (errorBox?.classList.contains('visible')) {
+          errorBox.classList.remove('visible');
+          if (errorText) errorText.textContent = '';
+        }
+      });
+    });
+
+    bindPasswordToggle(
+      loginPasswordInput,
+      document.getElementById('toggleLoginPasswordBtn'),
+      document.getElementById('toggleLoginPasswordIcon')
+    );
+    bindPasswordToggle(
+      signupPasswordInput,
+      document.getElementById('toggleSignupPasswordBtn'),
+      document.getElementById('toggleSignupPasswordIcon')
+    );
+    bindPasswordToggle(
+      recoveryPasswordInput,
+      document.getElementById('toggleRecoveryPasswordBtn'),
+      document.getElementById('toggleRecoveryPasswordIcon')
+    );
+
+    tabSignIn?.addEventListener('click', () => switchMode('login'));
+    tabSignUp?.addEventListener('click', () => switchMode('signup'));
+    document.getElementById('openForgotBtn')?.addEventListener('click', () => {
+      const prefill = (loginEmailInput?.value || '').trim();
+      if (prefill && forgotEmailInput && !forgotEmailInput.value) {
+        forgotEmailInput.value = prefill;
+      }
+      switchMode('forgot');
+    });
+    document.getElementById('backToLoginFromForgotBtn')?.addEventListener('click', () => switchMode('login'));
+    document.getElementById('backToLoginFromRecoveryBtn')?.addEventListener('click', () => switchMode('login'));
+
+    const isRecoveryHash = () => {
+      const hash = window.location.hash || '';
+      const search = window.location.search || '';
+      return hash.includes('type=recovery') || search.includes('type=recovery');
+    };
+
+    supabase.auth.onAuthStateChange?.((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        switchMode('recovery');
+      }
+    });
+
+    // Redirect immediately if already authenticated with an active Supabase session (unless recovering password)
     (async () => {
       try {
+        if (isRecoveryHash()) {
+          switchMode('recovery');
+          return;
+        }
         if (sessionStorage.getItem('isAuthenticated') === 'true') {
           const { data } = await supabase.auth.getSession();
           if (data?.session?.user) {
@@ -474,53 +927,166 @@
       } catch (e) { }
     })();
 
-    form?.addEventListener('submit', async (e) => {
+    loginForm?.addEventListener('submit', async (e) => {
       e.preventDefault();
-      clearError();
+      clearMessages();
 
-      const email = (emailInput?.value || '').trim();
-      const password = passwordInput?.value || '';
+      const email = validateEmailInput(loginEmailInput);
+      if (!email) return;
 
-      if (!email) {
-        showError('Please enter your email address.', emailInput);
-        return;
-      }
-      if (!emailInput.checkValidity()) {
-        showError('Please enter a valid email address.', emailInput);
-        return;
-      }
+      const password = loginPasswordInput?.value || '';
       if (!password) {
-        showError('Please enter your password.', passwordInput);
+        showError('Please enter your password.', loginPasswordInput);
         return;
       }
 
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Signing In...</span>';
+      setSubmitting(loginSubmitBtn, true, 'login', 'Signing In...');
 
       try {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) {
-          emailInput?.setAttribute('aria-invalid', 'true');
-          passwordInput?.setAttribute('aria-invalid', 'true');
-          showError(error.message || 'Invalid email or password. Please try again.', passwordInput);
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i><span>Sign In</span>';
+          loginEmailInput?.setAttribute('aria-invalid', 'true');
+          loginPasswordInput?.setAttribute('aria-invalid', 'true');
+          showError(error.message || 'Invalid email or password. Please try again.', loginPasswordInput);
+          setSubmitting(loginSubmitBtn, false, 'login');
           return;
         }
 
         if (!data?.user) {
-          showError('Authentication succeeded without a user session. Please try again.', emailInput);
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i><span>Sign In</span>';
+          showError('Authentication succeeded without a user session. Please try again.', loginEmailInput);
+          setSubmitting(loginSubmitBtn, false, 'login');
           return;
         }
 
         persistSession(data.user);
         window.location.replace(DASHBOARD_URL);
       } catch (err) {
-        showError(err?.message || 'Unable to reach authentication service. Please check your connection.', emailInput);
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i><span>Sign In</span>';
+        showError(err?.message || 'Unable to reach authentication service. Please check your connection.', loginEmailInput);
+        setSubmitting(loginSubmitBtn, false, 'login');
+      }
+    });
+
+    signupForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearMessages();
+
+      const fullName = (signupFullNameInput?.value || '').trim();
+      if (!fullName) {
+        showError('Please enter your full name.', signupFullNameInput);
+        return;
+      }
+
+      const email = validateEmailInput(signupEmailInput);
+      if (!email) return;
+
+      const password = signupPasswordInput?.value || '';
+      if (password.length < MIN_PASSWORD_LEN) {
+        showError(`Password must be at least ${MIN_PASSWORD_LEN} characters.`, signupPasswordInput);
+        return;
+      }
+
+      setSubmitting(signupSubmitBtn, true, 'signup', 'Creating Account...');
+
+      try {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { full_name: fullName, role: 'Warehouseman' },
+            emailRedirectTo: getRedirectUrl()
+          }
+        });
+
+        if (error) {
+          showError(error.message || 'Unable to create account. Please try again.', signupEmailInput);
+          setSubmitting(signupSubmitBtn, false, 'signup');
+          return;
+        }
+
+        if (data?.session?.user) {
+          persistSession(data.session.user);
+          window.location.replace(DASHBOARD_URL);
+          return;
+        }
+
+        if (data?.user) {
+          if (loginEmailInput) loginEmailInput.value = email;
+          signupForm.reset();
+          setSubmitting(signupSubmitBtn, false, 'signup');
+          switchMode('login', { preserveMessages: true, focus: false });
+          showSuccess('Account created! Please check your email inbox to confirm your address, then sign in.');
+          return;
+        }
+
+        showError('Account creation did not complete. Please try again.', signupEmailInput);
+        setSubmitting(signupSubmitBtn, false, 'signup');
+      } catch (err) {
+        showError(err?.message || 'Unable to reach authentication service. Please check your connection.', signupEmailInput);
+        setSubmitting(signupSubmitBtn, false, 'signup');
+      }
+    });
+
+    forgotForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearMessages();
+
+      const email = validateEmailInput(forgotEmailInput);
+      if (!email) return;
+
+      setSubmitting(forgotSubmitBtn, true, 'forgot', 'Sending Link...');
+
+      try {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: getRedirectUrl()
+        });
+
+        if (error) {
+          showError(error.message || 'Unable to send password reset email. Please try again.', forgotEmailInput);
+          setSubmitting(forgotSubmitBtn, false, 'forgot');
+          return;
+        }
+
+        setSubmitting(forgotSubmitBtn, false, 'forgot');
+        showSuccess(`If an account exists for ${email}, a password reset link has been sent. Please check your inbox.`);
+      } catch (err) {
+        showError(err?.message || 'Unable to reach authentication service. Please check your connection.', forgotEmailInput);
+        setSubmitting(forgotSubmitBtn, false, 'forgot');
+      }
+    });
+
+    recoveryForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearMessages();
+
+      const password = recoveryPasswordInput?.value || '';
+      if (password.length < MIN_PASSWORD_LEN) {
+        showError(`New password must be at least ${MIN_PASSWORD_LEN} characters.`, recoveryPasswordInput);
+        return;
+      }
+
+      setSubmitting(recoverySubmitBtn, true, 'recovery', 'Updating Password...');
+
+      try {
+        const { data, error } = await supabase.auth.updateUser({ password });
+        if (error) {
+          showError(error.message || 'Unable to update password. Please request a new reset link.', recoveryPasswordInput);
+          setSubmitting(recoverySubmitBtn, false, 'recovery');
+          return;
+        }
+
+        if (data?.user) {
+          persistSession(data.user);
+          window.location.replace(DASHBOARD_URL);
+          return;
+        }
+
+        recoveryForm.reset();
+        setSubmitting(recoverySubmitBtn, false, 'recovery');
+        switchMode('login', { preserveMessages: true, focus: false });
+        showSuccess('Password updated! You can now sign in with your new password.');
+      } catch (err) {
+        showError(err?.message || 'Unable to reach authentication service. Please check your connection.', recoveryPasswordInput);
+        setSubmitting(recoverySubmitBtn, false, 'recovery');
       }
     });
   </script>
