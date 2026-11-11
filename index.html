@@ -1998,6 +1998,129 @@
       background: #122240;
     }
 
+    .slip-item-code-input {
+      width: 100%;
+      min-width: 115px;
+      padding: 6px 8px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #0f172a;
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 6px;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .slip-item-code-input:focus-visible {
+      outline: 2px solid #0284c7;
+      outline-offset: 1px;
+      border-color: #0284c7;
+    }
+
+    .slip-item-code-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.65rem;
+      font-weight: 600;
+      margin-top: 4px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    .slip-item-code-status.recorded {
+      background: #ecfdf5;
+      color: #047857;
+      border: 1px solid #a7f3d0;
+    }
+
+    .slip-item-code-status.pending {
+      background: #f8fafc;
+      color: #64748b;
+      border: 1px solid #e2e8f0;
+    }
+
+    .slip-entry-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      background: #f0f9ff;
+      border: 1px solid #bae6fd;
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      font-size: 0.76rem;
+      color: #0c4a6e;
+    }
+
+    .slip-entry-toolbar select {
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: 1px solid #7dd3fc;
+      background: #ffffff;
+      color: #0f172a;
+      font-family: inherit;
+      font-size: 0.76rem;
+      font-weight: 600;
+    }
+
+    .slip-target-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      background: #e0f2fe;
+      color: #0369a1;
+    }
+
+    .slip-record-banner {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      border-radius: 7px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-bottom: 14px;
+    }
+
+    .slip-record-banner.success {
+      display: flex;
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      color: #065f46;
+    }
+
+    .slip-record-banner.warning {
+      display: flex;
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      color: #92400e;
+    }
+
+    .btn-slip-record {
+      background: #059669;
+    }
+
+    .btn-slip-record:hover {
+      background: #047857;
+    }
+
+    .slip-item-code-print-only {
+      display: none;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.73rem;
+      font-weight: 700;
+      color: #0284c7;
+    }
+
     @media (max-width: 640px) {
 
       .slip-meta-box,
@@ -2031,8 +2154,13 @@
         max-height: none !important;
       }
 
-      .slip-actions-bar {
+      .slip-actions-bar,
+      .no-print {
         display: none !important;
+      }
+
+      .slip-item-code-print-only {
+        display: inline !important;
       }
     }
   </style>
@@ -2160,6 +2288,33 @@
                 <i class="fa-solid fa-warehouse"></i>
                 <span>On-Hand Inventory</span>
               </div>
+            </a>
+          </li>
+          <li class="nav-item" data-view="view-fixed-assets">
+            <a href="javascript:void(0)" onclick="switchView('view-fixed-assets', this)">
+              <div class="nav-label-wrap">
+                <i class="fa-solid fa-cubes"></i>
+                <span>Fixed Asset Registry</span>
+              </div>
+              <span class="nav-badge" id="navFixedAssetsCount" style="display:none;">0</span>
+            </a>
+          </li>
+          <li class="nav-item" data-view="view-services">
+            <a href="javascript:void(0)" onclick="switchView('view-services', this)">
+              <div class="nav-label-wrap">
+                <i class="fa-solid fa-screwdriver-wrench"></i>
+                <span>Services</span>
+              </div>
+              <span class="nav-badge" id="navServicesCount" style="display:none;">0</span>
+            </a>
+          </li>
+          <li class="nav-item" data-view="view-capex">
+            <a href="javascript:void(0)" onclick="switchView('view-capex', this)">
+              <div class="nav-label-wrap">
+                <i class="fa-solid fa-landmark"></i>
+                <span>Capex</span>
+              </div>
+              <span class="nav-badge" id="navCapexCount" style="display:none;">0</span>
             </a>
           </li>
         </ul>
@@ -2640,9 +2795,9 @@
                   <option value="">Select Item Type (Optional)</option>
                   <option value="Consumables &amp; Office Supplies">Consumables &amp; Office Supplies</option>
                   <option value="Construction Materials">Construction Materials</option>
-                  <option value="Hardware &amp; Fasteners">Fixed Assets</option>
-                  <option value="Tools &amp; Equipment">Services</option>
-                  <option value="Spare Parts &amp; Maintenance">Capital Expenditure</option>
+                  <option value="Fixed Assets">Fixed Assets</option>
+                  <option value="Services">Services</option>
+                  <option value="Capital Expenditure">Capital Expenditure</option>
                 </select>
               </div>
             </div>
@@ -2831,8 +2986,7 @@
           <div class="view-title-group">
             <h2><i class="fa-solid fa-warehouse" style="color:var(--accent);"></i> On-Hand Inventory Master &amp;
               Valuation</h2>
-            <p>Live inventory ledger computed from Total Deliveries Received minus Total Material Issuances across all
-              588 items.</p>
+            <p id="stockMasterSubtitle">Live inventory ledger computed from Total Deliveries Received minus Total Material Issuances.</p>
           </div>
           <div class="view-action-group">
             <button class="btn btn-outline" onclick="exportStockCSV()">
@@ -2853,7 +3007,7 @@
                   oninput="renderStockTable()">
               </div>
               <div class="filter-pills-bar">
-                <button type="button" class="pill-btn active" onclick="filterStockPill('ALL', this)">All (588)</button>
+                <button type="button" class="pill-btn active" id="stockPillAll" onclick="filterStockPill('ALL', this)">All (0)</button>
                 <button type="button" class="pill-btn" onclick="filterStockPill('IN_STOCK', this)">In Stock</button>
                 <button type="button" class="pill-btn" onclick="filterStockPill('LOW_STOCK', this)">Low Stock</button>
                 <button type="button" class="pill-btn" onclick="filterStockPill('OUT_OF_STOCK', this)">Out of
@@ -2884,13 +3038,169 @@
             </div>
             <div
               style="display:flex; justify-content:space-between; align-items:center; margin-top:16px; font-size:0.82rem; color:var(--text-muted);">
-              <span id="stockPaginationInfo">Showing 1 to 20 of 588 items</span>
+              <span id="stockPaginationInfo">Showing 0 to 0 of 0 items</span>
               <div style="display:flex; gap:8px;">
                 <button class="btn btn-outline btn-sm" onclick="changeStockPage(-1)"><i
                     class="fa-solid fa-chevron-left"></i> Previous</button>
                 <button class="btn btn-outline btn-sm" onclick="changeStockPage(1)">Next <i
                     class="fa-solid fa-chevron-right"></i></button>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- VIEW 6B: FIXED ASSET REGISTRY -->
+      <!-- ============================================================ -->
+      <section id="view-fixed-assets" class="view-section">
+        <div class="view-header">
+          <div class="view-title-group">
+            <h2><i class="fa-solid fa-cubes" style="color:var(--accent);"></i> Fixed Asset Registry</h2>
+            <p>Recorded Fixed Assets from Receiving Report slips with Item Code entry.</p>
+          </div>
+          <div class="view-action-group">
+            <button type="button" class="btn btn-outline" onclick="exportCategoryRegistryCSV('fixed_assets')">
+              <i class="fa-solid fa-file-csv"></i> Export Fixed Assets CSV
+            </button>
+          </div>
+        </div>
+
+        <div class="data-card">
+          <div class="data-card-body">
+            <div class="toolbar-bar">
+              <div class="search-input-wrap">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" id="fixedAssetsSearchInput" placeholder="Search item code, description, RR #, PO #, or supplier..."
+                  oninput="renderFixedAssetsTable()">
+              </div>
+              <span id="fixedAssetsSummaryPill" class="po-line-items-badge">0 Assets • ₱ 0.00</span>
+            </div>
+
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Item Code</th>
+                    <th>Asset Description</th>
+                    <th>RR No. / PO No.</th>
+                    <th>Date Received</th>
+                    <th>Supplier Name</th>
+                    <th>Project / Dept</th>
+                    <th>Qty / UOM</th>
+                    <th>Unit Cost</th>
+                    <th>Total Value</th>
+                    <th style="text-align:center;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="fixedAssetsTableBody">
+                  <!-- Populated via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- VIEW 6C: SERVICES REGISTRY -->
+      <!-- ============================================================ -->
+      <section id="view-services" class="view-section">
+        <div class="view-header">
+          <div class="view-title-group">
+            <h2><i class="fa-solid fa-screwdriver-wrench" style="color:var(--accent);"></i> Services Registry</h2>
+            <p>Recorded Services from Receiving Report slips with Item Code entry.</p>
+          </div>
+          <div class="view-action-group">
+            <button type="button" class="btn btn-outline" onclick="exportCategoryRegistryCSV('services')">
+              <i class="fa-solid fa-file-csv"></i> Export Services CSV
+            </button>
+          </div>
+        </div>
+
+        <div class="data-card">
+          <div class="data-card-body">
+            <div class="toolbar-bar">
+              <div class="search-input-wrap">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" id="servicesSearchInput" placeholder="Search item code, service description, RR #, PO #, or supplier..."
+                  oninput="renderServicesTable()">
+              </div>
+              <span id="servicesSummaryPill" class="po-line-items-badge">0 Services • ₱ 0.00</span>
+            </div>
+
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Item Code</th>
+                    <th>Service Description</th>
+                    <th>RR No. / PO No.</th>
+                    <th>Date Received</th>
+                    <th>Supplier Name</th>
+                    <th>Project / Dept</th>
+                    <th>Qty / UOM</th>
+                    <th>Unit Cost</th>
+                    <th>Total Amount</th>
+                    <th style="text-align:center;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="servicesTableBody">
+                  <!-- Populated via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- VIEW 6D: CAPEX REGISTRY -->
+      <!-- ============================================================ -->
+      <section id="view-capex" class="view-section">
+        <div class="view-header">
+          <div class="view-title-group">
+            <h2><i class="fa-solid fa-landmark" style="color:var(--accent);"></i> CAPEX Registry</h2>
+            <p>Recorded Capital Expenditure (CAPEX) items from Receiving Report slips with Item Code entry.</p>
+          </div>
+          <div class="view-action-group">
+            <button type="button" class="btn btn-outline" onclick="exportCategoryRegistryCSV('capex')">
+              <i class="fa-solid fa-file-csv"></i> Export CAPEX CSV
+            </button>
+          </div>
+        </div>
+
+        <div class="data-card">
+          <div class="data-card-body">
+            <div class="toolbar-bar">
+              <div class="search-input-wrap">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" id="capexSearchInput" placeholder="Search item code, description, RR #, PO #, or supplier..."
+                  oninput="renderCapexTable()">
+              </div>
+              <span id="capexSummaryPill" class="po-line-items-badge">0 CAPEX Items • ₱ 0.00</span>
+            </div>
+
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Item Code</th>
+                    <th>CAPEX Item Description</th>
+                    <th>RR No. / PO No.</th>
+                    <th>Date Received</th>
+                    <th>Supplier Name</th>
+                    <th>Project / Dept</th>
+                    <th>Qty / UOM</th>
+                    <th>Unit Cost</th>
+                    <th>Total Amount</th>
+                    <th style="text-align:center;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="capexTableBody">
+                  <!-- Populated via JS -->
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
@@ -3703,7 +4013,8 @@
   <!-- MODAL: OFFICIAL DOCUMENT SLIP (MIS / RR / PO) -->
   <div class="modal-overlay" id="documentSlipModal" style="z-index: 10020;"
     onclick="if(event.target === this) closeModal('documentSlipModal')">
-    <div class="modal-box" style="max-width: 680px; border: none;">
+    <div class="modal-box" id="documentSlipModalBox" style="max-width: 760px; border: none;">
+      <datalist id="slipItemCodeList"></datalist>
       <div class="slip-paper" id="documentSlipContent">
         <!-- Populated dynamically via openDocumentSlip(type, id) -->
       </div>
@@ -3720,6 +4031,10 @@
     const MIS_KEY = 'material_issuances_data';
     const SUP_KEY = 'supplies_requests_data';
     const DIR_KEY = 'warehouse_directory_data';
+    const CUSTOM_INV_KEY = 'warehouse_custom_inventory_items';
+    const FA_KEY = 'warehouse_fixed_assets_data';
+    const SRV_KEY = 'warehouse_services_data';
+    const CPX_KEY = 'warehouse_capex_data';
 
     let inventoryItems = [];
     let purchaseOrders = [];
@@ -3727,6 +4042,69 @@
     let materialIssuances = [];
     let suppliesRequests = [];
     let directoryEntries = [];
+    let fixedAssets = [];
+    let serviceRecords = [];
+    let capexRecords = [];
+
+    const CATEGORY_REGISTRIES = {
+      fixed_assets: {
+        key: 'fixed_assets',
+        label: 'Fixed Asset Registry',
+        storageKey: FA_KEY,
+        sbTable: 'fixed_assets_registry',
+        tbodyId: 'fixedAssetsTableBody',
+        searchId: 'fixedAssetsSearchInput',
+        summaryId: 'fixedAssetsSummaryPill',
+        navBadgeId: 'navFixedAssetsCount',
+        emptyIcon: 'fa-cubes',
+        emptyTitle: 'No Fixed Assets Recorded Yet',
+        emptyHint: 'Click "Slip" on a Fixed Assets Receiving Report and enter an Item Code to record assets here.',
+        unitWord: 'Asset',
+        csvFilename: 'Fixed_Asset_Registry.csv',
+        defaultType: 'Fixed Assets',
+        idPrefix: 'fa',
+        getList: () => fixedAssets,
+        setList: (arr) => { fixedAssets = arr; }
+      },
+      services: {
+        key: 'services',
+        label: 'Services',
+        storageKey: SRV_KEY,
+        sbTable: 'services_registry',
+        tbodyId: 'servicesTableBody',
+        searchId: 'servicesSearchInput',
+        summaryId: 'servicesSummaryPill',
+        navBadgeId: 'navServicesCount',
+        emptyIcon: 'fa-screwdriver-wrench',
+        emptyTitle: 'No Services Recorded Yet',
+        emptyHint: 'Click "Slip" on a Services Receiving Report and enter an Item Code to record services here.',
+        unitWord: 'Service',
+        csvFilename: 'Services_Registry.csv',
+        defaultType: 'Services',
+        idPrefix: 'srv',
+        getList: () => serviceRecords,
+        setList: (arr) => { serviceRecords = arr; }
+      },
+      capex: {
+        key: 'capex',
+        label: 'Capex',
+        storageKey: CPX_KEY,
+        sbTable: 'capex_registry',
+        tbodyId: 'capexTableBody',
+        searchId: 'capexSearchInput',
+        summaryId: 'capexSummaryPill',
+        navBadgeId: 'navCapexCount',
+        emptyIcon: 'fa-landmark',
+        emptyTitle: 'No CAPEX Items Recorded Yet',
+        emptyHint: 'Click "Slip" on a Capital Expenditure Receiving Report and enter an Item Code to record CAPEX items here.',
+        unitWord: 'CAPEX Item',
+        csvFilename: 'Capex_Registry.csv',
+        defaultType: 'Capital Expenditure',
+        idPrefix: 'cpx',
+        getList: () => capexRecords,
+        setList: (arr) => { capexRecords = arr; }
+      }
+    };
 
     let currentStockFilter = 'ALL';
     let currentStockPage = 1;
@@ -3828,9 +4206,395 @@
       if (confirmed && cb) cb();
     }
 
+    function normalizeItemType(rawType) {
+      const val = String(rawType || '').trim();
+      if (!val) return '';
+      const lower = val.toLowerCase();
+      if (lower.includes('consumable') || lower.includes('office supplies')) return 'Consumables & Office Supplies';
+      if (lower.includes('construction')) return 'Construction Materials';
+      if (lower.includes('fixed asset') || lower === 'hardware & fasteners') return 'Fixed Assets';
+      if (lower.includes('service') || lower === 'tools & equipment') return 'Services';
+      if (lower.includes('capital expenditure') || lower.includes('capex') || lower === 'spare parts & maintenance') return 'Capital Expenditure';
+      return val;
+    }
+
+    function getRegistryTargetForItemType(rawType) {
+      const t = normalizeItemType(rawType);
+      if (t === 'Consumables & Office Supplies' || t === 'Construction Materials') {
+        return { key: 'inventory', label: 'On-Hand Inventory', viewId: 'view-on-hand-inventory' };
+      }
+      if (t === 'Fixed Assets') {
+        return { key: 'fixed_assets', label: 'Fixed Asset Registry', viewId: 'view-fixed-assets' };
+      }
+      if (t === 'Services') {
+        return { key: 'services', label: 'Services', viewId: 'view-services' };
+      }
+      if (t === 'Capital Expenditure') {
+        return { key: 'capex', label: 'Capex', viewId: 'view-capex' };
+      }
+      return null;
+    }
+
+    function getRegistryTargetLabel(targetKey) {
+      if (targetKey === 'inventory') return 'On-Hand Inventory';
+      return CATEGORY_REGISTRIES[targetKey]?.label || targetKey || 'Registry';
+    }
+
+    function populateSlipItemCodeDatalist() {
+      const dl = document.getElementById('slipItemCodeList');
+      if (!dl) return;
+      const seen = new Set();
+      const opts = [];
+      const pushOpt = (code, desc) => {
+        const clean = String(code || '').trim();
+        if (!clean || clean === 'N/A' || seen.has(clean.toUpperCase())) return;
+        seen.add(clean.toUpperCase());
+        opts.push(`<option value="${escapeHtml(clean)}">${escapeHtml(desc || '')}</option>`);
+      };
+      regItems.forEach(it => pushOpt(it.code, it.description));
+      inventoryItems.forEach(it => pushOpt(it.item_code, it.description));
+      dl.innerHTML = opts.join('');
+    }
+
+    function reverseRrItemPosting(r, rowIdx, item) {
+      const prevTarget = item.posted_target;
+      const prevCode = String(item.posted_item_code || '').trim();
+      const prevQty = parseFloat(item.posted_qty) || 0;
+      if (!prevTarget) return;
+
+      if (prevTarget === 'inventory') {
+        const invIdx = inventoryItems.findIndex(x =>
+          (x.item_code || '').toLowerCase() === prevCode.toLowerCase() ||
+          (x.item_id || '').toLowerCase() === prevCode.toLowerCase()
+        );
+        if (invIdx !== -1) {
+          const inv = inventoryItems[invIdx];
+          inv.deliveries_2026_qty = Math.max(0, (parseFloat(inv.deliveries_2026_qty) || 0) - prevQty);
+          inv.total_received_qty = Math.max(0, (parseFloat(inv.total_received_qty) || 0) - prevQty);
+          inv.on_hand_qty = Math.max(0, (parseFloat(inv.on_hand_qty) || 0) - prevQty);
+          inv.on_hand_value = inv.on_hand_qty * (parseFloat(inv.unit_cost) || 0);
+          inv.status = inv.on_hand_qty > 5 ? 'In Stock' : inv.on_hand_qty > 0 ? 'Low Stock' : 'Out of Stock';
+
+          const isBaseItem = Boolean(window.onHandInventoryData?.items?.some(b => b.item_id === inv.item_id));
+          if (!isBaseItem && item.posted_created_new && inv.total_received_qty <= 0 && inv.on_hand_qty <= 0 && (inv.total_issued_qty || 0) <= 0) {
+            const removedId = inv.item_id;
+            inventoryItems.splice(invIdx, 1);
+            sbSyncBackground(() => sbDeleteRow('on_hand_inventory', removedId, 'item_id'));
+          } else {
+            sbSyncBackground(() => sbUpsertRows('on_hand_inventory', [inv], mapInventoryToSb, null, 'item_id'));
+          }
+          saveInventoryItems();
+        }
+      } else if (CATEGORY_REGISTRIES[prevTarget]) {
+        const cfg = CATEGORY_REGISTRIES[prevTarget];
+        const recId = `${cfg.idPrefix}_${r.id}_${rowIdx}`;
+        const list = cfg.getList();
+        const filtered = list.filter(x => x.id !== recId);
+        if (filtered.length !== list.length) {
+          cfg.setList(filtered);
+          localStorage.setItem(cfg.storageKey, JSON.stringify(filtered));
+          sbSyncBackground(() => sbDeleteRow(cfg.sbTable, recId, 'id'));
+        }
+      }
+
+      delete item.posted_target;
+      delete item.posted_item_code;
+      delete item.posted_qty;
+      delete item.posted_created_new;
+    }
+
+    function applyRrItemPosting(r, rowIdx, item, itemCode, target, normalizedType) {
+      const qty = parseFloat(item.qty) || 1;
+      const cost = parseFloat(item.cost) || 0;
+      const rowTotal = item.rowTotal !== undefined ? (parseFloat(item.rowTotal) || (qty * cost)) : (qty * cost);
+      const uom = (item.uom || 'PCS').toUpperCase();
+
+      if (target.key === 'inventory') {
+        let inv = inventoryItems.find(x =>
+          (x.item_code || '').toLowerCase() === itemCode.toLowerCase() ||
+          (x.item_id || '').toLowerCase() === itemCode.toLowerCase()
+        );
+        let createdNew = false;
+        if (!inv) {
+          inv = {
+            item_id: itemCode,
+            item_code: itemCode,
+            description: item.desc || 'Received Item',
+            uom,
+            expense_account: normalizedType,
+            category: normalizedType,
+            stock_2025_qty: 0,
+            deliveries_2026_qty: qty,
+            total_received_qty: qty,
+            total_issued_qty: 0,
+            on_hand_qty: qty,
+            unit_cost: cost,
+            on_hand_value: qty * cost,
+            status: qty > 5 ? 'In Stock' : qty > 0 ? 'Low Stock' : 'Out of Stock'
+          };
+          inventoryItems.unshift(inv);
+          createdNew = true;
+        } else {
+          inv.deliveries_2026_qty = (parseFloat(inv.deliveries_2026_qty) || 0) + qty;
+          inv.total_received_qty = (parseFloat(inv.total_received_qty) || 0) + qty;
+          inv.on_hand_qty = (parseFloat(inv.on_hand_qty) || 0) + qty;
+          if (cost > 0) inv.unit_cost = cost;
+          if (!inv.expense_account) inv.expense_account = normalizedType;
+          inv.on_hand_value = inv.on_hand_qty * (parseFloat(inv.unit_cost) || 0);
+          inv.status = inv.on_hand_qty > 5 ? 'In Stock' : inv.on_hand_qty > 0 ? 'Low Stock' : 'Out of Stock';
+        }
+        saveInventoryItems();
+        populateItemDropdowns();
+        sbSyncBackground(() => sbUpsertRows('on_hand_inventory', [inv], mapInventoryToSb, null, 'item_id'));
+        item.posted_created_new = createdNew;
+      } else if (CATEGORY_REGISTRIES[target.key]) {
+        const cfg = CATEGORY_REGISTRIES[target.key];
+        const recId = `${cfg.idPrefix}_${r.id}_${rowIdx}`;
+        const list = cfg.getList();
+        const record = {
+          id: recId,
+          item_code: itemCode,
+          description: item.desc || 'Received Item',
+          item_type: normalizedType,
+          qty,
+          uom,
+          unit_cost: cost,
+          total_amount: rowTotal,
+          rr_id: r.id,
+          rr_no: r.rr_no || '',
+          po_no: r.po_no || '',
+          date_received: r.date || new Date().toISOString().slice(0, 10),
+          supplier_name: r.supplier_name || '',
+          project: r.project || '',
+          department: r.department || '',
+          condition: r.condition || 'Accepted in Good Condition',
+          created_at: new Date().toISOString()
+        };
+        const existingIdx = list.findIndex(x => x.id === recId);
+        if (existingIdx !== -1) {
+          list[existingIdx] = record;
+        } else {
+          list.unshift(record);
+        }
+        cfg.setList(list);
+        localStorage.setItem(cfg.storageKey, JSON.stringify(list));
+        sbSyncBackground(() => sbUpsertRows(cfg.sbTable, [record], mapCategoryRecordToSb, null, 'id'));
+        item.posted_created_new = false;
+      }
+
+      item.posted_target = target.key;
+      item.posted_item_code = itemCode;
+      item.posted_qty = qty;
+    }
+
+    function updateSlipRowUiStatus(rowIdx, itemCode, target, isCleared = false) {
+      const printSpan = document.getElementById(`slipItemCodePrint_${rowIdx}`);
+      if (printSpan) printSpan.textContent = itemCode || '—';
+      const statusEl = document.getElementById(`slipRowStatus_${rowIdx}`);
+      if (!statusEl) return;
+      if (!itemCode || isCleared) {
+        statusEl.className = 'slip-item-code-status pending no-print';
+        statusEl.innerHTML = 'Pending Item Code';
+      } else if (target) {
+        statusEl.className = 'slip-item-code-status recorded no-print';
+        statusEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> ${escapeHtml(target.label)}`;
+      } else {
+        statusEl.className = 'slip-item-code-status pending no-print';
+        statusEl.innerHTML = 'Select Item Type';
+      }
+    }
+
+    function setSlipRecordBanner(type, message) {
+      const banner = document.getElementById('slipRecordStatusBanner');
+      if (!banner) return;
+      if (!message) {
+        banner.className = 'slip-record-banner no-print';
+        banner.innerHTML = '';
+        return;
+      }
+      const icon = type === 'success' ? 'fa-circle-check' : 'fa-triangle-exclamation';
+      banner.className = `slip-record-banner ${type} no-print`;
+      banner.innerHTML = `<i class="fa-solid ${icon}"></i><span>${escapeHtml(message)}</span>`;
+    }
+
+    function ensureRrItemsArray(r) {
+      if (!Array.isArray(r.items) || r.items.length === 0) {
+        r.items = [{
+          desc: r.items_desc || 'Received Materials',
+          qty: 1,
+          uom: 'LOT',
+          cost: parseFloat(r.total_amount) || 0,
+          rowTotal: parseFloat(r.total_amount) || 0
+        }];
+      }
+      return r.items;
+    }
+
+    function recordRrItemCodeEntry(rrId, rowIdx, rawVal, options = {}) {
+      const r = receivingReports.find(x => x.id === rrId);
+      if (!r) return { ok: false, reason: 'missing_rr' };
+
+      const items = ensureRrItemsArray(r);
+      const item = items[rowIdx];
+      if (!item) return { ok: false, reason: 'missing_item' };
+
+      const code = String(rawVal || '').trim();
+      const inputEl = document.getElementById(`slipItemCodeInput_${rowIdx}`);
+      if (inputEl && inputEl.value !== code) inputEl.value = code;
+
+      item.item_code = code;
+
+      if (!code) {
+        if (item.posted_target) {
+          reverseRrItemPosting(r, rowIdx, item);
+          localStorage.setItem(RR_KEY, JSON.stringify(receivingReports));
+          sbSyncBackground(() => sbUpsertRows('receiving_reports', [r], mapRrToSbFull, mapRrToSbCore, 'id'));
+          renderAll();
+        }
+        updateSlipRowUiStatus(rowIdx, '', null, true);
+        return { ok: true, skipped: true };
+      }
+
+      const normalizedType = normalizeItemType(r.item_type || r.expense_account || '');
+      const target = getRegistryTargetForItemType(normalizedType);
+      if (!target) {
+        localStorage.setItem(RR_KEY, JSON.stringify(receivingReports));
+        updateSlipRowUiStatus(rowIdx, code, null);
+        setSlipRecordBanner('warning', `Item Code "${code}" saved, but please select an Item Type above to record it to Inventory, Fixed Asset Registry, Services, or Capex.`);
+        if (!options.silentAlert) {
+          document.getElementById('slipRrItemTypeSelect')?.focus();
+        }
+        return { ok: false, reason: 'missing_type' };
+      }
+
+      const qty = parseFloat(item.qty) || 1;
+      const alreadySame = item.posted_target === target.key &&
+        String(item.posted_item_code || '').toLowerCase() === code.toLowerCase() &&
+        Number(item.posted_qty) === qty;
+
+      if (!alreadySame) {
+        if (item.posted_target) {
+          reverseRrItemPosting(r, rowIdx, item);
+        }
+        applyRrItemPosting(r, rowIdx, item, code, target, normalizedType);
+      }
+
+      localStorage.setItem(RR_KEY, JSON.stringify(receivingReports));
+      sbSyncBackground(() => sbUpsertRows('receiving_reports', [r], mapRrToSbFull, mapRrToSbCore, 'id'));
+      updateSlipRowUiStatus(rowIdx, code, target);
+      populateSlipItemCodeDatalist();
+      renderAll();
+
+      setSlipRecordBanner('success', `Recorded "${code}" (${item.desc || 'Item'}) to ${target.label}.`);
+      return { ok: true, target, code, desc: item.desc || 'Item', alreadySame };
+    }
+
+    function onSlipItemTypeChange(rrId, newType) {
+      const r = receivingReports.find(x => x.id === rrId);
+      if (!r) return;
+      const normalized = normalizeItemType(newType);
+      r.item_type = normalized;
+      r.expense_account = normalized;
+
+      const target = getRegistryTargetForItemType(normalized);
+      const pill = document.getElementById('slipTargetRoutePill');
+      if (pill) {
+        pill.innerHTML = target
+          ? `<i class="fa-solid fa-arrow-right"></i> Records to: ${escapeHtml(target.label)}`
+          : `<i class="fa-solid fa-circle-info"></i> Select Item Type to Route`;
+      }
+      const metaTypeEl = document.getElementById('slipMetaItemTypeVal');
+      if (metaTypeEl) metaTypeEl.textContent = normalized || 'Not Specified';
+
+      // Re-route any items that already have Item Codes entered
+      const items = ensureRrItemsArray(r);
+      let recordedCount = 0;
+      items.forEach((it, idx) => {
+        const inp = document.getElementById(`slipItemCodeInput_${idx}`);
+        const val = inp ? inp.value.trim() : (it.item_code || '').trim();
+        if (val) {
+          const res = recordRrItemCodeEntry(rrId, idx, val, { silentAlert: true });
+          if (res.ok && !res.skipped) recordedCount++;
+        } else {
+          updateSlipRowUiStatus(idx, '', target, true);
+        }
+      });
+
+      localStorage.setItem(RR_KEY, JSON.stringify(receivingReports));
+      sbSyncBackground(() => sbUpsertRows('receiving_reports', [r], mapRrToSbFull, mapRrToSbCore, 'id'));
+      renderAll();
+
+      if (!target) {
+        setSlipRecordBanner('warning', 'Select an Item Type to route entered Item Codes.');
+      } else if (recordedCount > 0) {
+        setSlipRecordBanner('success', `Updated Item Type to "${normalized}" and recorded ${recordedCount} item(s) to ${target.label}.`);
+      } else {
+        setSlipRecordBanner('', '');
+      }
+    }
+
+    function onSlipItemCodeChange(rrId, rowIdx, rawVal) {
+      recordRrItemCodeEntry(rrId, rowIdx, rawVal, { silentAlert: true });
+    }
+
+    function onSlipItemCodeKeyDown(event, rrId, rowIdx, totalRows) {
+      if (event.isComposing || event.key !== 'Enter') return;
+      event.preventDefault();
+      const nextInput = document.getElementById(`slipItemCodeInput_${rowIdx + 1}`);
+      if (nextInput && rowIdx + 1 < totalRows && !nextInput.value.trim()) {
+        recordRrItemCodeEntry(rrId, rowIdx, event.target.value, { silentAlert: true });
+        nextInput.focus();
+      } else {
+        saveAndRecordRrSlip(rrId);
+      }
+    }
+
+    function saveAndRecordRrSlip(rrId) {
+      const r = receivingReports.find(x => x.id === rrId);
+      if (!r) return;
+      const items = ensureRrItemsArray(r);
+      const inputs = items.map((_, idx) => document.getElementById(`slipItemCodeInput_${idx}`));
+      const hasAnyCode = inputs.some(inp => inp && inp.value.trim());
+
+      if (!hasAnyCode) {
+        setSlipRecordBanner('warning', 'Please enter at least one Item Code in the field before recording.');
+        inputs[0]?.focus();
+        return;
+      }
+
+      const normalizedType = normalizeItemType(r.item_type || r.expense_account || '');
+      const target = getRegistryTargetForItemType(normalizedType);
+      if (!target) {
+        setSlipRecordBanner('warning', 'Please select an Item Type above to route the entered Item Code(s).');
+        document.getElementById('slipRrItemTypeSelect')?.focus();
+        return;
+      }
+
+      const recorded = [];
+      for (let i = 0; i < items.length; i++) {
+        const val = inputs[i]?.value.trim() || '';
+        const res = recordRrItemCodeEntry(rrId, i, val, { silentAlert: true });
+        if (res.ok && !res.skipped) {
+          recorded.push(`${res.code} — ${res.desc}`);
+        }
+      }
+
+      if (recorded.length > 0) {
+        showSystemAlert(
+          `Recorded to ${target.label}`,
+          `Saved ${recorded.length} item(s) from ${r.rr_no} into ${target.label}:\n${recorded.join('\n')}`,
+          true
+        );
+      }
+    }
+
     function openDocumentSlip(type, id) {
       const container = document.getElementById('documentSlipContent');
       if (!container) return;
+
+      const modalBox = document.getElementById('documentSlipModalBox');
+      if (modalBox) modalBox.style.maxWidth = type === 'rr' ? '780px' : '680px';
+      if (type === 'rr') populateSlipItemCodeDatalist();
 
       let badgeText = 'WAREHOUSE SLIP';
       let docNo = '—';
@@ -3845,6 +4609,9 @@
       let sigCenter = { label: 'Reviewed by:', name: 'Emmanuel Notarte', role: 'Admin Officer' };
       let sigRight = { label: 'Approved by:', name: 'Clarisa P Lasam', role: 'Admin Supervisor' };
       let totalAmountOverride = null;
+      let rrRecord = null;
+      let rrTarget = null;
+      let rrNormalizedType = '';
 
       if (type === 'mis') {
         const m = materialIssuances.find(x => x.id === id);
@@ -3894,6 +4661,9 @@
       } else if (type === 'rr') {
         const r = receivingReports.find(x => x.id === id);
         if (!r) return;
+        rrRecord = r;
+        rrNormalizedType = normalizeItemType(r.item_type || r.expense_account || '');
+        rrTarget = getRegistryTargetForItemType(rrNormalizedType);
         badgeText = 'RECEIVING REPORT SLIP';
         docNo = r.rr_no || 'RR';
         titleText = 'MATERIAL RECEIVING REPORT (MRR)';
@@ -3905,24 +4675,14 @@
         ];
         metaRight = [
           ['Date Received:', r.date || '—'],
-          ['Item Type:', r.item_type || r.expense_account || 'General Supplies'],
+          ['Item Type:', rrNormalizedType || 'Not Specified', 'slipMetaItemTypeVal'],
           ['Condition:', r.condition || 'Accepted in Good Condition']
         ];
         totalLabel = 'TOTAL RECEIVED AMOUNT:';
         policyText = '<strong>Warehouse Inspection Policy:</strong> All incoming materials and supplies listed above have been physically inspected, counted, and verified against the accompanying Purchase Order and supplier delivery receipt.';
         totalAmountOverride = r.total_amount || 0;
 
-        if (Array.isArray(r.items) && r.items.length > 0) {
-          items = r.items;
-        } else {
-          items = [{
-            desc: r.items_desc || 'Received Materials',
-            qty: 1,
-            uom: 'LOT',
-            cost: parseFloat(r.total_amount) || 0,
-            rowTotal: parseFloat(r.total_amount) || 0
-          }];
-        }
+        items = ensureRrItemsArray(r);
       } else if (type === 'po') {
         const p = purchaseOrders.find(x => x.id === id);
         if (!p) return;
@@ -3960,10 +4720,10 @@
       const computedTotal = items.reduce((sum, it) => sum + (parseFloat(it.rowTotal) || ((parseFloat(it.qty) || 0) * (parseFloat(it.cost) || 0))), 0);
       const grandTotal = totalAmountOverride !== null ? totalAmountOverride : computedTotal;
 
-      const renderMetaRows = (arr) => arr.map(([lbl, val]) => `
+      const renderMetaRows = (arr) => arr.map(([lbl, val, valId]) => `
         <div class="slip-meta-row">
           <span class="slip-meta-label">${lbl}</span>
-          <span class="slip-meta-val">${escapeHtml(val)}</span>
+          <span class="slip-meta-val"${valId ? ` id="${valId}"` : ''}>${escapeHtml(val)}</span>
         </div>
       `).join('');
 
@@ -3971,12 +4731,35 @@
         const q = parseFloat(it.qty) || 0;
         const c = parseFloat(it.cost) || 0;
         const rt = it.rowTotal !== undefined ? parseFloat(it.rowTotal) : (q * c);
+        const itemCodeCell = type === 'rr' ? `
+            <td>
+              <input type="text"
+                class="slip-item-code-input no-print"
+                id="slipItemCodeInput_${idx}"
+                data-row-idx="${idx}"
+                value="${escapeHtml(it.item_code || '')}"
+                list="slipItemCodeList"
+                placeholder="Enter Item Code..."
+                autocorrect="off"
+                autocapitalize="none"
+                spellcheck="false"
+                enterkeyhint="${idx < items.length - 1 ? 'next' : 'done'}"
+                aria-label="Item Code for ${escapeHtml(it.desc || 'Item')}"
+                onchange="onSlipItemCodeChange('${rrRecord.id}', ${idx}, this.value)"
+                onkeydown="onSlipItemCodeKeyDown(event, '${rrRecord.id}', ${idx}, ${items.length})">
+              <div id="slipRowStatus_${idx}" class="slip-item-code-status no-print ${it.posted_target ? 'recorded' : 'pending'}">
+                ${it.posted_target ? `<i class="fa-solid fa-circle-check"></i> ${escapeHtml(getRegistryTargetLabel(it.posted_target))}` : 'Pending Item Code'}
+              </div>
+              <span id="slipItemCodePrint_${idx}" class="slip-item-code-print-only">${escapeHtml(it.item_code || '—')}</span>
+            </td>
+        ` : '';
         return `
           <tr>
             <td style="text-align:center; color:#64748b; font-weight:600;">${idx + 1}</td>
+            ${itemCodeCell}
             <td>
               <div style="font-weight:700; color:#0f172a;">${escapeHtml(it.desc || 'Item')}</div>
-              ${it.item_code ? `<div style="font-size:0.7rem; color:#0284c7; font-family:monospace; font-weight:600; margin-top:2px;">[${escapeHtml(it.item_code)}]</div>` : ''}
+              ${type !== 'rr' && it.item_code ? `<div style="font-size:0.7rem; color:#0284c7; font-family:monospace; font-weight:600; margin-top:2px;">[${escapeHtml(it.item_code)}]</div>` : ''}
             </td>
             <td style="text-align:center; font-weight:600;">${q}</td>
             <td style="text-align:center; text-transform:uppercase; color:#475569;">${escapeHtml(it.uom || 'PCS')}</td>
@@ -3985,6 +4768,27 @@
           </tr>
         `;
       }).join('');
+
+      const rrEntryToolbarHtml = type === 'rr' ? `
+        <div class="slip-entry-toolbar no-print">
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <strong><i class="fa-solid fa-barcode"></i> Item Code Entry</strong>
+            <label for="slipRrItemTypeSelect" style="margin:0; color:#0369a1; font-weight:600;">Item Type:</label>
+            <select id="slipRrItemTypeSelect" onchange="onSlipItemTypeChange('${rrRecord.id}', this.value)">
+              <option value="" ${!rrNormalizedType ? 'selected' : ''}>-- Select Item Type --</option>
+              <option value="Consumables &amp; Office Supplies" ${rrNormalizedType === 'Consumables & Office Supplies' ? 'selected' : ''}>Consumables &amp; Office Supplies</option>
+              <option value="Construction Materials" ${rrNormalizedType === 'Construction Materials' ? 'selected' : ''}>Construction Materials</option>
+              <option value="Fixed Assets" ${rrNormalizedType === 'Fixed Assets' ? 'selected' : ''}>Fixed Assets</option>
+              <option value="Services" ${rrNormalizedType === 'Services' ? 'selected' : ''}>Services</option>
+              <option value="Capital Expenditure" ${rrNormalizedType === 'Capital Expenditure' ? 'selected' : ''}>Capital Expenditure</option>
+            </select>
+          </div>
+          <span id="slipTargetRoutePill" class="slip-target-pill">
+            ${rrTarget ? `<i class="fa-solid fa-arrow-right"></i> Records to: ${escapeHtml(rrTarget.label)}` : '<i class="fa-solid fa-circle-info"></i> Select Item Type to Route'}
+          </span>
+        </div>
+        <div id="slipRecordStatusBanner" class="slip-record-banner no-print"></div>
+      ` : '';
 
       container.innerHTML = `
         <div class="slip-top-header">
@@ -4011,11 +4815,14 @@
           <div>${renderMetaRows(metaRight)}</div>
         </div>
 
+        ${rrEntryToolbarHtml}
+
         <div class="slip-items-wrap">
           <table class="slip-table">
             <thead>
               <tr>
                 <th style="width:40px; text-align:center;">#</th>
+                ${type === 'rr' ? '<th style="width:145px;">ITEM CODE</th>' : ''}
                 <th>ITEM DESCRIPTION</th>
                 <th style="width:60px; text-align:center;">QTY</th>
                 <th style="width:70px; text-align:center;">UOM</th>
@@ -4028,7 +4835,7 @@
             </tbody>
             <tfoot>
               <tr>
-                <td colspan="2" style="text-align:right; color:#172e54; letter-spacing:0.3px;">${escapeHtml(totalLabel)}</td>
+                <td colspan="${type === 'rr' ? 3 : 2}" style="text-align:right; color:#172e54; letter-spacing:0.3px;">${escapeHtml(totalLabel)}</td>
                 <td style="text-align:center; color:#0284c7;">${totalQty}</td>
                 <td colspan="2"></td>
                 <td style="text-align:right; color:#059669;">${formatCurrency(grandTotal)}</td>
@@ -4067,6 +4874,11 @@
         </div>
 
         <div class="slip-actions-bar">
+          ${type === 'rr' ? `
+            <button type="button" class="btn-slip-action btn-slip-record" onclick="saveAndRecordRrSlip('${rrRecord.id}')">
+              <i class="fa-solid fa-floppy-disk"></i> Save &amp; Record Item Code
+            </button>
+          ` : ''}
           <button type="button" class="btn-slip-action" onclick="printDocumentSlip()">
             <i class="fa-solid fa-print"></i> Print Slip
           </button>
@@ -4080,6 +4892,11 @@
     }
 
     function printDocumentSlip() {
+      document.querySelectorAll('.slip-item-code-input').forEach(inp => {
+        const idx = inp.dataset.rowIdx;
+        const printSpan = document.getElementById(`slipItemCodePrint_${idx}`);
+        if (printSpan) printSpan.textContent = inp.value.trim() || '—';
+      });
       window.print();
     }
 
@@ -4141,6 +4958,24 @@
         inventoryItems = [];
       }
 
+      // Merge locally persisted inventory items (from RR Slip entries / Supabase pulls)
+      try {
+        const customInv = JSON.parse(localStorage.getItem(CUSTOM_INV_KEY) || '[]');
+        if (Array.isArray(customInv)) {
+          customInv.forEach(c => {
+            const idx = inventoryItems.findIndex(x =>
+              x.item_id === c.item_id ||
+              (c.item_code && (x.item_code || '').toLowerCase() === String(c.item_code).toLowerCase())
+            );
+            if (idx !== -1) {
+              inventoryItems[idx] = { ...inventoryItems[idx], ...c };
+            } else {
+              inventoryItems.push(c);
+            }
+          });
+        }
+      } catch (e) { }
+
       // Check local cached overrides
       const cachedStock = localStorage.getItem('warehouse_on_hand_overrides');
       if (cachedStock) {
@@ -4149,7 +4984,7 @@
           inventoryItems.forEach(it => {
             if (overrides[it.item_id] !== undefined) {
               it.on_hand_qty = overrides[it.item_id];
-              it.on_hand_value = it.on_hand_qty * it.unit_cost;
+              it.on_hand_value = it.on_hand_qty * (parseFloat(it.unit_cost) || 0);
             }
           });
         } catch (e) { }
@@ -4177,10 +5012,20 @@
         directoryEntries = JSON.parse(localStorage.getItem(DIR_KEY) || '[]');
       } catch (e) { directoryEntries = []; }
 
-      // 5. Supplies Requests
+      // 6. Supplies Requests
       try {
         suppliesRequests = JSON.parse(localStorage.getItem(SUP_KEY) || '[]');
       } catch (e) { suppliesRequests = []; }
+
+      // 7. Fixed Asset Registry, Services & Capex
+      Object.values(CATEGORY_REGISTRIES).forEach(cfg => {
+        try {
+          const parsed = JSON.parse(localStorage.getItem(cfg.storageKey) || '[]');
+          cfg.setList(Array.isArray(parsed) ? parsed : []);
+        } catch (e) {
+          cfg.setList([]);
+        }
+      });
 
       populateItemDropdowns();
       renderAll();
@@ -4210,6 +5055,9 @@
       renderRrTable();
       renderMisTable();
       renderStockTable();
+      renderFixedAssetsTable();
+      renderServicesTable();
+      renderCapexTable();
       renderAllDirectoryRegistries();
       updateBadges();
     }
@@ -4228,6 +5076,9 @@
 
       const pendingSupCount = suppliesRequests.filter(s => s.status === 'Pending').length;
       setBadge('navSuppliesCount', pendingSupCount);
+      setBadge('navFixedAssetsCount', fixedAssets.length);
+      setBadge('navServicesCount', serviceRecords.length);
+      setBadge('navCapexCount', capexRecords.length);
       const notifEl = document.getElementById('notifBadge');
       if (notifEl) {
         if (pendingSupCount > 0) {
@@ -5216,15 +6067,23 @@
         return;
       }
 
-      tbody.innerHTML = list.map(r => `
+      tbody.innerHTML = list.map(r => {
+        const displayType = normalizeItemType(r.item_type) || r.expense_account || '—';
+        const codeBadges = Array.isArray(r.items)
+          ? r.items.map(it => it.item_code).filter(Boolean).map(c => `<span class="code-badge" style="font-size:0.7rem; padding:1px 6px; margin-right:4px;">${escapeHtml(c)}</span>`).join('')
+          : '';
+        return `
         <tr>
           <td>${escapeHtml(r.date)}</td>
           <td><span class="code-badge">${escapeHtml(r.rr_no)}</span></td>
           <td>${escapeHtml(r.po_no || '—')}</td>
           <td><strong>${escapeHtml(r.supplier_name)}</strong></td>
           <td>${escapeHtml(r.project || r.department || 'Admin')}</td>
-          <td>${escapeHtml(r.item_type || r.expense_account || '—')}</td>
-          <td>${escapeHtml(r.items_desc)}</td>
+          <td>${escapeHtml(displayType)}</td>
+          <td>
+            <div>${escapeHtml(r.items_desc)}</div>
+            ${codeBadges ? `<div style="margin-top:4px;">${codeBadges}</div>` : ''}
+          </td>
           <td><strong style="color:var(--success); font-size:0.88rem;">${formatCurrency(r.total_amount || 0)}</strong></td>
           <td><span class="status-badge ${r.condition && r.condition.includes('Good') ? 'active' : 'warning'}">${escapeHtml(r.condition || 'Accepted in Good Condition')}</span></td>
           <td style="text-align:center; white-space:nowrap;">
@@ -5236,7 +6095,8 @@
             </button>
           </td>
         </tr>
-      `).join('');
+      `;
+      }).join('');
     }
 
     function deleteRr(id) {
@@ -5467,10 +6327,11 @@
         sbSyncBackground(() => sbUpsertRows('material_issuances', [newMis], mapMisToSbFull, mapMisToSbCore, 'id'));
 
         // Auto deduct from on-hand stock if matched item
+        item.total_issued_qty = (parseFloat(item.total_issued_qty) || 0) + qty;
         item.on_hand_qty = Math.max(0, item.on_hand_qty - qty);
         item.on_hand_value = item.on_hand_qty * item.unit_cost;
-        saveStockOverrides();
-        sbSyncBackground(() => sbUpsertRows('on_hand_inventory', [item], mapInventoryToSb, null, 'item_code'));
+        saveInventoryItems();
+        sbSyncBackground(() => sbUpsertRows('on_hand_inventory', [item], mapInventoryToSb, null, 'item_id'));
 
         // If linked to an approved supplies request, update status to Issued!
         if (linkedSupId) {
@@ -5518,6 +6379,11 @@
     function renderStockTable() {
       const search = (document.getElementById('stockSearchInput')?.value || '').toLowerCase();
       let list = inventoryItems;
+
+      const allPillEl = document.getElementById('stockPillAll');
+      if (allPillEl) allPillEl.textContent = `All (${inventoryItems.length})`;
+      const subEl = document.getElementById('stockMasterSubtitle');
+      if (subEl) subEl.textContent = `Live inventory ledger computed from Total Deliveries Received minus Total Material Issuances across ${inventoryItems.length} item(s).`;
 
       if (currentStockFilter === 'IN_STOCK') {
         list = list.filter(i => i.on_hand_qty > 5);
@@ -5616,18 +6482,156 @@
           item.on_hand_qty = Math.max(0, item.on_hand_qty - qty);
         }
         item.on_hand_value = item.on_hand_qty * item.unit_cost;
-        saveStockOverrides();
-        sbSyncBackground(() => sbUpsertRows('on_hand_inventory', [item], mapInventoryToSb, null, 'item_code'));
+        saveInventoryItems();
+        sbSyncBackground(() => sbUpsertRows('on_hand_inventory', [item], mapInventoryToSb, null, 'item_id'));
         closeModal('modalAdjustStock');
         renderAll();
         showSystemAlert('Inventory Adjusted', `${item.item_code} adjusted by ${qty} units (${reason}).`);
       }
     }
 
+    function saveInventoryItems() {
+      saveStockOverrides();
+      const baseIds = new Set(
+        (window.onHandInventoryData && Array.isArray(window.onHandInventoryData.items))
+          ? window.onHandInventoryData.items.map(i => i.item_id)
+          : []
+      );
+      // Persist all custom/modified inventory items so newly added RR items survive reloads even when on_hand_inventory_data.js is disabled
+      const toPersist = inventoryItems.filter(i => !baseIds.has(i.item_id) || (parseFloat(i.deliveries_2026_qty) || 0) > 0);
+      localStorage.setItem(CUSTOM_INV_KEY, JSON.stringify(toPersist));
+    }
+
     function saveStockOverrides() {
       const map = {};
       inventoryItems.forEach(i => { map[i.item_id] = i.on_hand_qty; });
       localStorage.setItem('warehouse_on_hand_overrides', JSON.stringify(map));
+    }
+
+    // ==============================================================
+    // RENDER: FIXED ASSET REGISTRY, SERVICES & CAPEX PANES
+    // ==============================================================
+    function renderCategoryRegistryTable(registryKey) {
+      const cfg = CATEGORY_REGISTRIES[registryKey];
+      if (!cfg) return;
+      const tbody = document.getElementById(cfg.tbodyId);
+      if (!tbody) return;
+
+      const q = (document.getElementById(cfg.searchId)?.value || '').toLowerCase().trim();
+      const fullList = cfg.getList();
+      const list = fullList.filter(it => !q ||
+        (it.item_code || '').toLowerCase().includes(q) ||
+        (it.description || '').toLowerCase().includes(q) ||
+        (it.rr_no || '').toLowerCase().includes(q) ||
+        (it.po_no || '').toLowerCase().includes(q) ||
+        (it.supplier_name || '').toLowerCase().includes(q) ||
+        (it.project || '').toLowerCase().includes(q) ||
+        (it.department || '').toLowerCase().includes(q)
+      );
+
+      const summaryEl = document.getElementById(cfg.summaryId);
+      if (summaryEl) {
+        const totalVal = list.reduce((sum, it) => sum + (parseFloat(it.total_amount) || 0), 0);
+        const unitPlural = list.length === 1 ? cfg.unitWord : `${cfg.unitWord}s`;
+        summaryEl.textContent = `${list.length} ${unitPlural} • ${formatCurrency(totalVal)}`;
+      }
+
+      if (list.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="10" style="text-align:center; padding:48px 20px; color:var(--text-muted);">
+              <i class="fa-solid ${cfg.emptyIcon}" style="font-size:2rem; opacity:0.4; margin-bottom:10px; display:block; color:var(--accent);"></i>
+              <strong style="font-size:0.95rem;">${escapeHtml(cfg.emptyTitle)}</strong>
+              <div style="font-size:0.82rem; margin-top:4px;">${escapeHtml(cfg.emptyHint)}</div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = list.map(it => {
+        const hasSourceRr = Boolean(it.rr_id && receivingReports.some(r => r.id === it.rr_id));
+        const refText = [it.rr_no, it.po_no].filter(Boolean).join(' / ') || '—';
+        const locText = [it.project, it.department].filter(Boolean).join(' • ') || 'Admin';
+        return `
+          <tr>
+            <td><span class="code-badge">${escapeHtml(it.item_code)}</span></td>
+            <td><strong>${escapeHtml(it.description)}</strong></td>
+            <td>${escapeHtml(refText)}</td>
+            <td>${escapeHtml(it.date_received || '—')}</td>
+            <td>${escapeHtml(it.supplier_name || '—')}</td>
+            <td>${escapeHtml(locText)}</td>
+            <td>${escapeHtml(String(it.qty || 1))} ${escapeHtml(it.uom || 'PCS')}</td>
+            <td>${formatCurrency(it.unit_cost || 0)}</td>
+            <td><strong style="color:var(--success);">${formatCurrency(it.total_amount || 0)}</strong></td>
+            <td style="text-align:center; white-space:nowrap;">
+              ${hasSourceRr ? `
+                <button type="button" class="btn-slip-row" onclick="openDocumentSlip('rr', '${it.rr_id}')" title="View Receiving Report Slip" style="margin-right:4px;">
+                  <i class="fa-solid fa-file-lines"></i> Slip
+                </button>
+              ` : ''}
+              <button type="button" class="btn btn-outline btn-sm" onclick="deleteCategoryRegistryRecord('${registryKey}', '${it.id}')" title="Delete Record" style="color:#ef4444; border-color:#fee2e2;">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderFixedAssetsTable() {
+      renderCategoryRegistryTable('fixed_assets');
+    }
+
+    function renderServicesTable() {
+      renderCategoryRegistryTable('services');
+    }
+
+    function renderCapexTable() {
+      renderCategoryRegistryTable('capex');
+    }
+
+    function deleteCategoryRegistryRecord(registryKey, id) {
+      const cfg = CATEGORY_REGISTRIES[registryKey];
+      if (!cfg) return;
+      const list = cfg.getList();
+      const target = list.find(x => x.id === id);
+      const label = target ? `${target.item_code} (${target.description})` : 'this record';
+      showSystemConfirm(`Delete ${cfg.label} Entry`, `Remove "${label}" from ${cfg.label}?`, () => {
+        const next = list.filter(x => x.id !== id);
+        cfg.setList(next);
+        localStorage.setItem(cfg.storageKey, JSON.stringify(next));
+        sbSyncBackground(() => sbDeleteRow(cfg.sbTable, id, 'id'));
+        renderAll();
+        showSystemAlert('Record Removed', `Removed "${label}" from ${cfg.label}.`, true);
+      });
+    }
+
+    function exportCategoryRegistryCSV(registryKey) {
+      const cfg = CATEGORY_REGISTRIES[registryKey];
+      if (!cfg) return;
+      const list = cfg.getList();
+      if (list.length === 0) return showSystemAlert('No Data to Export', `There are no records in ${cfg.label} to export.`, false);
+      let csv = 'Item Code,Description,Item Type,RR No,PO No,Date Received,Supplier,Project,Department,Qty,UOM,Unit Cost,Total Amount\n';
+      list.forEach(it => {
+        const esc = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+        csv += [
+          esc(it.item_code),
+          esc(it.description),
+          esc(it.item_type || cfg.defaultType),
+          esc(it.rr_no),
+          esc(it.po_no),
+          esc(it.date_received),
+          esc(it.supplier_name),
+          esc(it.project),
+          esc(it.department),
+          it.qty || 1,
+          esc(it.uom || 'PCS'),
+          it.unit_cost || 0,
+          it.total_amount || 0
+        ].join(',') + '\n';
+      });
+      downloadCSV(csv, cfg.csvFilename);
     }
 
     // ==============================================================
@@ -6470,13 +7474,39 @@
 
     function mapRrItemsForSb(r) {
       return (Array.isArray(r.items) ? r.items : []).map(it => ({
+        item_code: it.item_code || '',
         description: it.desc || it.description || '',
         qty: Number(it.qty) || 0,
         uom: it.uom || 'PCS',
         unit_cost: Number(it.cost ?? it.unit_cost) || 0,
         total_amount: Number(it.rowTotal ?? it.total_amount) || 0,
-        expense_account: r.item_type || r.expense_account || ''
+        expense_account: r.item_type || r.expense_account || '',
+        posted_target: it.posted_target || '',
+        posted_item_code: it.posted_item_code || '',
+        posted_qty: Number(it.posted_qty) || 0,
+        posted_created_new: Boolean(it.posted_created_new)
       }));
+    }
+
+    function mapCategoryRecordToSb(rec) {
+      return {
+        id: String(rec.id),
+        item_code: rec.item_code || '',
+        description: rec.description || '',
+        item_type: rec.item_type || '',
+        qty: Number(rec.qty) || 1,
+        uom: rec.uom || 'PCS',
+        unit_cost: Number(rec.unit_cost) || 0,
+        total_amount: Number(rec.total_amount) || 0,
+        rr_id: rec.rr_id || '',
+        rr_no: rec.rr_no || '',
+        po_no: rec.po_no || '',
+        date_received: normalizeIsoDate(rec.date_received),
+        supplier_name: rec.supplier_name || '',
+        project: rec.project || '',
+        department: rec.department || '',
+        condition: rec.condition || 'Accepted in Good Condition'
+      };
     }
 
     function resolveRrPrfNo(r) {
@@ -6837,7 +7867,13 @@
             qty,
             uom: it.uom || 'PCS',
             cost,
-            rowTotal: Number(it.rowTotal ?? it.total_amount) || (qty * cost)
+            rowTotal: Number(it.rowTotal ?? it.total_amount) || (qty * cost),
+            ...(it.posted_target ? {
+              posted_target: it.posted_target,
+              posted_item_code: it.posted_item_code || it.item_code || '',
+              posted_qty: Number(it.posted_qty) || qty,
+              posted_created_new: Boolean(it.posted_created_new)
+            } : {})
           };
         });
 
@@ -6857,6 +7893,61 @@
           });
           if (added > 0) localStorage.setItem(storageKey, JSON.stringify(localArr));
           return added;
+        };
+
+        const mapCategoryFromSb = (r) => ({
+          id: r.id,
+          item_code: r.item_code || '',
+          description: r.description || '',
+          item_type: r.item_type || '',
+          qty: Number(r.qty) || 1,
+          uom: r.uom || 'PCS',
+          unit_cost: Number(r.unit_cost) || 0,
+          total_amount: Number(r.total_amount) || 0,
+          rr_id: r.rr_id || '',
+          rr_no: r.rr_no || '',
+          po_no: r.po_no || '',
+          date_received: r.date_received || '',
+          supplier_name: r.supplier_name || '',
+          project: r.project || '',
+          department: r.department || '',
+          condition: r.condition || 'Accepted in Good Condition',
+          created_at: r.created_at || ''
+        });
+
+        const mergeInventoryFromSb = async () => {
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/on_hand_inventory?select=*&limit=1000`, { headers: sbHeaders() });
+          if (!res.ok) return null;
+          const rows = await res.json();
+          if (!Array.isArray(rows) || rows.length === 0) return null;
+          let changed = 0;
+          rows.forEach(r => {
+            const exists = inventoryItems.some(x =>
+              String(x.item_id) === String(r.item_id) ||
+              (r.item_code && String(x.item_code || '').toLowerCase() === String(r.item_code).toLowerCase())
+            );
+            if (!exists) {
+              inventoryItems.push({
+                item_id: r.item_id || r.item_code,
+                item_code: r.item_code || r.item_id,
+                description: r.description || '',
+                expense_account: r.expense_account || r.category || 'General Supplies',
+                category: r.category || r.expense_account || 'General Supplies',
+                uom: r.uom || 'PCS',
+                stock_2025_qty: Number(r.stock_2025_qty) || 0,
+                deliveries_2026_qty: Number(r.deliveries_2026_qty) || 0,
+                total_received_qty: Number(r.total_received_qty) || 0,
+                total_issued_qty: Number(r.total_issued_qty) || 0,
+                on_hand_qty: Number(r.on_hand_qty) || 0,
+                unit_cost: Number(r.unit_cost) || 0,
+                on_hand_value: Number(r.on_hand_value) || 0,
+                status: r.status || 'In Stock'
+              });
+              changed++;
+            }
+          });
+          if (changed > 0) saveInventoryItems();
+          return changed;
         };
 
         await Promise.allSettled([
@@ -6909,9 +8000,14 @@
               linked_supplies_id: r.linked_supplies_id || '',
               created_at: r.created_at || ''
             };
-          }, true)
+          }, true),
+          mergeInventoryFromSb(),
+          mergeRegistry('fixed_assets_registry', fixedAssets, FA_KEY, mapCategoryFromSb, true),
+          mergeRegistry('services_registry', serviceRecords, SRV_KEY, mapCategoryFromSb, true),
+          mergeRegistry('capex_registry', capexRecords, CPX_KEY, mapCategoryFromSb, true)
         ]);
 
+        populateItemDropdowns();
         renderAll();
         const mrrNoEl = document.getElementById('mrrNoInput');
         if (mrrNoEl) mrrNoEl.value = getNextRrNumber();
@@ -6939,7 +8035,11 @@
         { label: 'Supplies Requests', table: 'supplies_requests', fn: () => sbSyncSuppliesRequests(suppliesRequests) },
         { label: 'Purchase Orders', table: 'purchase_orders', fn: () => sbUpsertRows('purchase_orders', purchaseOrders, mapPoToSb, null, 'id') },
         { label: 'Receiving Reports', table: 'receiving_reports', fn: () => sbUpsertRows('receiving_reports', receivingReports, mapRrToSbFull, mapRrToSbCore, 'id') },
-        { label: 'Material Issuances', table: 'material_issuances', fn: () => sbUpsertRows('material_issuances', materialIssuances, mapMisToSbFull, mapMisToSbCore, 'id') }
+        { label: 'Material Issuances', table: 'material_issuances', fn: () => sbUpsertRows('material_issuances', materialIssuances, mapMisToSbFull, mapMisToSbCore, 'id') },
+        { label: 'On-Hand Inventory', table: 'on_hand_inventory', fn: () => sbUpsertRows('on_hand_inventory', inventoryItems, mapInventoryToSb, null, 'item_id') },
+        { label: 'Fixed Asset Registry', table: 'fixed_assets_registry', fn: () => sbUpsertRows('fixed_assets_registry', fixedAssets, mapCategoryRecordToSb, null, 'id') },
+        { label: 'Services Registry', table: 'services_registry', fn: () => sbUpsertRows('services_registry', serviceRecords, mapCategoryRecordToSb, null, 'id') },
+        { label: 'CAPEX Registry', table: 'capex_registry', fn: () => sbUpsertRows('capex_registry', capexRecords, mapCategoryRecordToSb, null, 'id') }
       ];
 
       const reportLines = [];
