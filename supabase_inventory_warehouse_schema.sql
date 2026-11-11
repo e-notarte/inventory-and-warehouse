@@ -158,6 +158,7 @@ ALTER TABLE receiving_reports ADD COLUMN IF NOT EXISTS items_desc TEXT;
 ALTER TABLE receiving_reports ADD COLUMN IF NOT EXISTS condition VARCHAR(100) DEFAULT 'Accepted in Good Condition';
 ALTER TABLE receiving_reports ADD COLUMN IF NOT EXISTS inspector VARCHAR(150);
 ALTER TABLE receiving_reports ADD COLUMN IF NOT EXISTS dr_no VARCHAR(50);
+ALTER TABLE receiving_reports ALTER COLUMN prf_no DROP NOT NULL;
 
 -- 10. MATERIAL ISSUANCE SLIPS (MIS)
 CREATE TABLE IF NOT EXISTS material_issuances (
