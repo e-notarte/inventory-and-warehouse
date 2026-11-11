@@ -2121,6 +2121,91 @@
       color: #0284c7;
     }
 
+    .visually-hidden {
+      position: absolute;
+      clip-path: inset(50%);
+      overflow: hidden;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      padding: 0;
+      border: 0;
+      white-space: nowrap;
+    }
+
+    .table-wrapper {
+      overflow: auto;
+      max-inline-size: 100%;
+      max-block-size: min(560px, 72vh);
+      container-type: inline-size;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    .table-wrapper:focus-visible {
+      outline: 2px solid #0284c7;
+      outline-offset: 2px;
+    }
+
+    .table-wrapper .data-table {
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+
+    .table-wrapper .data-table thead th {
+      position: sticky;
+      inset-block-start: 0;
+      z-index: 2;
+      background: #f8fafc;
+    }
+
+    body.dark-mode .table-wrapper .data-table thead th {
+      background: #1a243b;
+    }
+
+    .table-wrapper .data-table tbody th[scope="row"] {
+      position: sticky;
+      inset-inline-start: 0;
+      z-index: 1;
+      background: var(--bg-surface);
+      text-align: left;
+    }
+
+    @container (width < 640px) {
+      .table-wrapper .data-table,
+      .table-wrapper .data-table thead,
+      .table-wrapper .data-table tbody,
+      .table-wrapper .data-table tr,
+      .table-wrapper .data-table th,
+      .table-wrapper .data-table td {
+        display: block;
+      }
+
+      .table-wrapper .data-table thead {
+        display: none;
+      }
+
+      .table-wrapper .data-table tr {
+        margin-block-end: 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 8px;
+      }
+
+      .table-wrapper .data-table tbody th[scope="row"] {
+        position: sticky;
+        inset-block-start: 0;
+        background: var(--bg);
+        padding-bottom: 6px;
+      }
+
+      .table-wrapper .data-table td::before {
+        content: attr(data-label) ": ";
+        font-weight: 700;
+        color: var(--text-muted);
+      }
+    }
+
     @media (max-width: 640px) {
 
       .slip-meta-box,
@@ -2315,6 +2400,15 @@
                 <span>Capex</span>
               </div>
               <span class="nav-badge" id="navCapexCount" style="display:none;">0</span>
+            </a>
+          </li>
+          <li class="nav-item" data-view="view-rr-masterfile">
+            <a href="javascript:void(0)" onclick="switchView('view-rr-masterfile', this)">
+              <div class="nav-label-wrap">
+                <i class="fa-solid fa-box-archive"></i>
+                <span>RR Masterfile Register</span>
+              </div>
+              <span class="nav-badge" id="navRrMasterfileCount" style="display:none;">0</span>
             </a>
           </li>
         </ul>
@@ -3206,6 +3300,84 @@
         </div>
       </section>
 
+      <!-- ============================================================ -->
+      <!-- VIEW 6E: RECEIVING REPORT MASTERFILE REGISTER (BACKUP) -->
+      <!-- ============================================================ -->
+      <section id="view-rr-masterfile" class="view-section">
+        <div class="view-header">
+          <div class="view-title-group">
+            <h2><i class="fa-solid fa-box-archive" style="color:var(--accent);"></i> Receiving Report Masterfile Register</h2>
+            <p>Permanent backup archive of all Material Receiving Reports (MRR), including item codes, line items, and routed registries.</p>
+          </div>
+          <div class="view-action-group">
+            <button type="button" class="btn btn-outline" onclick="syncAllActiveRrsToMasterfile(true)">
+              <i class="fa-solid fa-shield-halved"></i> Sync Backup
+            </button>
+            <button type="button" class="btn btn-outline" onclick="exportRrMasterfileJSON()">
+              <i class="fa-solid fa-file-code"></i> Export JSON Backup
+            </button>
+            <button type="button" class="btn btn-primary" onclick="exportRrMasterfileCSV()">
+              <i class="fa-solid fa-file-csv"></i> Export Masterfile CSV
+            </button>
+          </div>
+        </div>
+
+        <div class="data-card">
+          <div class="data-card-body">
+            <div class="toolbar-bar" style="flex-wrap:wrap; gap:10px;">
+              <div class="search-input-wrap" style="min-width:240px; flex:1;">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" id="rrMasterfileSearchInput"
+                  placeholder="Search RR #, PO #, PRF #, supplier, item code, or description..."
+                  oninput="renderRrMasterfileTable()">
+              </div>
+              <select id="rrMasterfileTypeFilter" onchange="renderRrMasterfileTable()" class="form-control-neat"
+                style="width:auto; height:38px; min-width:190px;" aria-label="Filter by Item Type">
+                <option value="ALL">All Item Types</option>
+                <option value="Consumables &amp; Office Supplies">Consumables &amp; Office Supplies</option>
+                <option value="Construction Materials">Construction Materials</option>
+                <option value="Fixed Assets">Fixed Assets</option>
+                <option value="Services">Services</option>
+                <option value="Capital Expenditure">Capital Expenditure</option>
+                <option value="UNCLASSIFIED">Unclassified</option>
+              </select>
+              <select id="rrMasterfileStatusFilter" onchange="renderRrMasterfileTable()" class="form-control-neat"
+                style="width:auto; height:38px; min-width:150px;" aria-label="Filter by Backup Status">
+                <option value="ALL">All Backup Status</option>
+                <option value="Active">Active</option>
+                <option value="Archived">Archived</option>
+              </select>
+              <span id="rrMasterfileSummaryPill" class="po-line-items-badge">0 Records • ₱ 0.00</span>
+            </div>
+
+            <div tabindex="0" role="region" aria-labelledby="rrMasterfileTableCaption" class="table-wrapper">
+              <table class="data-table">
+                <caption id="rrMasterfileTableCaption" class="visually-hidden">
+                  Receiving Report Masterfile Register Backup Archive
+                </caption>
+                <thead>
+                  <tr>
+                    <th>RR No.</th>
+                    <th>Date Received</th>
+                    <th>PO No. / PRF</th>
+                    <th>Supplier Name</th>
+                    <th>Project / Dept</th>
+                    <th>Item Type &amp; Routed Target</th>
+                    <th>Items &amp; Item Codes</th>
+                    <th>Total Amount</th>
+                    <th>Backup Status</th>
+                    <th style="text-align:center;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="rrMasterfileTableBody">
+                  <!-- Populated via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- ============================================================== -->
       <!-- VIEW 7: DIRECTORY REGISTER (MASTER DATA MAPPING) -->
       <!-- ============================================================== -->
@@ -4035,6 +4207,7 @@
     const FA_KEY = 'warehouse_fixed_assets_data';
     const SRV_KEY = 'warehouse_services_data';
     const CPX_KEY = 'warehouse_capex_data';
+    const RR_MASTERFILE_KEY = 'warehouse_rr_masterfile_backup';
 
     let inventoryItems = [];
     let purchaseOrders = [];
@@ -4045,6 +4218,7 @@
     let fixedAssets = [];
     let serviceRecords = [];
     let capexRecords = [];
+    let rrMasterfile = [];
 
     const CATEGORY_REGISTRIES = {
       fixed_assets: {
@@ -4480,6 +4654,7 @@
       }
 
       localStorage.setItem(RR_KEY, JSON.stringify(receivingReports));
+      syncRrToMasterfile(r, 'Active');
       sbSyncBackground(() => sbUpsertRows('receiving_reports', [r], mapRrToSbFull, mapRrToSbCore, 'id'));
       updateSlipRowUiStatus(rowIdx, code, target);
       populateSlipItemCodeDatalist();
@@ -4521,6 +4696,7 @@
       });
 
       localStorage.setItem(RR_KEY, JSON.stringify(receivingReports));
+      syncRrToMasterfile(r, 'Active');
       sbSyncBackground(() => sbUpsertRows('receiving_reports', [r], mapRrToSbFull, mapRrToSbCore, 'id'));
       renderAll();
 
@@ -4659,9 +4835,12 @@
           }
         }
       } else if (type === 'rr') {
-        const r = receivingReports.find(x => x.id === id);
+        const activeMatch = receivingReports.find(x => x.id === id);
+        const r = activeMatch || rrMasterfile.find(x => x.id === id);
         if (!r) return;
+        const isArchivedBackup = !activeMatch;
         rrRecord = r;
+        rrRecord._isArchivedBackup = isArchivedBackup;
         rrNormalizedType = normalizeItemType(r.item_type || r.expense_account || '');
         rrTarget = getRegistryTargetForItemType(rrNormalizedType);
         badgeText = 'RECEIVING REPORT SLIP';
@@ -4733,23 +4912,27 @@
         const rt = it.rowTotal !== undefined ? parseFloat(it.rowTotal) : (q * c);
         const itemCodeCell = type === 'rr' ? `
             <td>
-              <input type="text"
-                class="slip-item-code-input no-print"
-                id="slipItemCodeInput_${idx}"
-                data-row-idx="${idx}"
-                value="${escapeHtml(it.item_code || '')}"
-                list="slipItemCodeList"
-                placeholder="Enter Item Code..."
-                autocorrect="off"
-                autocapitalize="none"
-                spellcheck="false"
-                enterkeyhint="${idx < items.length - 1 ? 'next' : 'done'}"
-                aria-label="Item Code for ${escapeHtml(it.desc || 'Item')}"
-                onchange="onSlipItemCodeChange('${rrRecord.id}', ${idx}, this.value)"
-                onkeydown="onSlipItemCodeKeyDown(event, '${rrRecord.id}', ${idx}, ${items.length})">
-              <div id="slipRowStatus_${idx}" class="slip-item-code-status no-print ${it.posted_target ? 'recorded' : 'pending'}">
-                ${it.posted_target ? `<i class="fa-solid fa-circle-check"></i> ${escapeHtml(getRegistryTargetLabel(it.posted_target))}` : 'Pending Item Code'}
-              </div>
+              ${rrRecord._isArchivedBackup ? `
+                <div style="font-family:monospace; font-size:0.75rem; font-weight:700; color:#0284c7;">${escapeHtml(it.item_code || '—')}</div>
+              ` : `
+                <input type="text"
+                  class="slip-item-code-input no-print"
+                  id="slipItemCodeInput_${idx}"
+                  data-row-idx="${idx}"
+                  value="${escapeHtml(it.item_code || '')}"
+                  list="slipItemCodeList"
+                  placeholder="Enter Item Code..."
+                  autocorrect="off"
+                  autocapitalize="none"
+                  spellcheck="false"
+                  enterkeyhint="${idx < items.length - 1 ? 'next' : 'done'}"
+                  aria-label="Item Code for ${escapeHtml(it.desc || 'Item')}"
+                  onchange="onSlipItemCodeChange('${rrRecord.id}', ${idx}, this.value)"
+                  onkeydown="onSlipItemCodeKeyDown(event, '${rrRecord.id}', ${idx}, ${items.length})">
+                <div id="slipRowStatus_${idx}" class="slip-item-code-status no-print ${it.posted_target ? 'recorded' : 'pending'}">
+                  ${it.posted_target ? `<i class="fa-solid fa-circle-check"></i> ${escapeHtml(getRegistryTargetLabel(it.posted_target))}` : 'Pending Item Code'}
+                </div>
+              `}
               <span id="slipItemCodePrint_${idx}" class="slip-item-code-print-only">${escapeHtml(it.item_code || '—')}</span>
             </td>
         ` : '';
@@ -4769,7 +4952,11 @@
         `;
       }).join('');
 
-      const rrEntryToolbarHtml = type === 'rr' ? `
+      const rrEntryToolbarHtml = type === 'rr' ? (rrRecord._isArchivedBackup ? `
+        <div class="slip-entry-toolbar no-print" style="background:#fffbeb; border-color:#fde68a; color:#92400e;">
+          <span><i class="fa-solid fa-box-archive"></i> <strong>Archived Backup Copy</strong> — This RR was removed from the active list. Restore it in RR Masterfile Register to edit Item Codes.</span>
+        </div>
+      ` : `
         <div class="slip-entry-toolbar no-print">
           <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
             <strong><i class="fa-solid fa-barcode"></i> Item Code Entry</strong>
@@ -4788,7 +4975,7 @@
           </span>
         </div>
         <div id="slipRecordStatusBanner" class="slip-record-banner no-print"></div>
-      ` : '';
+      `) : '';
 
       container.innerHTML = `
         <div class="slip-top-header">
@@ -4874,7 +5061,7 @@
         </div>
 
         <div class="slip-actions-bar">
-          ${type === 'rr' ? `
+          ${type === 'rr' && !rrRecord._isArchivedBackup ? `
             <button type="button" class="btn-slip-action btn-slip-record" onclick="saveAndRecordRrSlip('${rrRecord.id}')">
               <i class="fa-solid fa-floppy-disk"></i> Save &amp; Record Item Code
             </button>
@@ -5027,6 +5214,13 @@
         }
       });
 
+      // 8. Receiving Report Masterfile Register (Permanent Backup Archive)
+      try {
+        const parsedMaster = JSON.parse(localStorage.getItem(RR_MASTERFILE_KEY) || '[]');
+        rrMasterfile = Array.isArray(parsedMaster) ? parsedMaster : [];
+      } catch (e) { rrMasterfile = []; }
+      syncAllActiveRrsToMasterfile(false, true);
+
       populateItemDropdowns();
       renderAll();
       initPoForm();
@@ -5058,6 +5252,7 @@
       renderFixedAssetsTable();
       renderServicesTable();
       renderCapexTable();
+      renderRrMasterfileTable();
       renderAllDirectoryRegistries();
       updateBadges();
     }
@@ -5079,6 +5274,7 @@
       setBadge('navFixedAssetsCount', fixedAssets.length);
       setBadge('navServicesCount', serviceRecords.length);
       setBadge('navCapexCount', capexRecords.length);
+      setBadge('navRrMasterfileCount', rrMasterfile.length);
       const notifEl = document.getElementById('notifBadge');
       if (notifEl) {
         if (pendingSupCount > 0) {
@@ -6010,9 +6206,10 @@
 
       receivingReports.unshift(newRr);
       localStorage.setItem(RR_KEY, JSON.stringify(receivingReports));
+      syncRrToMasterfile(newRr, 'Active');
       sbSyncBackground(() => sbUpsertRows('receiving_reports', [newRr], mapRrToSbFull, mapRrToSbCore, 'id'));
 
-      showSystemAlert('Receiving Report Recorded', `MRR ${newRr.rr_no} saved successfully.`);
+      showSystemAlert('Receiving Report Recorded', `MRR ${newRr.rr_no} saved and backed up to Masterfile.`);
       resetMrrForm();
       renderAll();
     }
@@ -6102,14 +6299,17 @@
     function deleteRr(id) {
       const target = receivingReports.find(r => r.id === id);
       const label = target ? target.rr_no : 'this receiving report';
-      showSystemConfirm('Delete Receiving Report', `Remove receiving report "${label}" from the registry?`, () => {
+      showSystemConfirm('Delete Receiving Report', `Remove receiving report "${label}" from the active registry? (A backup copy remains in the RR Masterfile Register.)`, () => {
+        if (target) {
+          syncRrToMasterfile(target, 'Archived');
+        }
         receivingReports = receivingReports.filter(r => r.id !== id);
         localStorage.setItem(RR_KEY, JSON.stringify(receivingReports));
         sbSyncBackground(() => sbDeleteRow('receiving_reports', id, 'id'));
         renderAll();
         const noInput = document.getElementById('mrrNoInput');
         if (noInput) noInput.value = getNextRrNumber();
-        showSystemAlert('Receiving Report Deleted', `Receiving report "${label}" has been removed.`, true);
+        showSystemAlert('Receiving Report Deleted', `Receiving report "${label}" was removed from the active list and preserved as Archived in RR Masterfile Register.`, true);
       });
     }
 
@@ -6632,6 +6832,262 @@
         ].join(',') + '\n';
       });
       downloadCSV(csv, cfg.csvFilename);
+    }
+
+    // ==============================================================
+    // RECEIVING REPORT MASTERFILE REGISTER (BACKUP ARCHIVE)
+    // ==============================================================
+    function buildRrMasterfileSnapshot(r, backupStatus = 'Active') {
+      const normalizedType = normalizeItemType(r.item_type || r.expense_account || '');
+      const target = getRegistryTargetForItemType(normalizedType);
+      const clonedItems = JSON.parse(JSON.stringify(Array.isArray(r.items) ? r.items : []));
+      const itemCodes = clonedItems.map(it => it.item_code).filter(Boolean).join(', ');
+      return {
+        id: String(r.id),
+        rr_no: r.rr_no || '',
+        po_no: r.po_no || '',
+        prf_no: resolveRrPrfNo(r),
+        date: r.date || r.report_date || new Date().toISOString().slice(0, 10),
+        supplier_name: r.supplier_name || 'Supplier / Vendor',
+        project: r.project || '',
+        department: r.department || 'Admin',
+        item_type: normalizedType,
+        expense_account: normalizedType || r.expense_account || '',
+        routed_target: target ? target.label : 'Unclassified',
+        dr_no: r.dr_no || '',
+        items: clonedItems,
+        items_desc: r.items_desc || clonedItems.map(it => `${it.desc} (${it.qty} ${it.uom})`).join(', '),
+        item_codes: itemCodes,
+        total_amount: Number(r.total_amount) || 0,
+        condition: r.condition || 'Accepted in Good Condition',
+        inspector: r.inspector || 'System Admin',
+        backup_status: backupStatus,
+        backed_up_at: new Date().toISOString(),
+        created_at: r.created_at || new Date().toISOString()
+      };
+    }
+
+    function syncRrToMasterfile(r, backupStatus = 'Active', skipRemote = false) {
+      if (!r || !r.id) return;
+      const snapshot = buildRrMasterfileSnapshot(r, backupStatus);
+      const idx = rrMasterfile.findIndex(x => String(x.id) === snapshot.id);
+      if (idx !== -1) {
+        rrMasterfile[idx] = { ...rrMasterfile[idx], ...snapshot };
+      } else {
+        rrMasterfile.unshift(snapshot);
+      }
+      localStorage.setItem(RR_MASTERFILE_KEY, JSON.stringify(rrMasterfile));
+      if (!skipRemote) {
+        sbSyncBackground(() => sbUpsertRows('rr_masterfile_registry', [snapshot], mapRrMasterfileToSb, null, 'id'));
+      }
+    }
+
+    function syncAllActiveRrsToMasterfile(showAlert = false, skipRemote = false) {
+      const activeIds = new Set(receivingReports.map(r => String(r.id)));
+      let syncedCount = 0;
+
+      receivingReports.forEach(r => {
+        syncRrToMasterfile(r, 'Active', true);
+        syncedCount++;
+      });
+
+      rrMasterfile.forEach(rec => {
+        if (!activeIds.has(String(rec.id)) && rec.backup_status !== 'Archived') {
+          rec.backup_status = 'Archived';
+        }
+      });
+
+      localStorage.setItem(RR_MASTERFILE_KEY, JSON.stringify(rrMasterfile));
+      if (!skipRemote && rrMasterfile.length > 0) {
+        sbSyncBackground(() => sbUpsertRows('rr_masterfile_registry', rrMasterfile, mapRrMasterfileToSb, null, 'id'));
+      }
+      if (showAlert) {
+        renderAll();
+        showSystemAlert('Masterfile Backup Synced', `Backed up ${syncedCount} active Receiving Report(s). Total Masterfile archive: ${rrMasterfile.length} record(s).`, true);
+      }
+    }
+
+    function renderRrMasterfileTable() {
+      const tbody = document.getElementById('rrMasterfileTableBody');
+      if (!tbody) return;
+
+      const q = (document.getElementById('rrMasterfileSearchInput')?.value || '').toLowerCase().trim();
+      const typeFilter = document.getElementById('rrMasterfileTypeFilter')?.value || 'ALL';
+      const statusFilter = document.getElementById('rrMasterfileStatusFilter')?.value || 'ALL';
+
+      let list = rrMasterfile.slice();
+      if (typeFilter === 'UNCLASSIFIED') {
+        list = list.filter(r => !normalizeItemType(r.item_type || r.expense_account || ''));
+      } else if (typeFilter !== 'ALL') {
+        list = list.filter(r => normalizeItemType(r.item_type || r.expense_account || '') === typeFilter);
+      }
+      if (statusFilter !== 'ALL') {
+        list = list.filter(r => (r.backup_status || 'Active') === statusFilter);
+      }
+      if (q) {
+        list = list.filter(r =>
+          (r.rr_no || '').toLowerCase().includes(q) ||
+          (r.po_no || '').toLowerCase().includes(q) ||
+          (r.prf_no || '').toLowerCase().includes(q) ||
+          (r.supplier_name || '').toLowerCase().includes(q) ||
+          (r.project || '').toLowerCase().includes(q) ||
+          (r.department || '').toLowerCase().includes(q) ||
+          (r.item_type || '').toLowerCase().includes(q) ||
+          (r.routed_target || '').toLowerCase().includes(q) ||
+          (r.items_desc || '').toLowerCase().includes(q) ||
+          (r.item_codes || '').toLowerCase().includes(q)
+        );
+      }
+
+      const summaryEl = document.getElementById('rrMasterfileSummaryPill');
+      if (summaryEl) {
+        const totalVal = list.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
+        summaryEl.textContent = `${list.length} ${list.length === 1 ? 'Record' : 'Records'} • ${formatCurrency(totalVal)}`;
+      }
+
+      if (list.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="10" style="text-align:center; padding:48px 20px; color:var(--text-muted);">
+              <i class="fa-solid fa-box-archive" style="font-size:2rem; opacity:0.4; margin-bottom:10px; display:block; color:var(--accent);"></i>
+              <strong style="font-size:0.95rem;">No Receiving Reports in Masterfile Register</strong>
+              <div style="font-size:0.82rem; margin-top:4px;">Recorded Receiving Reports are automatically archived here as a permanent backup.</div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = list.map(r => {
+        const displayType = normalizeItemType(r.item_type) || r.expense_account || 'Unclassified';
+        const targetInfo = getRegistryTargetForItemType(displayType);
+        const routedLabel = r.routed_target || (targetInfo ? targetInfo.label : 'Unclassified');
+        const codesArr = Array.isArray(r.items) ? r.items.map(it => it.item_code).filter(Boolean) : [];
+        const codeBadges = codesArr.map(c => `<span class="code-badge" style="font-size:0.7rem; padding:1px 6px; margin-right:4px;">${escapeHtml(c)}</span>`).join('');
+        const isActive = receivingReports.some(x => String(x.id) === String(r.id));
+        const statusText = isActive ? 'Active' : (r.backup_status || 'Archived');
+        const statusCls = statusText === 'Active' ? 'active' : 'warning';
+        const poPrfText = [r.po_no, r.prf_no].filter(Boolean).join(' / ') || '—';
+        const locText = [r.project, r.department].filter(Boolean).join(' • ') || 'Admin';
+
+        return `
+          <tr>
+            <th scope="row"><span class="code-badge">${escapeHtml(r.rr_no)}</span></th>
+            <td data-label="Date Received">${escapeHtml(r.date || '—')}</td>
+            <td data-label="PO No. / PRF">${escapeHtml(poPrfText)}</td>
+            <td data-label="Supplier Name"><strong>${escapeHtml(r.supplier_name || '—')}</strong></td>
+            <td data-label="Project / Dept">${escapeHtml(locText)}</td>
+            <td data-label="Item Type &amp; Target">
+              <div style="font-weight:600; font-size:0.8rem;">${escapeHtml(displayType)}</div>
+              <div style="font-size:0.71rem; color:var(--text-muted); margin-top:2px;">&rarr; ${escapeHtml(routedLabel)}</div>
+            </td>
+            <td data-label="Items &amp; Item Codes">
+              <div>${escapeHtml(r.items_desc || '—')}</div>
+              ${codeBadges ? `<div style="margin-top:4px;">${codeBadges}</div>` : '<div style="font-size:0.71rem; color:var(--text-muted); margin-top:2px;">No Item Code yet</div>'}
+            </td>
+            <td data-label="Total Amount"><strong style="color:var(--success);">${formatCurrency(r.total_amount || 0)}</strong></td>
+            <td data-label="Backup Status"><span class="status-badge ${statusCls}">${escapeHtml(statusText)}</span></td>
+            <td data-label="Actions" style="text-align:center; white-space:nowrap;">
+              <button type="button" class="btn-slip-row" onclick="openDocumentSlip('rr', '${r.id}')" title="View Receiving Report Slip" style="margin-right:4px;">
+                <i class="fa-solid fa-file-lines"></i> Slip
+              </button>
+              ${!isActive ? `
+                <button type="button" class="btn btn-outline btn-sm" onclick="restoreRrFromMasterfile('${r.id}')" title="Restore RR to Active Registry" style="color:#059669; border-color:#a7f3d0;">
+                  <i class="fa-solid fa-rotate-left"></i> Restore
+                </button>
+              ` : ''}
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function restoreRrFromMasterfile(id) {
+      const backup = rrMasterfile.find(x => String(x.id) === String(id));
+      if (!backup) return;
+      if (receivingReports.some(x => String(x.id) === String(id))) {
+        showSystemAlert('Already Active', `Receiving Report ${backup.rr_no} is already in the active registry.`, true);
+        return;
+      }
+      showSystemConfirm(
+        'Restore Receiving Report',
+        `Restore "${backup.rr_no}" from Masterfile backup back into the active Receiving Report registry?`,
+        () => {
+          const restored = {
+            id: backup.id,
+            rr_no: backup.rr_no,
+            po_no: backup.po_no || '',
+            prf_no: backup.prf_no || '',
+            date: backup.date || '',
+            supplier_name: backup.supplier_name || 'Supplier / Vendor',
+            project: backup.project || '',
+            department: backup.department || 'Admin',
+            item_type: backup.item_type || '',
+            expense_account: backup.expense_account || backup.item_type || '',
+            dr_no: backup.dr_no || '',
+            items: JSON.parse(JSON.stringify(Array.isArray(backup.items) ? backup.items : [])),
+            items_desc: backup.items_desc || '',
+            total_amount: Number(backup.total_amount) || 0,
+            condition: backup.condition || 'Accepted in Good Condition',
+            inspector: backup.inspector || 'System Admin',
+            created_at: backup.created_at || new Date().toISOString()
+          };
+          receivingReports.unshift(restored);
+          localStorage.setItem(RR_KEY, JSON.stringify(receivingReports));
+          syncRrToMasterfile(restored, 'Active');
+          sbSyncBackground(() => sbUpsertRows('receiving_reports', [restored], mapRrToSbFull, mapRrToSbCore, 'id'));
+          renderAll();
+          showSystemAlert('Receiving Report Restored', `Restored "${restored.rr_no}" to active Receiving Reports.`, true);
+        },
+        { confirmText: 'Restore RR', isDanger: false, icon: 'fa-solid fa-rotate-left' }
+      );
+    }
+
+    function exportRrMasterfileCSV() {
+      if (rrMasterfile.length === 0) return showSystemAlert('No Data to Export', 'There are no records in Receiving Report Masterfile Register to export.', false);
+      let csv = 'RR No,Date Received,PO No,PRF No,DR No,Supplier Name,Project,Department,Item Type,Routed Target,Item Codes,Items Description,Total Amount,Condition,Inspector,Backup Status,Backed Up At\n';
+      const esc = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+      rrMasterfile.forEach(r => {
+        const codes = Array.isArray(r.items) ? r.items.map(it => it.item_code).filter(Boolean).join('; ') : (r.item_codes || '');
+        const isActive = receivingReports.some(x => String(x.id) === String(r.id));
+        csv += [
+          esc(r.rr_no),
+          esc(r.date),
+          esc(r.po_no),
+          esc(r.prf_no),
+          esc(r.dr_no),
+          esc(r.supplier_name),
+          esc(r.project),
+          esc(r.department),
+          esc(normalizeItemType(r.item_type) || r.expense_account || ''),
+          esc(r.routed_target || ''),
+          esc(codes),
+          esc(r.items_desc),
+          Number(r.total_amount) || 0,
+          esc(r.condition),
+          esc(r.inspector),
+          esc(isActive ? 'Active' : (r.backup_status || 'Archived')),
+          esc(r.backed_up_at)
+        ].join(',') + '\n';
+      });
+      downloadCSV(csv, `RR_Masterfile_Register_${new Date().toISOString().slice(0, 10)}.csv`);
+    }
+
+    function exportRrMasterfileJSON() {
+      if (rrMasterfile.length === 0) return showSystemAlert('No Data to Export', 'There are no records in Receiving Report Masterfile Register to export.', false);
+      const payload = {
+        exported_at: new Date().toISOString(),
+        record_count: rrMasterfile.length,
+        records: rrMasterfile
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `RR_Masterfile_Backup_${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     }
 
     // ==============================================================
@@ -7509,6 +7965,33 @@
       };
     }
 
+    function mapRrMasterfileToSb(r) {
+      const normalizedType = normalizeItemType(r.item_type || r.expense_account || '');
+      const target = getRegistryTargetForItemType(normalizedType);
+      const codes = Array.isArray(r.items) ? r.items.map(it => it.item_code).filter(Boolean).join(', ') : (r.item_codes || '');
+      return {
+        id: String(r.id),
+        rr_no: r.rr_no || '',
+        report_date: normalizeIsoDate(r.date),
+        po_no: r.po_no || '',
+        prf_no: resolveRrPrfNo(r),
+        supplier_name: r.supplier_name || '',
+        project: r.project || '',
+        department: r.department || 'Admin',
+        item_type: normalizedType,
+        routed_target: r.routed_target || (target ? target.label : 'Unclassified'),
+        dr_no: r.dr_no || '',
+        items: mapRrItemsForSb(r),
+        items_desc: r.items_desc || '',
+        item_codes: codes,
+        total_amount: Number(r.total_amount) || 0,
+        condition: r.condition || 'Accepted in Good Condition',
+        inspector: r.inspector || 'System Admin',
+        backup_status: r.backup_status || 'Active',
+        backed_up_at: r.backed_up_at || new Date().toISOString()
+      };
+    }
+
     function resolveRrPrfNo(r) {
       if (r.prf_no) return String(r.prf_no);
       const linkedPo = purchaseOrders.find(p => p.po_no === r.po_no);
@@ -8004,9 +8487,36 @@
           mergeInventoryFromSb(),
           mergeRegistry('fixed_assets_registry', fixedAssets, FA_KEY, mapCategoryFromSb, true),
           mergeRegistry('services_registry', serviceRecords, SRV_KEY, mapCategoryFromSb, true),
-          mergeRegistry('capex_registry', capexRecords, CPX_KEY, mapCategoryFromSb, true)
+          mergeRegistry('capex_registry', capexRecords, CPX_KEY, mapCategoryFromSb, true),
+          mergeRegistry('rr_masterfile_registry', rrMasterfile, RR_MASTERFILE_KEY, r => {
+            const localItems = mapSbItemsToLocal(r.items);
+            return {
+              id: r.id,
+              rr_no: r.rr_no || '',
+              po_no: r.po_no || '',
+              prf_no: r.prf_no || '',
+              date: r.report_date || r.date || '',
+              supplier_name: r.supplier_name || 'Supplier / Vendor',
+              project: r.project || '',
+              department: r.department || 'Admin',
+              item_type: r.item_type || '',
+              expense_account: r.item_type || '',
+              routed_target: r.routed_target || '',
+              dr_no: r.dr_no || '',
+              items: localItems,
+              items_desc: r.items_desc || localItems.map(it => `${it.desc} (${it.qty} ${it.uom})`).join(', '),
+              item_codes: r.item_codes || localItems.map(it => it.item_code).filter(Boolean).join(', '),
+              total_amount: Number(r.total_amount) || 0,
+              condition: r.condition || 'Accepted in Good Condition',
+              inspector: r.inspector || 'System Admin',
+              backup_status: r.backup_status || 'Active',
+              backed_up_at: r.backed_up_at || r.created_at || '',
+              created_at: r.created_at || ''
+            };
+          }, true)
         ]);
 
+        syncAllActiveRrsToMasterfile(false, true);
         populateItemDropdowns();
         renderAll();
         const mrrNoEl = document.getElementById('mrrNoInput');
@@ -8035,6 +8545,7 @@
         { label: 'Supplies Requests', table: 'supplies_requests', fn: () => sbSyncSuppliesRequests(suppliesRequests) },
         { label: 'Purchase Orders', table: 'purchase_orders', fn: () => sbUpsertRows('purchase_orders', purchaseOrders, mapPoToSb, null, 'id') },
         { label: 'Receiving Reports', table: 'receiving_reports', fn: () => sbUpsertRows('receiving_reports', receivingReports, mapRrToSbFull, mapRrToSbCore, 'id') },
+        { label: 'RR Masterfile Register', table: 'rr_masterfile_registry', fn: () => sbUpsertRows('rr_masterfile_registry', rrMasterfile, mapRrMasterfileToSb, null, 'id') },
         { label: 'Material Issuances', table: 'material_issuances', fn: () => sbUpsertRows('material_issuances', materialIssuances, mapMisToSbFull, mapMisToSbCore, 'id') },
         { label: 'On-Hand Inventory', table: 'on_hand_inventory', fn: () => sbUpsertRows('on_hand_inventory', inventoryItems, mapInventoryToSb, null, 'item_id') },
         { label: 'Fixed Asset Registry', table: 'fixed_assets_registry', fn: () => sbUpsertRows('fixed_assets_registry', fixedAssets, mapCategoryRecordToSb, null, 'id') },
