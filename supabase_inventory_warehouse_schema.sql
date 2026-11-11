@@ -272,6 +272,31 @@ CREATE TABLE IF NOT EXISTS capex_registry (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- 15. RECEIVING REPORT MASTERFILE REGISTER (PERMANENT BACKUP ARCHIVE OF ALL RRs)
+CREATE TABLE IF NOT EXISTS rr_masterfile_registry (
+    id TEXT PRIMARY KEY,
+    rr_no VARCHAR(50) NOT NULL,
+    report_date DATE DEFAULT CURRENT_DATE,
+    po_no VARCHAR(50),
+    prf_no VARCHAR(50),
+    supplier_name VARCHAR(150),
+    project VARCHAR(150),
+    department VARCHAR(100),
+    item_type VARCHAR(150),
+    routed_target VARCHAR(100),
+    dr_no VARCHAR(50),
+    items JSONB DEFAULT '[]'::jsonb,
+    items_desc TEXT,
+    item_codes TEXT,
+    total_amount NUMERIC(15,2) DEFAULT 0.00,
+    condition VARCHAR(100) DEFAULT 'Accepted in Good Condition',
+    inspector VARCHAR(150),
+    backup_status VARCHAR(50) DEFAULT 'Active',
+    backed_up_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- ====================================================================
 -- PART 3: ROW LEVEL SECURITY (RLS) POLICIES (IDEMPOTENT)
 -- ====================================================================
@@ -289,6 +314,7 @@ ALTER TABLE on_hand_inventory ENABLE ROW LEVEL SECURITY;
 ALTER TABLE fixed_assets_registry ENABLE ROW LEVEL SECURITY;
 ALTER TABLE services_registry ENABLE ROW LEVEL SECURITY;
 ALTER TABLE capex_registry ENABLE ROW LEVEL SECURITY;
+ALTER TABLE rr_masterfile_registry ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Allow public read/write for projects_registry" ON projects_registry;
 CREATE POLICY "Allow public read/write for projects_registry" ON projects_registry FOR ALL USING (true) WITH CHECK (true);
@@ -331,3 +357,6 @@ CREATE POLICY "Allow public read/write for services_registry" ON services_regist
 
 DROP POLICY IF EXISTS "Allow public read/write for capex_registry" ON capex_registry;
 CREATE POLICY "Allow public read/write for capex_registry" ON capex_registry FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow public read/write for rr_masterfile_registry" ON rr_masterfile_registry;
+CREATE POLICY "Allow public read/write for rr_masterfile_registry" ON rr_masterfile_registry FOR ALL USING (true) WITH CHECK (true);
