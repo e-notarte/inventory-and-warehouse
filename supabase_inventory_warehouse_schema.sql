@@ -297,6 +297,23 @@ CREATE TABLE IF NOT EXISTS rr_masterfile_registry (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- 16. STOCKS FROM 2025 CARRY-OVER REGISTER
+CREATE TABLE IF NOT EXISTS stocks_2025 (
+    id TEXT PRIMARY KEY,
+    row_no INTEGER,
+    item_code VARCHAR(80),
+    description TEXT NOT NULL,
+    uom VARCHAR(30) DEFAULT 'PCS',
+    qty_2025 NUMERIC(12,2) DEFAULT 0.00,
+    date_delivered DATE DEFAULT '2026-01-01',
+    supplier VARCHAR(150) DEFAULT 'RECORDS FROM 2025 INVENTORY',
+    remarks TEXT DEFAULT 'STOCKS FROM 2025',
+    posted_to_inventory BOOLEAN DEFAULT FALSE,
+    posted_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- ====================================================================
 -- PART 3: ROW LEVEL SECURITY (RLS) POLICIES (IDEMPOTENT)
 -- ====================================================================
@@ -315,6 +332,7 @@ ALTER TABLE fixed_assets_registry ENABLE ROW LEVEL SECURITY;
 ALTER TABLE services_registry ENABLE ROW LEVEL SECURITY;
 ALTER TABLE capex_registry ENABLE ROW LEVEL SECURITY;
 ALTER TABLE rr_masterfile_registry ENABLE ROW LEVEL SECURITY;
+ALTER TABLE stocks_2025 ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Allow public read/write for projects_registry" ON projects_registry;
 CREATE POLICY "Allow public read/write for projects_registry" ON projects_registry FOR ALL USING (true) WITH CHECK (true);
@@ -360,3 +378,6 @@ CREATE POLICY "Allow public read/write for capex_registry" ON capex_registry FOR
 
 DROP POLICY IF EXISTS "Allow public read/write for rr_masterfile_registry" ON rr_masterfile_registry;
 CREATE POLICY "Allow public read/write for rr_masterfile_registry" ON rr_masterfile_registry FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow public read/write for stocks_2025" ON stocks_2025;
+CREATE POLICY "Allow public read/write for stocks_2025" ON stocks_2025 FOR ALL USING (true) WITH CHECK (true);
