@@ -6223,12 +6223,20 @@
       }
     }
 
+    function hasAllItemCodesProvided(r) {
+      if (!r) return false;
+      if (Array.isArray(r.items) && r.items.length > 0) {
+        return r.items.every(it => String(it.item_code || '').trim().length > 0);
+      }
+      return String(r.item_codes || '').trim().length > 0;
+    }
+
     function renderRrTable() {
       const search = (document.getElementById('rrSearchInput')?.value || '').toLowerCase();
       const deptFilter = document.getElementById('rrDeptFilter')?.value || 'ALL';
       const dateFilter = document.getElementById('rrDateFilter')?.value || '';
 
-      let list = receivingReports;
+      let list = receivingReports.filter(r => !hasAllItemCodesProvided(r));
       if (deptFilter !== 'ALL') {
         list = list.filter(r => (r.department || '').includes(deptFilter) || (r.project || '').includes(deptFilter));
       }
@@ -6252,7 +6260,19 @@
       if (!tbody) return;
 
       if (list.length === 0) {
-        tbody.innerHTML = `
+        const allCoded = receivingReports.length > 0 && !search && deptFilter === 'ALL' && !dateFilter;
+        tbody.innerHTML = allCoded ? `
+          <tr>
+            <td colspan="10" style="text-align:center; padding:48px 20px; color:var(--text-muted);">
+              <i class="fa-solid fa-circle-check" style="font-size:2rem; opacity:0.65; margin-bottom:10px; display:block; color:var(--success);"></i>
+              <strong style="font-size:0.95rem;">All Receiving Reports Have Item Codes Assigned</strong>
+              <div style="font-size:0.82rem; margin-top:4px;">Coded Receiving Reports are stored in the RR Masterfile Register and routed to their respective registries.</div>
+              <button type="button" class="btn btn-outline btn-sm" style="margin-top:12px;" onclick="switchView('view-rr-masterfile', document.querySelector('.nav-item[data-view=&quot;view-rr-masterfile&quot;] a'))">
+                <i class="fa-solid fa-box-archive"></i> View RR Masterfile Register
+              </button>
+            </td>
+          </tr>
+        ` : `
           <tr>
             <td colspan="10" style="text-align:center; padding:48px 20px; color:var(--text-muted);">
               <i class="fa-solid fa-truck-ramp-box" style="font-size:2rem; opacity:0.4; margin-bottom:10px; display:block; color:var(--accent);"></i>
