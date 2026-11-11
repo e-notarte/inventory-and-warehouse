@@ -5,6 +5,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Inventory &amp; Warehouse Management System - R-II Builders | Leo WorkSuite</title>
+  <script>
+    if (sessionStorage.getItem('isAuthenticated') !== 'true') {
+      window.location.replace('index.html');
+    }
+  </script>
 
   <!-- Fonts & Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -2290,10 +2295,16 @@
       </button>
 
       <div class="user-profile-badge"
-        style="padding:4px 6px 4px 14px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12);">
-        <span style="font-size:0.8rem; font-weight:600; color:white;">Warehouseman</span>
-        <div class="user-avatar">SA</div>
+        style="padding:4px 6px 4px 14px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); gap:8px;">
+        <span id="headerUserName" style="font-size:0.8rem; font-weight:600; color:white;">Warehouseman</span>
+        <div class="user-avatar" id="headerUserAvatar">SA</div>
       </div>
+
+      <button type="button" id="logoutBtn" onclick="logoutWarehouseman()" title="Sign Out"
+        style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:20px; border:1px solid rgba(255,255,255,0.22); background:rgba(255,255,255,0.08); color:#ffffff; font-size:0.74rem; font-weight:600; cursor:pointer; font-family:inherit; transition:all 0.2s;">
+        <i class="fa-solid fa-right-from-bracket"></i>
+        <span>Log Out</span>
+      </button>
     </div>
   </header>
 
@@ -9240,8 +9251,41 @@
       }
     }
 
+    function applyHeaderUserProfile() {
+      const fullName = sessionStorage.getItem('userFullName') || sessionStorage.getItem('userEmail') || 'Warehouseman';
+      const nameEl = document.getElementById('headerUserName');
+      const avatarEl = document.getElementById('headerUserAvatar');
+      if (nameEl) nameEl.textContent = fullName;
+      if (avatarEl) {
+        const parts = String(fullName).trim().split(/\s+/).filter(Boolean);
+        let initials = 'SA';
+        if (parts.length > 1) {
+          initials = (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        } else if (parts.length === 1) {
+          initials = parts[0].substring(0, 2).toUpperCase();
+        }
+        avatarEl.textContent = initials;
+      }
+    }
+
+    async function logoutWarehouseman() {
+      try {
+        const mod = await import('./supabase-client.js');
+        if (mod && mod.supabase) {
+          await mod.supabase.auth.signOut();
+        }
+      } catch (e) { }
+      sessionStorage.clear();
+      window.location.replace('index.html');
+    }
+
     // Initialize application
     document.addEventListener('DOMContentLoaded', () => {
+      if (sessionStorage.getItem('isAuthenticated') !== 'true') {
+        window.location.replace('index.html');
+        return;
+      }
+      applyHeaderUserProfile();
       const theme = localStorage.getItem('warehouse_theme') || 'light';
       if (theme === 'dark') {
         document.body.classList.add('dark-mode');
