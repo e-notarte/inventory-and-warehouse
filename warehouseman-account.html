@@ -3413,7 +3413,7 @@
                     <th>Supplier Name</th>
                     <th>Project / Dept</th>
                     <th>Item Type &amp; Routed Target</th>
-                    <th>Items &amp; Item Codes</th>
+                    <th>Items</th>
                     <th>Total Amount</th>
                     <th>Backup Status</th>
                     <th style="text-align:center;">Actions</th>
@@ -7515,8 +7515,6 @@
         const displayType = normalizeItemType(r.item_type) || r.expense_account || 'Unclassified';
         const targetInfo = getRegistryTargetForItemType(displayType);
         const routedLabel = r.routed_target || (targetInfo ? targetInfo.label : 'Unclassified');
-        const codesArr = Array.isArray(r.items) ? r.items.map(it => it.item_code).filter(Boolean) : [];
-        const codeBadges = codesArr.map(c => `<span class="code-badge" style="font-size:0.7rem; padding:1px 6px; margin-right:4px;">${escapeHtml(c)}</span>`).join('');
         const isActive = receivingReports.some(x => String(x.id) === String(r.id));
         const statusText = isActive ? 'Active' : (r.backup_status || 'Archived');
         const statusCls = statusText === 'Active' ? 'active' : 'warning';
@@ -7534,9 +7532,8 @@
               <div style="font-weight:600; font-size:0.8rem;">${escapeHtml(displayType)}</div>
               <div style="font-size:0.71rem; color:var(--text-muted); margin-top:2px;">&rarr; ${escapeHtml(routedLabel)}</div>
             </td>
-            <td data-label="Items &amp; Item Codes">
+            <td data-label="Items">
               <div>${escapeHtml(r.items_desc || '—')}</div>
-              ${codeBadges ? `<div style="margin-top:4px; display:flex; flex-wrap:wrap; gap:4px;">${codeBadges}</div>` : '<div style="font-size:0.71rem; color:var(--text-muted); margin-top:2px;">No Item Code yet</div>'}
             </td>
             <td data-label="Total Amount"><strong style="color:var(--success);">${formatCurrency(r.total_amount || 0)}</strong></td>
             <td data-label="Backup Status"><span class="status-badge ${statusCls}">${escapeHtml(statusText)}</span></td>
