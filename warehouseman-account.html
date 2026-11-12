@@ -2240,6 +2240,7 @@
     }
 
     @container (width < 640px) {
+
       .table-wrapper .data-table,
       .table-wrapper .data-table thead,
       .table-wrapper .data-table tbody,
@@ -2610,8 +2611,8 @@
                 </label>
                 <div class="date-picker-wrap">
                   <input type="text" id="poDateInput" name="po_date" class="form-control-neat date-text-input"
-                    placeholder="12-Nov-2026" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
-                    title="Format: DD-MMM-YYYY (e.g. 12-Nov-2026)" required>
+                    placeholder="12-Nov-2026" autocomplete="off" autocorrect="off" autocapitalize="none"
+                    spellcheck="false" title="Format: DD-MMM-YYYY (e.g. 12-Nov-2026)" required>
                   <button type="button" class="date-cal-btn" aria-label="Choose date from calendar" title="Pick date">
                     <i class="fa-regular fa-calendar"></i>
                   </button>
@@ -2772,13 +2773,13 @@
                 <option value="ALL">All Months</option>
               </select>
               <div class="date-picker-wrap date-picker-filter">
-                <input type="text" id="poDateFilter" class="form-control-neat date-text-input"
-                  placeholder="12-Nov-2026" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
+                <input type="text" id="poDateFilter" class="form-control-neat date-text-input" placeholder="12-Nov-2026"
+                  autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
                   oninput="if (!this.value.trim() || parseCalendarDateParts(this.value)) onDateFilterChange('poDateFilter', 'poMonthFilter', renderPoTable)"
                   onchange="onDateFilterChange('poDateFilter', 'poMonthFilter', renderPoTable)"
-                  aria-label="Filter Purchase Orders by date (DD-MMM-YYYY)"
-                  title="Filter by date (e.g. 12-Nov-2026)">
-                <button type="button" class="date-cal-btn" aria-label="Choose filter date from calendar" title="Pick filter date">
+                  aria-label="Filter Purchase Orders by date (DD-MMM-YYYY)" title="Filter by date (e.g. 12-Nov-2026)">
+                <button type="button" class="date-cal-btn" aria-label="Choose filter date from calendar"
+                  title="Pick filter date">
                   <i class="fa-regular fa-calendar"></i>
                 </button>
                 <input type="date" class="date-native-proxy" tabindex="-1" aria-hidden="true">
@@ -2840,9 +2841,9 @@
                   <i class="fa-regular fa-file-lines"></i> PO No. <span class="po-req">*</span>
                 </label>
                 <input type="text" id="mrrPoSelect" list="mrrPoOptions" class="form-control-neat"
-                  placeholder="Type or select a Purchase Order..."
-                  autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
-                  oninput="onMrrPoInput(this.value)" onchange="onMrrPoChange(this.value)" required>
+                  placeholder="Type or select a Purchase Order..." autocomplete="off" autocorrect="off"
+                  autocapitalize="none" spellcheck="false" oninput="onMrrPoInput(this.value)"
+                  onchange="onMrrPoChange(this.value)" required>
                 <datalist id="mrrPoOptions"></datalist>
               </div>
 
@@ -2853,9 +2854,10 @@
                 </label>
                 <div class="date-picker-wrap">
                   <input type="text" id="mrrPoDateInput" name="mrr_po_date" class="form-control-neat date-text-input"
-                    placeholder="12-Nov-2026" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
-                    title="Format: DD-MMM-YYYY (e.g. 12-Nov-2026)">
-                  <button type="button" class="date-cal-btn" aria-label="Choose PO date from calendar" title="Pick date">
+                    placeholder="12-Nov-2026" autocomplete="off" autocorrect="off" autocapitalize="none"
+                    spellcheck="false" title="Format: DD-MMM-YYYY (e.g. 12-Nov-2026)">
+                  <button type="button" class="date-cal-btn" aria-label="Choose PO date from calendar"
+                    title="Pick date">
                     <i class="fa-regular fa-calendar"></i>
                   </button>
                   <input type="date" class="date-native-proxy" tabindex="-1" aria-hidden="true">
@@ -2897,6 +2899,7 @@
                   <option value="Construction Materials">Construction Materials</option>
                   <option value="Fixed Assets">Fixed Assets</option>
                   <option value="Services">Services</option>
+                  <option value="Services">Vehicle Repair & Maintenance</option>
                   <option value="Capital Expenditure">Capital Expenditure</option>
                 </select>
               </div>
@@ -2981,13 +2984,13 @@
                 <option value="ALL">All Months</option>
               </select>
               <div class="date-picker-wrap date-picker-filter">
-                <input type="text" id="rrDateFilter" class="form-control-neat date-text-input"
-                  placeholder="12-Nov-2026" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
+                <input type="text" id="rrDateFilter" class="form-control-neat date-text-input" placeholder="12-Nov-2026"
+                  autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
                   oninput="if (!this.value.trim() || parseCalendarDateParts(this.value)) onDateFilterChange('rrDateFilter', 'rrMonthFilter', renderRrTable)"
                   onchange="onDateFilterChange('rrDateFilter', 'rrMonthFilter', renderRrTable)"
-                  aria-label="Filter Receiving Reports by date (DD-MMM-YYYY)"
-                  title="Filter by date (e.g. 12-Nov-2026)">
-                <button type="button" class="date-cal-btn" aria-label="Choose filter date from calendar" title="Pick filter date">
+                  aria-label="Filter Receiving Reports by date (DD-MMM-YYYY)" title="Filter by date (e.g. 12-Nov-2026)">
+                <button type="button" class="date-cal-btn" aria-label="Choose filter date from calendar"
+                  title="Pick filter date">
                   <i class="fa-regular fa-calendar"></i>
                 </button>
                 <input type="date" class="date-native-proxy" tabindex="-1" aria-hidden="true">
@@ -3101,7 +3104,8 @@
           <div class="view-title-group">
             <h2><i class="fa-solid fa-warehouse" style="color:var(--accent);"></i> On-Hand Inventory Master &amp;
               Valuation</h2>
-            <p id="stockMasterSubtitle">Live inventory ledger computed from Total Deliveries Received minus Total Material Issuances.</p>
+            <p id="stockMasterSubtitle">Live inventory ledger computed from Total Deliveries Received minus Total
+              Material Issuances.</p>
           </div>
           <div class="view-action-group">
             <button class="btn btn-outline" onclick="exportStockCSV()">
@@ -3122,7 +3126,8 @@
                   oninput="renderStockTable()">
               </div>
               <div class="filter-pills-bar">
-                <button type="button" class="pill-btn active" id="stockPillAll" onclick="filterStockPill('ALL', this)">All (0)</button>
+                <button type="button" class="pill-btn active" id="stockPillAll"
+                  onclick="filterStockPill('ALL', this)">All (0)</button>
                 <button type="button" class="pill-btn" onclick="filterStockPill('IN_STOCK', this)">In Stock</button>
                 <button type="button" class="pill-btn" onclick="filterStockPill('LOW_STOCK', this)">Low Stock</button>
                 <button type="button" class="pill-btn" onclick="filterStockPill('OUT_OF_STOCK', this)">Out of
@@ -3187,7 +3192,8 @@
             <div class="toolbar-bar">
               <div class="search-input-wrap">
                 <i class="fa-solid fa-search"></i>
-                <input type="text" id="fixedAssetsSearchInput" placeholder="Search item code, description, RR #, PO #, or supplier..."
+                <input type="text" id="fixedAssetsSearchInput"
+                  placeholder="Search item code, description, RR #, PO #, or supplier..."
                   oninput="renderFixedAssetsTable()">
               </div>
               <span id="fixedAssetsSummaryPill" class="po-line-items-badge">0 Assets • ₱ 0.00</span>
@@ -3239,7 +3245,8 @@
             <div class="toolbar-bar">
               <div class="search-input-wrap">
                 <i class="fa-solid fa-search"></i>
-                <input type="text" id="servicesSearchInput" placeholder="Search item code, service description, RR #, PO #, or supplier..."
+                <input type="text" id="servicesSearchInput"
+                  placeholder="Search item code, service description, RR #, PO #, or supplier..."
                   oninput="renderServicesTable()">
               </div>
               <span id="servicesSummaryPill" class="po-line-items-badge">0 Services • ₱ 0.00</span>
@@ -3291,8 +3298,8 @@
             <div class="toolbar-bar">
               <div class="search-input-wrap">
                 <i class="fa-solid fa-search"></i>
-                <input type="text" id="capexSearchInput" placeholder="Search item code, description, RR #, PO #, or supplier..."
-                  oninput="renderCapexTable()">
+                <input type="text" id="capexSearchInput"
+                  placeholder="Search item code, description, RR #, PO #, or supplier..." oninput="renderCapexTable()">
               </div>
               <span id="capexSummaryPill" class="po-line-items-badge">0 CAPEX Items • ₱ 0.00</span>
             </div>
@@ -3328,8 +3335,10 @@
       <section id="view-rr-masterfile" class="view-section">
         <div class="view-header">
           <div class="view-title-group">
-            <h2><i class="fa-solid fa-box-archive" style="color:var(--accent);"></i> Receiving Report Masterfile Register</h2>
-            <p>Permanent backup archive of all Material Receiving Reports (MRR), including item codes, line items, and routed registries.</p>
+            <h2><i class="fa-solid fa-box-archive" style="color:var(--accent);"></i> Receiving Report Masterfile
+              Register</h2>
+            <p>Permanent backup archive of all Material Receiving Reports (MRR), including item codes, line items, and
+              routed registries.</p>
           </div>
           <div class="view-action-group">
             <button type="button" class="btn btn-outline" onclick="syncAllActiveRrsToMasterfile(true)">
@@ -3369,19 +3378,21 @@
                 <option value="Active">Active</option>
                 <option value="Archived">Archived</option>
               </select>
-              <select id="rrMasterfileMonthFilter" onchange="onMonthFilterChange('rrMasterfileMonthFilter', 'rrMasterfileDateFilter', renderRrMasterfileTable)"
+              <select id="rrMasterfileMonthFilter"
+                onchange="onMonthFilterChange('rrMasterfileMonthFilter', 'rrMasterfileDateFilter', renderRrMasterfileTable)"
                 class="form-control-neat" style="width:auto; height:38px; min-width:130px;"
                 aria-label="Filter RR Masterfile by month">
                 <option value="ALL">All Months</option>
               </select>
               <div class="date-picker-wrap date-picker-filter">
                 <input type="text" id="rrMasterfileDateFilter" class="form-control-neat date-text-input"
-                  placeholder="12-Nov-2026" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
+                  placeholder="12-Nov-2026" autocomplete="off" autocorrect="off" autocapitalize="none"
+                  spellcheck="false"
                   oninput="if (!this.value.trim() || parseCalendarDateParts(this.value)) onDateFilterChange('rrMasterfileDateFilter', 'rrMasterfileMonthFilter', renderRrMasterfileTable)"
                   onchange="onDateFilterChange('rrMasterfileDateFilter', 'rrMasterfileMonthFilter', renderRrMasterfileTable)"
-                  aria-label="Filter RR Masterfile by date (DD-MMM-YYYY)"
-                  title="Filter by date (e.g. 12-Nov-2026)">
-                <button type="button" class="date-cal-btn" aria-label="Choose filter date from calendar" title="Pick filter date">
+                  aria-label="Filter RR Masterfile by date (DD-MMM-YYYY)" title="Filter by date (e.g. 12-Nov-2026)">
+                <button type="button" class="date-cal-btn" aria-label="Choose filter date from calendar"
+                  title="Pick filter date">
                   <i class="fa-regular fa-calendar"></i>
                 </button>
                 <input type="date" class="date-native-proxy" tabindex="-1" aria-hidden="true">
@@ -3424,7 +3435,8 @@
         <div class="view-header">
           <div class="view-title-group">
             <h2><i class="fa-solid fa-boxes-packing" style="color:var(--accent);"></i> Stocks from 2025</h2>
-            <p id="stocks2025Subtitle">Carry-over inventory from Stocks from 2025.xlsx. Add quantities to On-Hand Inventory after migrating existing RR records.</p>
+            <p id="stocks2025Subtitle">Carry-over inventory from Stocks from 2025.xlsx. Add quantities to On-Hand
+              Inventory after migrating existing RR records.</p>
           </div>
           <div class="view-action-group">
             <button type="button" class="btn btn-outline" onclick="exportStocks2025CSV()">
@@ -3442,16 +3454,21 @@
               <div class="search-input-wrap" style="min-width:240px; flex:1;">
                 <i class="fa-solid fa-search"></i>
                 <input type="text" id="stocks2025SearchInput"
-                  placeholder="Search item code, description, UOM, or date..."
-                  oninput="renderStocks2025Table()">
+                  placeholder="Search item code, description, UOM, or date..." oninput="renderStocks2025Table()">
               </div>
               <div class="filter-pills-bar" style="flex-wrap:wrap;">
-                <button type="button" class="pill-btn active" id="stocks2025PillAll" onclick="filterStocks2025Pill('ALL', this)">All (0)</button>
-                <button type="button" class="pill-btn" onclick="filterStocks2025Pill('WITH_QTY', this)">With Qty (&gt;0)</button>
-                <button type="button" class="pill-btn" onclick="filterStocks2025Pill('ZERO_QTY', this)">Zero Qty (0)</button>
-                <button type="button" class="pill-btn" onclick="filterStocks2025Pill('NO_CODE', this)">Missing Code</button>
-                <button type="button" class="pill-btn" onclick="filterStocks2025Pill('PENDING_POST', this)">Pending Add</button>
-                <button type="button" class="pill-btn" onclick="filterStocks2025Pill('POSTED', this)">Added to Inventory</button>
+                <button type="button" class="pill-btn active" id="stocks2025PillAll"
+                  onclick="filterStocks2025Pill('ALL', this)">All (0)</button>
+                <button type="button" class="pill-btn" onclick="filterStocks2025Pill('WITH_QTY', this)">With Qty
+                  (&gt;0)</button>
+                <button type="button" class="pill-btn" onclick="filterStocks2025Pill('ZERO_QTY', this)">Zero Qty
+                  (0)</button>
+                <button type="button" class="pill-btn" onclick="filterStocks2025Pill('NO_CODE', this)">Missing
+                  Code</button>
+                <button type="button" class="pill-btn" onclick="filterStocks2025Pill('PENDING_POST', this)">Pending
+                  Add</button>
+                <button type="button" class="pill-btn" onclick="filterStocks2025Pill('POSTED', this)">Added to
+                  Inventory</button>
               </div>
               <span id="stocks2025SummaryPill" class="po-line-items-badge">0 Items • 0 Qty</span>
             </div>
@@ -4035,9 +4052,10 @@
               <label for="mMisDate">Date Issued *</label>
               <div class="date-picker-wrap">
                 <input type="text" id="mMisDate" name="mis_date" required class="form-control-neat date-text-input"
-                  placeholder="12-Nov-2026" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
-                  title="Format: DD-MMM-YYYY (e.g. 12-Nov-2026)">
-                <button type="button" class="date-cal-btn" aria-label="Choose issuance date from calendar" title="Pick date">
+                  placeholder="12-Nov-2026" autocomplete="off" autocorrect="off" autocapitalize="none"
+                  spellcheck="false" title="Format: DD-MMM-YYYY (e.g. 12-Nov-2026)">
+                <button type="button" class="date-cal-btn" aria-label="Choose issuance date from calendar"
+                  title="Pick date">
                   <i class="fa-regular fa-calendar"></i>
                 </button>
                 <input type="date" class="date-native-proxy" tabindex="-1" aria-hidden="true">
@@ -4138,10 +4156,12 @@
             <div class="form-group">
               <label for="mSupDateNeeded">Date Needed *</label>
               <div class="date-picker-wrap">
-                <input type="text" id="mSupDateNeeded" name="sup_date_needed" required class="form-control-neat date-text-input"
-                  placeholder="12-Nov-2026" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
+                <input type="text" id="mSupDateNeeded" name="sup_date_needed" required
+                  class="form-control-neat date-text-input" placeholder="12-Nov-2026" autocomplete="off"
+                  autocorrect="off" autocapitalize="none" spellcheck="false"
                   title="Format: DD-MMM-YYYY (e.g. 12-Nov-2026)">
-                <button type="button" class="date-cal-btn" aria-label="Choose date needed from calendar" title="Pick date">
+                <button type="button" class="date-cal-btn" aria-label="Choose date needed from calendar"
+                  title="Pick date">
                   <i class="fa-regular fa-calendar"></i>
                 </button>
                 <input type="date" class="date-native-proxy" tabindex="-1" aria-hidden="true">
@@ -9167,7 +9187,7 @@
       }
 
       if (dirty) {
-        try { localStorage.setItem(SUP_KEY, JSON.stringify(suppliesRequests)); } catch (e) {}
+        try { localStorage.setItem(SUP_KEY, JSON.stringify(suppliesRequests)); } catch (e) { }
       }
       return { ok: true, count: syncedCount, status: 200 };
     }
@@ -9181,7 +9201,7 @@
         } else if (supObj.reference) {
           await sbDeleteRow('supplies_requests', supObj.reference, 'reference_number');
         }
-      } catch (e) {}
+      } catch (e) { }
     }
 
     // Background silent helper for single/small saves
