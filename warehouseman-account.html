@@ -204,14 +204,17 @@
       user-select: none;
       letter-spacing: 0.2px;
     }
+
     .cloud-status-indicator.online {
       background: rgba(16, 185, 129, 0.12);
       border: 1px solid rgba(16, 185, 129, 0.35);
       color: #34d399;
     }
+
     .cloud-status-indicator.online:hover {
       background: rgba(16, 185, 129, 0.2);
     }
+
     .cloud-status-indicator.online .cloud-status-dot {
       width: 7px;
       height: 7px;
@@ -219,14 +222,17 @@
       background: #10b981;
       box-shadow: 0 0 6px rgba(16, 185, 129, 0.8);
     }
+
     .cloud-status-indicator.offline {
       background: rgba(245, 158, 11, 0.16);
       border: 1px solid rgba(245, 158, 11, 0.45);
       color: #fbbf24;
     }
+
     .cloud-status-indicator.offline:hover {
       background: rgba(245, 158, 11, 0.25);
     }
+
     .cloud-status-indicator.offline .cloud-status-dot {
       width: 7px;
       height: 7px;
@@ -234,11 +240,13 @@
       background: #f59e0b;
       box-shadow: 0 0 6px rgba(245, 158, 11, 0.8);
     }
+
     .cloud-status-indicator.syncing {
       background: rgba(59, 130, 246, 0.16);
       border: 1px solid rgba(59, 130, 246, 0.4);
       color: #93c5fd;
     }
+
     .cloud-status-indicator.syncing .cloud-status-dot {
       width: 7px;
       height: 7px;
@@ -246,9 +254,17 @@
       background: #60a5fa;
       animation: pulse-cloud-dot 1s infinite alternate;
     }
+
     @keyframes pulse-cloud-dot {
-      from { opacity: 0.35; transform: scale(0.85); }
-      to { opacity: 1; transform: scale(1.2); }
+      from {
+        opacity: 0.35;
+        transform: scale(0.85);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1.2);
+      }
     }
 
     .user-profile-badge {
@@ -2399,7 +2415,8 @@
     <!-- Header Actions -->
     <div class="header-right">
       <!-- Live Cloud Sync Indicator -->
-      <div id="cloudStatusIndicator" class="cloud-status-indicator online" title="Cloud Database Connected • Click to sync now" onclick="flushOfflineQueueAndSync()">
+      <div id="cloudStatusIndicator" class="cloud-status-indicator online"
+        title="Cloud Database Connected • Click to sync now" onclick="flushOfflineQueueAndSync()">
         <span class="cloud-status-dot"></span>
         <i class="fa-solid fa-cloud" id="cloudStatusIcon"></i>
         <span id="cloudStatusText">Cloud Connected</span>
