@@ -2459,6 +2459,14 @@
               </div>
             </a>
           </li>
+          <li class="nav-item" data-view="view-vehicle-pms">
+            <a href="javascript:void(0)" onclick="switchView('view-vehicle-pms', this)">
+              <div class="nav-label-wrap">
+                <i class="fa-solid fa-truck-pickup"></i>
+                <span>Vehicle Repair &amp; PMS</span>
+              </div>
+            </a>
+          </li>
           <li class="nav-item" data-view="view-capex">
             <a href="javascript:void(0)" onclick="switchView('view-capex', this)">
               <div class="nav-label-wrap">
@@ -3269,6 +3277,59 @@
                   </tr>
                 </thead>
                 <tbody id="servicesTableBody">
+                  <!-- Populated via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- VIEW 6C-2: VEHICLE REPAIR & PMS REGISTRY -->
+      <!-- ============================================================ -->
+      <section id="view-vehicle-pms" class="view-section">
+        <div class="view-header">
+          <div class="view-title-group">
+            <h2><i class="fa-solid fa-truck-pickup" style="color:var(--accent);"></i> Vehicle Repair &amp; PMS Registry</h2>
+            <p>Recorded Preventive Maintenance (PMS) &amp; Vehicle Repairs from Receiving Reports with Item / Unit Code entry.</p>
+          </div>
+          <div class="view-action-group">
+            <button type="button" class="btn btn-outline" onclick="exportCategoryRegistryCSV('vehicle_pms')">
+              <i class="fa-solid fa-file-csv"></i> Export Vehicle &amp; PMS CSV
+            </button>
+          </div>
+        </div>
+
+        <div class="data-card">
+          <div class="data-card-body">
+            <div class="toolbar-bar">
+              <div class="search-input-wrap">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" id="vehiclePmsSearchInput"
+                  placeholder="Search item code, unit / plate code, description, RR #, PO #, or supplier..."
+                  oninput="renderVehiclePmsTable()">
+              </div>
+              <span id="vehiclePmsSummaryPill" class="po-line-items-badge">0 Records • ₱ 0.00</span>
+            </div>
+
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Item / Unit Code</th>
+                    <th>Repair / PMS Description</th>
+                    <th>RR No. / PO No.</th>
+                    <th>Date Received</th>
+                    <th>Supplier / Shop</th>
+                    <th>Project / Dept</th>
+                    <th>Qty / UOM</th>
+                    <th>Unit Cost</th>
+                    <th>Total Amount</th>
+                    <th style="text-align:center;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="vehiclePmsTableBody">
                   <!-- Populated via JS -->
                 </tbody>
               </table>
@@ -4342,6 +4403,7 @@
     const CUSTOM_INV_KEY = 'warehouse_custom_inventory_items';
     const FA_KEY = 'warehouse_fixed_assets_data';
     const SRV_KEY = 'warehouse_services_data';
+    const VPMS_KEY = 'warehouse_vehicle_pms_data';
     const CPX_KEY = 'warehouse_capex_data';
     const RR_MASTERFILE_KEY = 'warehouse_rr_masterfile_backup';
     const STOCKS_2025_STATE_KEY = 'warehouse_stocks_2025_state';
@@ -4355,6 +4417,7 @@
     let directoryEntries = [];
     let fixedAssets = [];
     let serviceRecords = [];
+    let vehiclePmsRecords = [];
     let capexRecords = [];
     let rrMasterfile = [];
     let stocks2025Items = [];
@@ -4398,6 +4461,25 @@
         idPrefix: 'srv',
         getList: () => serviceRecords,
         setList: (arr) => { serviceRecords = arr; }
+      },
+      vehicle_pms: {
+        key: 'vehicle_pms',
+        label: 'Vehicle Repair & PMS Registry',
+        storageKey: VPMS_KEY,
+        sbTable: 'vehicle_pms_registry',
+        tbodyId: 'vehiclePmsTableBody',
+        searchId: 'vehiclePmsSearchInput',
+        summaryId: 'vehiclePmsSummaryPill',
+        navBadgeId: 'navVehiclePmsCount',
+        emptyIcon: 'fa-truck-pickup',
+        emptyTitle: 'No Vehicle Repair & PMS Records Yet',
+        emptyHint: 'Click "Slip" on a Vehicle Repair & Maintenance Receiving Report and enter an Item Code to record entries here.',
+        unitWord: 'Record',
+        csvFilename: 'Vehicle_Repair_PMS_Registry.csv',
+        defaultType: 'Vehicle Repair & Maintenance',
+        idPrefix: 'vpms',
+        getList: () => vehiclePmsRecords,
+        setList: (arr) => { vehiclePmsRecords = arr; }
       },
       capex: {
         key: 'capex',
@@ -4734,7 +4816,7 @@
       if (lower.includes('consumable') || lower.includes('office supplies')) return 'Consumables & Office Supplies';
       if (lower.includes('construction')) return 'Construction Materials';
       if (lower.includes('fixed asset') || lower === 'hardware & fasteners') return 'Fixed Assets';
-      if (lower.includes('vehicle') || (lower.includes('repair') && lower.includes('maintenance'))) return 'Vehicle Repair & Maintenance';
+      if (lower.includes('vehicle') || lower.includes('pms') || (lower.includes('repair') && (lower.includes('maintenance') || lower.includes('service')))) return 'Vehicle Repair & Maintenance';
       if (lower.includes('service') || lower === 'tools & equipment') return 'Services';
       if (lower.includes('capital expenditure') || lower.includes('capex') || lower === 'spare parts & maintenance') return 'Capital Expenditure';
       return val;
@@ -4748,8 +4830,11 @@
       if (t === 'Fixed Assets') {
         return { key: 'fixed_assets', label: 'Fixed Asset Registry', viewId: 'view-fixed-assets' };
       }
-      if (t === 'Services' || t === 'Vehicle Repair & Maintenance') {
+      if (t === 'Services') {
         return { key: 'services', label: 'Services', viewId: 'view-services' };
+      }
+      if (t === 'Vehicle Repair & Maintenance' || t === 'Vehicle Repair & PMS') {
+        return { key: 'vehicle_pms', label: 'Vehicle Repair & PMS Registry', viewId: 'view-vehicle-pms' };
       }
       if (t === 'Capital Expenditure') {
         return { key: 'capex', label: 'Capex', viewId: 'view-capex' };
@@ -5558,7 +5643,7 @@
         suppliesRequests = JSON.parse(localStorage.getItem(SUP_KEY) || '[]');
       } catch (e) { suppliesRequests = []; }
 
-      // 7. Fixed Asset Registry, Services & Capex
+      // 7. Fixed Asset Registry, Services, Vehicle Repair & PMS, & Capex
       Object.values(CATEGORY_REGISTRIES).forEach(cfg => {
         try {
           const parsed = JSON.parse(localStorage.getItem(cfg.storageKey) || '[]');
@@ -5567,6 +5652,76 @@
           cfg.setList([]);
         }
       });
+
+      // Seed Vehicle Repair & PMS records if not yet populated
+      if (vehiclePmsRecords.length === 0) {
+        const movedIds = new Set();
+        serviceRecords.forEach(s => {
+          const rawDesc = String(s.description || '').toLowerCase();
+          const rawSup = String(s.supplier_name || '').toLowerCase();
+          const rawCode = String(s.item_code || '').toLowerCase();
+          const isV = rawDesc.includes('oil') || rawDesc.includes('brake') || rawDesc.includes('filter') ||
+            rawDesc.includes('tire') || rawDesc.includes('bearing') || rawDesc.includes('link') ||
+            rawDesc.includes('cabin') || rawDesc.includes('engine') || rawSup.includes('tirehaus') ||
+            rawSup.includes('toyota') || rawSup.includes('gateway') || rawSup.includes('motors') ||
+            rawSup.includes('pitstop') || rawSup.includes('automotive') || rawSup.includes('ladao') ||
+            rawSup.includes('parts') || rawCode.includes('ns01') || rawCode.includes('iz06');
+          if (isV) {
+            movedIds.add(s.id);
+            vehiclePmsRecords.push({
+              ...s,
+              id: s.id.replace(/^srv_/, 'vpms_'),
+              item_type: 'Vehicle Repair & Maintenance'
+            });
+          }
+        });
+
+        receivingReports.forEach(r => {
+          const rawAcc = String(r.expense_account || '').toLowerCase();
+          const rawSup = String(r.supplier_name || '').toLowerCase();
+          const rawType = String(r.item_type || '').toLowerCase();
+          const isV = rawType.includes('vehicle') || rawType.includes('pms') ||
+            rawAcc.includes('vehicle') || rawAcc.includes('repair - service') ||
+            rawSup.includes('tirehaus') || rawSup.includes('toyota') || rawSup.includes('pitstop') ||
+            rawSup.includes('motors') || rawSup.includes('automotive') || rawSup.includes('tire');
+          if (isV && Array.isArray(r.items)) {
+            r.items.forEach((it, idx) => {
+              const code = String(it.item_code || '').trim();
+              if (code) {
+                const recId = `vpms_${r.id}_${idx}`;
+                if (!vehiclePmsRecords.some(x => x.id === recId)) {
+                  vehiclePmsRecords.push({
+                    id: recId,
+                    item_code: code,
+                    description: it.desc || 'Vehicle Repair / PMS',
+                    item_type: 'Vehicle Repair & Maintenance',
+                    qty: Number(it.qty) || 1,
+                    uom: it.uom || 'LOT',
+                    unit_cost: Number(it.cost || it.unit_cost) || 0,
+                    total_amount: Number(it.rowTotal || it.total || it.total_amount) || ((Number(it.qty) || 1) * (Number(it.cost || it.unit_cost) || 0)),
+                    rr_id: r.id,
+                    rr_no: r.rr_no || '',
+                    po_no: r.po_no || '',
+                    date_received: r.date || '',
+                    supplier_name: r.supplier_name || '',
+                    project: r.project || '',
+                    department: r.department || 'Admin',
+                    created_at: new Date().toISOString()
+                  });
+                }
+              }
+            });
+          }
+        });
+
+        if (movedIds.size > 0) {
+          serviceRecords = serviceRecords.filter(s => !movedIds.has(s.id));
+          localStorage.setItem(SRV_KEY, JSON.stringify(serviceRecords));
+        }
+        if (vehiclePmsRecords.length > 0) {
+          localStorage.setItem(VPMS_KEY, JSON.stringify(vehiclePmsRecords));
+        }
+      }
 
       // 8. Receiving Report Masterfile Register (Permanent Backup Archive)
       try {
@@ -5675,6 +5830,7 @@
       renderStockTable();
       renderFixedAssetsTable();
       renderServicesTable();
+      renderVehiclePmsTable();
       renderCapexTable();
       renderRrMasterfileTable();
       renderStocks2025Table();
@@ -7332,6 +7488,10 @@
 
     function renderServicesTable() {
       renderCategoryRegistryTable('services');
+    }
+
+    function renderVehiclePmsTable() {
+      renderCategoryRegistryTable('vehicle_pms');
     }
 
     function renderCapexTable() {
@@ -9425,6 +9585,7 @@
           mergeStocks2025FromSb(),
           mergeRegistry('fixed_assets_registry', fixedAssets, FA_KEY, mapCategoryFromSb, true),
           mergeRegistry('services_registry', serviceRecords, SRV_KEY, mapCategoryFromSb, true),
+          mergeRegistry('vehicle_pms_registry', vehiclePmsRecords, VPMS_KEY, mapCategoryFromSb, true),
           mergeRegistry('capex_registry', capexRecords, CPX_KEY, mapCategoryFromSb, true),
           mergeRegistry('rr_masterfile_registry', rrMasterfile, RR_MASTERFILE_KEY, r => {
             const localItems = mapSbItemsToLocal(r.items);
@@ -9489,6 +9650,7 @@
         { label: 'Stocks from 2025', table: 'stocks_2025', fn: () => sbUpsertRows('stocks_2025', stocks2025Items, mapStocks2025ToSb, null, 'id') },
         { label: 'Fixed Asset Registry', table: 'fixed_assets_registry', fn: () => sbUpsertRows('fixed_assets_registry', fixedAssets, mapCategoryRecordToSb, null, 'id') },
         { label: 'Services Registry', table: 'services_registry', fn: () => sbUpsertRows('services_registry', serviceRecords, mapCategoryRecordToSb, null, 'id') },
+        { label: 'Vehicle Repair & PMS Registry', table: 'vehicle_pms_registry', fn: () => sbUpsertRows('vehicle_pms_registry', vehiclePmsRecords, mapCategoryRecordToSb, null, 'id') },
         { label: 'CAPEX Registry', table: 'capex_registry', fn: () => sbUpsertRows('capex_registry', capexRecords, mapCategoryRecordToSb, null, 'id') }
       ];
 
