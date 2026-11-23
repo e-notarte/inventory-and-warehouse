@@ -9432,21 +9432,26 @@
         });
 
         const mergeRegistry = async (table, localArr, storageKey, mapFromSb, prependNew = false) => {
-          const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=*&limit=500`, { headers: sbHeaders() });
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=*&limit=1000`, { headers: sbHeaders() });
           if (!res.ok) return null;
           const rows = await res.json();
           if (!Array.isArray(rows) || rows.length === 0) return null;
-          let added = 0;
+          let changed = 0;
           rows.forEach(r => {
-            if (!localArr.some(x => String(x.id) === String(r.id))) {
-              const mapped = mapFromSb(r);
+            const mapped = mapFromSb(r);
+            const idx = localArr.findIndex(x => String(x.id) === String(r.id));
+            if (idx === -1) {
               if (prependNew) localArr.unshift(mapped);
               else localArr.push(mapped);
-              added++;
+              changed++;
+            } else {
+              // Sync updates from other users/devices into local copy
+              localArr[idx] = { ...localArr[idx], ...mapped };
+              changed++;
             }
           });
-          if (added > 0) localStorage.setItem(storageKey, JSON.stringify(localArr));
-          return added;
+          if (changed > 0) localStorage.setItem(storageKey, JSON.stringify(localArr));
+          return changed;
         };
 
         const mapCategoryFromSb = (r) => ({
