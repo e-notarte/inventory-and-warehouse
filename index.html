@@ -2,1098 +2,1025 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sign In | Inventory &amp; Warehouse Management System - R-II Builders</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - R-II Builders Admin Request Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #1E355F;
+            --primary-dark: #152748;
+            --accent: #FCAE16;
+            --accent-hover: #e59c11;
+            --bg: #f4f7f6;
+            --surface: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #2d3748;
+            --muted: #718096;
+            --error: #ef4444;
+        }
 
-  <!-- Global Tab Icon (Favicon) -->
-  <link rel="icon" type="image/png" href="RII_Logo.png">
-  <link rel="shortcut icon" type="image/png" href="RII_Logo.png">
-  <link rel="apple-touch-icon" href="RII_Logo.png">
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
 
-  <!-- Fonts & Icons -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        body {
+            background-color: var(--bg);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-main);
+            overflow: hidden;
+        }
 
-  <style>
-    :root {
-      --primary: #1E355F;
-      --primary-dark: #122240;
-      --accent: #FCAE16;
-      --accent-hover: #e59d0d;
-      --bg: #f1f5f9;
-      --bg-surface: #ffffff;
-      --border: #cbd5e1;
-      --text: #0f172a;
-      --text-muted: #475569;
-      --danger: #dc2626;
-      --danger-bg: #fef2f2;
-      --danger-border: #fecaca;
-      --success: #15803d;
-      --success-bg: #f0fdf4;
-      --success-border: #bbf7d0;
-      --shadow-lg: 0 20px 45px -12px rgba(15, 23, 42, 0.22);
+        .bg-video {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            transform: translateX(-50%) translateY(-50%);
+            z-index: 0;
+            object-fit: cover;
+
+            /* Increased brightness and added saturate */
+            filter: brightness(0.85) saturate(1.5);
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.93);
+            backdrop-filter: blur(12px);
+            width: 100%;
+            max-width: 440px;
+            padding: 48px;
+            border-radius: 18px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 2;
+            overflow: hidden;
+        }
+
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+        }
+
+        .brand-header {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+
+        .brand-header img {
+            width: 92px;
+            margin-bottom: 18px;
+        }
+
+        .brand-header h1 {
+            color: var(--primary);
+            font-size: 1.7rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .brand-header p {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--primary);
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+            font-size: 1.1rem;
+            transition: color 0.2s;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            padding: 12px 14px 12px 42px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            color: var(--text-main);
+            transition: all 0.2s;
+            outline: none;
+            background: #f8fafc;
+        }
+
+        .input-wrapper input:focus {
+            border-color: var(--primary);
+            background: var(--surface);
+            box-shadow: 0 0 0 3px rgba(30, 53, 95, 0.1);
+        }
+
+        .input-wrapper input:focus+i {
+            color: var(--primary);
+        }
+
+        .options-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            font-size: 0.85rem;
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .checkbox-wrapper input {
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+            accent-color: var(--primary);
+        }
+
+        .forgot-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .forgot-link:hover {
+            color: var(--accent);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .login-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .login-btn:active {
+            transform: translateY(1px);
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            display: none;
+        }
+
+        .footer-text {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 32px 24px;
+                border-radius: 0;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+        }
+
+        .signup-prompt {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+
+        .cookie-banner {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            z-index: 20;
+            width: min(420px, calc(100% - 40px));
+            padding: 18px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, .98);
+            box-shadow: 0 10px 30px rgba(15, 23, 42, .2);
+            font-size: .8rem;
+        }
+
+        .cookie-banner h2,
+        .cookie-dialog h2 {
+            margin-bottom: 6px;
+            color: var(--primary);
+            font-size: 1rem;
+        }
+
+        .cookie-banner p,
+        .cookie-dialog p {
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        .cookie-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .cookie-actions button,
+        .cookie-settings-link {
+            border: 0;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font: inherit;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .cookie-primary {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .cookie-secondary {
+            background: #e2e8f0;
+            color: var(--primary);
+        }
+
+        .cookie-settings-link {
+            padding: 8px 0;
+            background: transparent;
+            color: var(--primary);
+        }
+
+        .cookie-dialog-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 30;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(15, 23, 42, .55);
+        }
+
+        .cookie-dialog-backdrop.open {
+            display: flex;
+        }
+
+        .cookie-dialog {
+            width: min(420px, 100%);
+            padding: 22px;
+            border-radius: 12px;
+            background: #fff;
+            box-shadow: 0 15px 40px rgba(15, 23, 42, .25);
+        }
+
+        .cookie-option {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .cookie-option strong {
+            display: block;
+            color: var(--primary);
+        }
+
+        .cookie-option small {
+            color: var(--muted);
+        }
+
+        .cookie-option input {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+        }
+
+        .signup-prompt a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            margin-left: 5px;
+            transition: color 0.2s;
+        }
+
+        .signup-prompt a:hover {
+            color: var(--accent);
+        }
+
+        .hidden-field {
+            display: none;
+        }
+
+  </style>
+    <style>
+        body.dark-mode {
+            --bg: #0f172a;
+            --bg-surface: #1e293b;
+            --border: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            color: var(--text-main);
+        }
+
+        body.dark-mode .data-card,
+        body.dark-mode .stat-card,
+        body.dark-mode .welcome-card,
+        body.dark-mode .dashboard-banner,
+        body.dark-mode .sidebar,
+        body.dark-mode .footer,
+        body.dark-mode .profile-dropdown,
+        body.dark-mode .ai-bot-container {
+            background-color: var(--bg-surface);
+            border-color: var(--border);
+            color: var(--text-main);
+        }
+
+        body.dark-mode .header {
+            background-color: #0f172a;
+            border-bottom: 1px solid var(--border);
+        }
+
+        body.dark-mode input,
+        body.dark-mode select,
+        body.dark-mode textarea {
+            background-color: #0f172a;
+            color: var(--text-main);
+            border-color: var(--border);
+        }
+
+        body.dark-mode th {
+            background-color: #0f172a;
+            color: var(--text-muted);
+        }
+
+        body.dark-mode tr:hover td {
+            background-color: #334155;
+        }
+
+        body.dark-mode .nav-link,
+        body.dark-mode .sub-link {
+            color: var(--text-muted);
+        }
+
+        body.dark-mode .nav-link:hover,
+        body.dark-mode .sub-link:hover {
+            background-color: #334155;
+            color: var(--text-main);
+        }
+
+        body.dark-mode .nav-link.active {
+            background-color: #1e355f;
+            color: white;
+        }
+
+        body.dark-mode h1,
+        body.dark-mode h2,
+        body.dark-mode h3,
+        body.dark-mode .stat-value {
+            color: var(--text-main);
+        }
+
+        body.dark-mode .icon-btn {
+            color: var(--text-main);
+        }
+
+  </style>
+    <style>
+        .ai-chat-window {
+            position: absolute;
+            bottom: 80px;
+            right: 10px;
+            width: 320px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transform: scale(0);
+            transform-origin: bottom right;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 10000;
+        }
+
+        .ai-chat-window.open {
+            transform: scale(1);
+        }
+
+        .ai-chat-header {
+            background: #1E355F;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .ai-chat-header img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: contain;
+            border: 2px solid #FCAE16;
+            background: white;
+        }
+
+        .ai-chat-header span {
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .ai-chat-body {
+            height: 300px;
+            padding: 16px;
+            background: #f8fafc;
+            overflow-y: auto;
+        }
+
+        .ai-chat-body p {
+            margin: 0;
+            font-size: 0.9rem;
+            color: #334155;
+            background: white;
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            display: inline-block;
+            max-width: 90%;
+        }
+
+        .ai-chat-body p strong {
+            color: #1E355F;
+        }
+
+        .ai-chat-footer {
+            display: flex;
+            border-top: 1px solid #e2e8f0;
+            background: white;
+        }
+
+        .ai-chat-footer input {
+            flex: 1;
+            border: none;
+            padding: 12px 16px;
+            outline: none;
+            font-size: 0.9rem;
+            min-width: 0;
+        }
+
+        .ai-chat-footer button {
+            background: #FCAE16;
+            border: none;
+            padding: 0 20px;
+            color: #1E355F;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .ai-chat-footer button:hover {
+            background: #eab308;
+        }
+
+        body.dark-mode .ai-chat-window {
+            background: var(--bg-surface);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+        }
+
+        body.dark-mode .ai-chat-body {
+            background: #0f172a;
+        }
+
+        body.dark-mode .ai-chat-body p {
+            background: #1e293b;
+            border-color: #334155;
+            color: var(--text-main);
+        }
+
+        body.dark-mode .ai-chat-body p strong {
+            color: #cbd5e1;
+        }
+
+        body.dark-mode .ai-chat-footer {
+            border-color: #334155;
+            background: var(--bg-surface);
+        }
+
+        body.dark-mode .ai-chat-footer input {
+            background: transparent;
+            color: var(--text-main);
+        }
+
+  </style>
+  <style id="pretty-active-design">
+    .nav-link.active,
+    .sub-link.active {
+      color: var(--accent) !important;
+      font-weight: 600 !important;
+      background: rgba(252, 174, 22, 0.05) !important;
+      border-left: 3px solid var(--accent) !important;
+    }
+    .nav-link.active i,
+    .sub-link.active i {
+      color: var(--accent) !important;
+    }
+    .sub-link.active {
+      padding-left: 30px !important;
+    }
+  </style>
+  <style id="ai-bot-fix">
+    .ai-chat-window {
+        display: none;
+        flex-direction: column;
+        width: 320px;
+        height: 400px;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+        margin-right: 15px;
+        margin-bottom: 20px;
+        border: 1px solid #e2e8f0;
     }
 
-    body.dark-mode {
-      --bg: #090d16;
-      --bg-surface: #131c2e;
-      --border: #334155;
-      --text: #f8fafc;
-      --text-muted: #94a3b8;
-      --danger: #fca5a5;
-      --danger-bg: rgba(220, 38, 38, 0.14);
-      --danger-border: rgba(248, 113, 113, 0.35);
-      --success: #86efac;
-      --success-bg: rgba(22, 163, 74, 0.15);
-      --success-border: rgba(74, 222, 128, 0.35);
+    .ai-chat-window.open {
+        display: flex;
+        animation: chatSlideIn 0.3s ease forwards;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
+    @keyframes chatSlideIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
-    body {
-      font-family: 'Poppins', sans-serif;
-      background:
-        radial-gradient(circle at 12% 18%, rgba(252, 174, 22, 0.14), transparent 38%),
-        radial-gradient(circle at 88% 82%, rgba(30, 53, 95, 0.16), transparent 42%),
-        var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      line-height: 1.5;
+    .ai-chat-header {
+        background: #1E355F;
+        color: white;
+        padding: 12px 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 600;
+        font-size: 0.95rem;
     }
 
-    .top-bar {
-      background: var(--primary);
-      color: #ffffff;
-      padding: 14px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 3px solid var(--accent);
+    .ai-chat-header img {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        object-fit: cover;
+        background: white;
+        padding: 2px;
     }
 
-    .brand-wrap {
-      display: flex;
-      align-items: center;
-      gap: 12px;
+    .ai-chat-body {
+        flex: 1;
+        padding: 15px;
+        background: #f8fafc;
+        overflow-y: auto;
+        font-size: 0.85rem;
+        color: #2d3748;
     }
 
-    .brand-logo {
-      height: 36px;
-      width: auto;
-      object-fit: contain;
+    .ai-chat-body p {
+        background: white;
+        padding: 10px 15px;
+        border-radius: 15px;
+        border-bottom-left-radius: 4px;
+        display: inline-block;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        margin: 0;
+        max-width: 85%;
+        line-height: 1.4;
     }
 
-    .brand-title {
-      font-size: 0.98rem;
-      font-weight: 700;
-      letter-spacing: 0.3px;
+    .ai-chat-body strong {
+        color: #1E355F;
+        display: block;
+        margin-bottom: 3px;
     }
 
-    .brand-sub {
-      font-size: 0.72rem;
-      color: rgba(255, 255, 255, 0.78);
+    .ai-chat-footer {
+        padding: 12px 15px;
+        background: white;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        gap: 8px;
     }
 
-    .theme-btn {
-      background: rgba(255, 255, 255, 0.12);
-      border: 1px solid rgba(255, 255, 255, 0.24);
-      color: #ffffff;
-      width: 38px;
-      height: 38px;
-      border-radius: 8px;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.95rem;
+    .ai-chat-footer input {
+        flex: 1;
+        padding: 8px 12px;
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        outline: none;
+        font-size: 0.85rem;
     }
 
-    .theme-btn:focus-visible,
-    .pw-toggle-btn:focus-visible,
-    .btn-signin:focus-visible,
-    .form-input:focus-visible {
-      outline: 3px solid #0284c7;
-      outline-offset: 2px;
+    .ai-chat-footer input:focus {
+        border-color: #FCAE16;
     }
 
-    .auth-main {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 28px 16px;
+    .ai-chat-footer button {
+        background: #FCAE16;
+        color: #1E355F;
+        border: none;
+        border-radius: 20px;
+        padding: 0 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+        font-size: 0.85rem;
     }
 
-    .auth-card {
-      width: 100%;
-      max-width: 440px;
-      background: var(--bg-surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      box-shadow: var(--shadow-lg);
-      overflow: hidden;
-    }
-
-    .auth-card-banner {
-      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-      color: #ffffff;
-      padding: 26px 28px 22px;
-      border-bottom: 3px solid var(--accent);
-    }
-
-    .auth-eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.7rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      color: var(--accent);
-      margin-bottom: 6px;
-    }
-
-    .auth-card-banner h1 {
-      font-size: 1.32rem;
-      font-weight: 700;
-      line-height: 1.25;
-    }
-
-    .auth-card-banner p {
-      font-size: 0.8rem;
-      color: rgba(255, 255, 255, 0.8);
-      margin-top: 4px;
-    }
-
-    .auth-form {
-      padding: 0;
-    }
-
-    .form-field {
-      display: flex;
-      flex-direction: column;
-      gap: 0.35rem;
-      margin-block-end: 1.25rem;
-    }
-
-    .form-field label {
-      font-size: 0.82rem;
-      font-weight: 600;
-      color: var(--text);
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .form-field label i {
-      color: var(--accent);
-    }
-
-    .req-star {
-      color: #ef4444;
-    }
-
-    .input-wrap {
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
-
-    .form-input {
-      width: 100%;
-      font: inherit;
-      font-size: max(1rem, 1em);
-      min-height: 48px;
-      padding: 0.68rem 0.9rem;
-      border-radius: 9px;
-      border: 1.5px solid #767676;
-      background: var(--bg-surface);
-      color: var(--text);
-      transition: border-color 0.15s;
-    }
-
-    .form-input.with-toggle {
-      padding-inline-end: 3.1rem;
-    }
-
-    .form-input[aria-invalid="true"],
-    .form-input:user-invalid {
-      border-color: var(--danger);
-    }
-
-    .pw-toggle-btn {
-      position: absolute;
-      inset-inline-end: 6px;
-      min-width: 40px;
-      min-height: 40px;
-      border: none;
-      border-radius: 7px;
-      background: transparent;
-      color: var(--text-muted);
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.95rem;
-    }
-
-    .pw-toggle-btn:hover {
-      background: rgba(148, 163, 184, 0.16);
-      color: var(--text);
-    }
-
-    [hidden] {
-      display: none !important;
-    }
-
-    .auth-tabs {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 6px;
-      padding: 16px 26px 0;
-    }
-
-    .auth-tab-btn {
-      min-height: 40px;
-      border: 1px solid var(--border);
-      border-radius: 9px;
-      background: var(--bg);
-      color: var(--text-muted);
-      font: inherit;
-      font-size: 0.82rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 7px;
-      transition: background 0.16s, color 0.16s, border-color 0.16s;
-    }
-
-    .auth-tab-btn:hover {
-      color: var(--text);
-    }
-
-    .auth-tab-btn[aria-selected="true"] {
-      background: var(--primary);
-      border-color: var(--primary);
-      color: #ffffff;
-    }
-
-    .auth-tab-btn:focus-visible,
-    .auth-text-link:focus-visible,
-    .pw-toggle-btn:focus-visible,
-    .btn-signin:focus-visible {
-      outline: 2px solid var(--accent);
-      outline-offset: 2px;
-    }
-
-    .auth-body {
-      padding: 20px 26px 24px;
-    }
-
-    .error-banner,
-    .success-banner {
-      display: none;
-      align-items: flex-start;
-      gap: 8px;
-      padding: 10px 12px;
-      margin-block-end: 1.15rem;
-      border-radius: 8px;
-      font-size: 0.8rem;
-      font-weight: 500;
-    }
-
-    .error-banner {
-      background: var(--danger-bg);
-      border: 1px solid var(--danger-border);
-      color: var(--danger);
-    }
-
-    .success-banner {
-      background: var(--success-bg);
-      border: 1px solid var(--success-border);
-      color: var(--success);
-    }
-
-    .error-banner.visible,
-    .success-banner.visible {
-      display: flex;
-    }
-
-    .field-label-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      margin-bottom: 6px;
-    }
-
-    .field-label-row label {
-      margin-bottom: 0;
-    }
-
-    .field-hint {
-      margin-top: 5px;
-      font-size: 0.74rem;
-      color: var(--text-muted);
-    }
-
-    .auth-text-link {
-      background: transparent;
-      border: none;
-      padding: 4px 2px;
-      color: var(--primary);
-      font: inherit;
-      font-size: 0.76rem;
-      font-weight: 600;
-      cursor: pointer;
-      text-decoration: underline;
-      text-underline-offset: 2px;
-    }
-
-    body.dark-mode .auth-text-link {
-      color: var(--accent);
-    }
-
-    .auth-secondary-row {
-      margin-top: 12px;
-      text-align: center;
-      font-size: 0.78rem;
-      color: var(--text-muted);
-    }
-
-    .btn-signin {
-      width: 100%;
-      min-height: 48px;
-      border: none;
-      border-radius: 9px;
-      background: var(--primary);
-      color: #ffffff;
-      font: inherit;
-      font-size: 0.95rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: background 0.18s;
-    }
-
-    .btn-signin:hover:not(:disabled) {
-      background: var(--primary-dark);
-    }
-
-    .btn-signin:disabled {
-      opacity: 0.72;
-      cursor: not-allowed;
-    }
-
-    .auth-footer-note {
-      margin-top: 18px;
-      padding-top: 14px;
-      border-top: 1px solid var(--border);
-      font-size: 0.74rem;
-      color: var(--text-muted);
-      text-align: center;
-    }
-
-    .page-footer {
-      text-align: center;
-      padding: 14px 16px;
-      font-size: 0.73rem;
-      color: var(--text-muted);
+    .ai-chat-footer button:hover {
+        background: #e59c11;
     }
   </style>
 </head>
 
 <body>
-  <header class="top-bar">
-    <div class="brand-wrap">
-      <img src="RII_Logo.png" alt="R-II Builders Logo" class="brand-logo" onerror="this.style.display='none'">
-      <div>
-        <div class="brand-title">R-II BUILDERS, INC.</div>
-        <div class="brand-sub">Inventory &amp; Warehouse Management System</div>
-      </div>
+    <video autoplay muted loop playsinline class="bg-video">
+        <source src="./RII_Video.mp4" type="video/mp4">
+    </video>
+
+    <div class="login-container">
+        <div class="brand-header">
+            <img src="RII_Logo.png"
+                alt="R-II Builders Logo">
+            <h1>Welcome Back</h1>
+            <p>Admin Management System</p>
+        </div>
+
+        <div class="error-message" id="errorMsg">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span>Invalid email or password.</span>
+        </div>
+
+        <form id="loginForm">
+
+            <div class="form-group hidden-field" id="nameGroup">
+                <label for="fullName">Full Name</label>
+                <div class="input-wrapper">
+                    <input type="text" id="fullName" placeholder="Enter your full name" autocomplete="name">
+                    <i class="fa-regular fa-user"></i>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <div class="input-wrapper">
+                    <input type="email" id="email" placeholder="Enter your email" required autocomplete="email">
+                    <i class="fa-regular fa-envelope"></i>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="input-wrapper">
+                    <input type="password" id="password" placeholder="Enter your password" required
+                        autocomplete="current-password">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+            </div>
+
+            <div class="options-row">
+                <label class="checkbox-wrapper">
+                    <input type="checkbox" id="rememberMe">
+                    <span>Remember me</span>
+                </label>
+                <a href="#" class="forgot-link">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="login-btn" id="loginBtn">
+                <span class="btn-text">Sign In</span>
+                <div class="spinner"></div>
+            </button>
+
+            <div class="signup-prompt" id="signupPrompt">
+                Don't have an account? <a href="#" id="toggleSignup">Sign Up</a>
+            </div>
+
+        </form>
+
+        <div class="footer-text">
+            Ã‚Â© 2026 R-II Builders, Inc. All Rights Reserved.
+        </div>
     </div>
-    <button type="button" class="theme-btn" id="themeToggleBtn" aria-label="Toggle dark mode" title="Toggle Dark/Light Mode">
-      <i class="fa-solid fa-moon" id="themeIcon"></i>
-    </button>
-  </header>
 
-  <main class="auth-main">
-    <section class="auth-card" aria-labelledby="authHeading">
-      <div class="auth-card-banner">
-        <div class="auth-eyebrow">
-          <i class="fa-solid fa-shield-halved"></i> Warehouseman Portal
+    <aside class="cookie-banner" id="cookieBanner" role="region" aria-label="Cookie settings">
+        <h2>Cookie settings</h2>
+        <p>We use essential storage to keep you signed in. Optional storage remembers your email and display preferences.</p>
+        <div class="cookie-actions">
+            <button type="button" class="cookie-primary" id="acceptOptionalCookies">Accept optional</button>
+            <button type="button" class="cookie-secondary" id="rejectOptionalCookies">Reject optional</button>
+            <button type="button" class="cookie-settings-link" id="openCookieSettings">Settings</button>
         </div>
-        <h1 id="authHeading">Sign in to Warehouse Dashboard</h1>
-        <p id="authSubheading">Enter your R-II Builders email and password to continue.</p>
-      </div>
+    </aside>
 
-      <div id="authTabs" class="auth-tabs" role="tablist" aria-label="Account access mode">
-        <button type="button" id="tabSignIn" class="auth-tab-btn" role="tab" aria-selected="true" aria-controls="loginForm">
-          <i class="fa-solid fa-right-to-bracket"></i> Sign In
-        </button>
-        <button type="button" id="tabSignUp" class="auth-tab-btn" role="tab" aria-selected="false" aria-controls="signupForm">
-          <i class="fa-solid fa-user-plus"></i> Create Account
-        </button>
-      </div>
-
-      <div class="auth-body">
-        <div id="authErrorMsg" class="error-banner" role="alert" aria-live="polite">
-          <i class="fa-solid fa-circle-exclamation" style="margin-top:2px;"></i>
-          <span id="authErrorText"></span>
-        </div>
-
-        <div id="authSuccessMsg" class="success-banner" role="status" aria-live="polite">
-          <i class="fa-solid fa-circle-check" style="margin-top:2px;"></i>
-          <span id="authSuccessText"></span>
-        </div>
-
-        <form id="loginForm" class="auth-form" method="POST" action="warehouseman-account.html" aria-labelledby="authHeading" novalidate>
-          <div class="form-field">
-            <label for="loginEmail">
-              <i class="fa-regular fa-envelope"></i> Email Address <span class="req-star" aria-hidden="true">*</span>
+    <div class="cookie-dialog-backdrop" id="cookieDialogBackdrop" role="dialog" aria-modal="true"
+        aria-labelledby="cookieDialogTitle">
+        <section class="cookie-dialog">
+            <h2 id="cookieDialogTitle">Cookie settings</h2>
+            <p>Choose which storage categories you want to allow on this device.</p>
+            <label class="cookie-option">
+                <span><strong>Essential storage</strong><small>Required for authentication and security.</small></span>
+                <input type="checkbox" checked disabled>
             </label>
-            <input
-              type="email"
-              id="loginEmail"
-              name="email"
-              class="form-input"
-              autocomplete="username"
-              autocorrect="off"
-              autocapitalize="none"
-              spellcheck="false"
-              enterkeyhint="next"
-              placeholder="name@riibuilders.com"
-              required>
-          </div>
-
-          <div class="form-field">
-            <div class="field-label-row">
-              <label for="loginPassword">
-                <i class="fa-solid fa-lock"></i> Password <span class="req-star" aria-hidden="true">*</span>
-              </label>
-              <button type="button" id="openForgotBtn" class="auth-text-link">Forgot password?</button>
+            <label class="cookie-option">
+                <span><strong>Optional storage</strong><small>Remembered email and display preferences.</small></span>
+                <input type="checkbox" id="optionalCookies">
+            </label>
+            <div class="cookie-actions">
+                <button type="button" class="cookie-primary" id="saveCookieSettings">Save settings</button>
+                <button type="button" class="cookie-secondary" id="closeCookieSettings">Cancel</button>
             </div>
-            <div class="input-wrap">
-              <input
-                type="password"
-                id="loginPassword"
-                name="password"
-                class="form-input with-toggle"
-                autocomplete="current-password"
-                enterkeyhint="done"
-                placeholder="Enter your password"
-                required>
-              <button
-                type="button"
-                id="toggleLoginPasswordBtn"
-                class="pw-toggle-btn"
-                aria-pressed="false"
-                aria-label="Show password">
-                <i class="fa-regular fa-eye" id="toggleLoginPasswordIcon"></i>
-              </button>
-            </div>
-          </div>
+        </section>
+    </div>
 
-          <button type="submit" id="loginSubmitBtn" class="btn-signin">
-            <i class="fa-solid fa-right-to-bracket"></i>
-            <span>Sign In</span>
-          </button>
-        </form>
+    <script>
+        const authKey = 'property-management-authenticated';
+        const emailKey = 'property-management-email';
+        const rememberedKey = 'property-management-email-remembers';
+        const cookieConsentKey = 'property-management-cookie-consent';
+        const loginForm = document.getElementById('loginForm');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const rememberMeInput = document.getElementById('rememberMe');
+        const errorMsg = document.getElementById('errorMsg');
+        const nameGroup = document.getElementById('nameGroup');
+        const fullNameInput = document.getElementById('fullName');
+        const toggleSignup = document.getElementById('toggleSignup');
+        const cookieBanner = document.getElementById('cookieBanner');
+        const cookieDialog = document.getElementById('cookieDialogBackdrop');
+        let signupMode = false;
 
-        <form id="signupForm" class="auth-form" aria-labelledby="authHeading" hidden novalidate>
-          <div class="form-field">
-            <label for="signupFullName">
-              <i class="fa-regular fa-user"></i> Full Name <span class="req-star" aria-hidden="true">*</span>
-            </label>
-            <input
-              type="text"
-              id="signupFullName"
-              name="full-name"
-              class="form-input"
-              autocomplete="name"
-              enterkeyhint="next"
-              placeholder="Juan Dela Cruz"
-              required>
-          </div>
-
-          <div class="form-field">
-            <label for="signupEmail">
-              <i class="fa-regular fa-envelope"></i> Email Address <span class="req-star" aria-hidden="true">*</span>
-            </label>
-            <input
-              type="email"
-              id="signupEmail"
-              name="email"
-              class="form-input"
-              autocomplete="username"
-              autocorrect="off"
-              autocapitalize="none"
-              spellcheck="false"
-              enterkeyhint="next"
-              placeholder="name@riibuilders.com"
-              required>
-          </div>
-
-          <div class="form-field">
-            <label for="signupPassword">
-              <i class="fa-solid fa-lock"></i> New Password <span class="req-star" aria-hidden="true">*</span>
-            </label>
-            <div class="input-wrap">
-              <input
-                type="password"
-                id="signupPassword"
-                name="new-password"
-                class="form-input with-toggle"
-                autocomplete="new-password"
-                minlength="8"
-                enterkeyhint="done"
-                aria-describedby="signupPwHint"
-                placeholder="Minimum 8 characters"
-                required>
-              <button
-                type="button"
-                id="toggleSignupPasswordBtn"
-                class="pw-toggle-btn"
-                aria-pressed="false"
-                aria-label="Show password">
-                <i class="fa-regular fa-eye" id="toggleSignupPasswordIcon"></i>
-              </button>
-            </div>
-            <p id="signupPwHint" class="field-hint">Use at least 8 characters.</p>
-          </div>
-
-          <button type="submit" id="signupSubmitBtn" class="btn-signin">
-            <i class="fa-solid fa-user-plus"></i>
-            <span>Create Account</span>
-          </button>
-        </form>
-
-        <form id="forgotForm" class="auth-form" aria-labelledby="authHeading" hidden novalidate>
-          <div class="form-field">
-            <label for="forgotEmail">
-              <i class="fa-regular fa-envelope"></i> Account Email Address <span class="req-star" aria-hidden="true">*</span>
-            </label>
-            <input
-              type="email"
-              id="forgotEmail"
-              name="email"
-              class="form-input"
-              autocomplete="username"
-              autocorrect="off"
-              autocapitalize="none"
-              spellcheck="false"
-              enterkeyhint="done"
-              placeholder="name@riibuilders.com"
-              required>
-          </div>
-
-          <button type="submit" id="forgotSubmitBtn" class="btn-signin">
-            <i class="fa-regular fa-paper-plane"></i>
-            <span>Send Reset Link</span>
-          </button>
-
-          <div class="auth-secondary-row">
-            Remembered your password?
-            <button type="button" id="backToLoginFromForgotBtn" class="auth-text-link">Back to Sign In</button>
-          </div>
-        </form>
-
-        <form id="recoveryForm" class="auth-form" aria-labelledby="authHeading" hidden novalidate>
-          <div class="form-field">
-            <label for="recoveryPassword">
-              <i class="fa-solid fa-key"></i> New Password <span class="req-star" aria-hidden="true">*</span>
-            </label>
-            <div class="input-wrap">
-              <input
-                type="password"
-                id="recoveryPassword"
-                name="new-password"
-                class="form-input with-toggle"
-                autocomplete="new-password"
-                minlength="8"
-                enterkeyhint="done"
-                aria-describedby="recoveryPwHint"
-                placeholder="Minimum 8 characters"
-                required>
-              <button
-                type="button"
-                id="toggleRecoveryPasswordBtn"
-                class="pw-toggle-btn"
-                aria-pressed="false"
-                aria-label="Show password">
-                <i class="fa-regular fa-eye" id="toggleRecoveryPasswordIcon"></i>
-              </button>
-            </div>
-            <p id="recoveryPwHint" class="field-hint">Use at least 8 characters.</p>
-          </div>
-
-          <button type="submit" id="recoverySubmitBtn" class="btn-signin">
-            <i class="fa-solid fa-check"></i>
-            <span>Update Password</span>
-          </button>
-
-          <div class="auth-secondary-row">
-            <button type="button" id="backToLoginFromRecoveryBtn" class="auth-text-link">Back to Sign In</button>
-          </div>
-        </form>
-
-        <div class="auth-footer-note">
-          Authenticated accounts proceed directly to <strong>Warehouseman Dashboard</strong>.
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer class="page-footer">
-    Inventory &amp; Warehouse Module • R-II Builders, Inc. &copy; 2026
-  </footer>
-
-  <script type="module">
-    import { supabase } from './supabase-client.js';
-
-    const DASHBOARD_URL = 'warehouseman-account.html';
-    const MIN_PASSWORD_LEN = 8;
-
-    // Theme initialization & toggle
-    const themeIcon = document.getElementById('themeIcon');
-    const savedTheme = localStorage.getItem('warehouse_theme') || 'light';
-    if (savedTheme === 'dark') {
-      document.body.classList.add('dark-mode');
-      if (themeIcon) themeIcon.className = 'fa-solid fa-sun';
-    }
-    document.getElementById('themeToggleBtn')?.addEventListener('click', () => {
-      const isDark = document.body.classList.toggle('dark-mode');
-      localStorage.setItem('warehouse_theme', isDark ? 'dark' : 'light');
-      if (themeIcon) themeIcon.className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
-    });
-
-    const authHeading = document.getElementById('authHeading');
-    const authSubheading = document.getElementById('authSubheading');
-    const authTabs = document.getElementById('authTabs');
-    const tabSignIn = document.getElementById('tabSignIn');
-    const tabSignUp = document.getElementById('tabSignUp');
-
-    const errorBox = document.getElementById('authErrorMsg');
-    const errorText = document.getElementById('authErrorText');
-    const successBox = document.getElementById('authSuccessMsg');
-    const successText = document.getElementById('authSuccessText');
-
-    const loginForm = document.getElementById('loginForm');
-    const loginEmailInput = document.getElementById('loginEmail');
-    const loginPasswordInput = document.getElementById('loginPassword');
-    const loginSubmitBtn = document.getElementById('loginSubmitBtn');
-
-    const signupForm = document.getElementById('signupForm');
-    const signupFullNameInput = document.getElementById('signupFullName');
-    const signupEmailInput = document.getElementById('signupEmail');
-    const signupPasswordInput = document.getElementById('signupPassword');
-    const signupSubmitBtn = document.getElementById('signupSubmitBtn');
-
-    const forgotForm = document.getElementById('forgotForm');
-    const forgotEmailInput = document.getElementById('forgotEmail');
-    const forgotSubmitBtn = document.getElementById('forgotSubmitBtn');
-
-    const recoveryForm = document.getElementById('recoveryForm');
-    const recoveryPasswordInput = document.getElementById('recoveryPassword');
-    const recoverySubmitBtn = document.getElementById('recoverySubmitBtn');
-
-    const ALL_INPUTS = [
-      loginEmailInput,
-      loginPasswordInput,
-      signupFullNameInput,
-      signupEmailInput,
-      signupPasswordInput,
-      forgotEmailInput,
-      recoveryPasswordInput
-    ];
-
-    const VIEW_META = {
-      login: {
-        title: 'Sign in to Warehouse Dashboard',
-        subtitle: 'Enter your R-II Builders email and password to continue.',
-        form: loginForm,
-        showTabs: true,
-        focusEl: loginEmailInput
-      },
-      signup: {
-        title: 'Create Warehouse Account',
-        subtitle: 'Register your R-II Builders email to access the warehouse dashboard.',
-        form: signupForm,
-        showTabs: true,
-        focusEl: signupFullNameInput
-      },
-      forgot: {
-        title: 'Reset Your Password',
-        subtitle: 'Enter your account email and we will send you a password reset link.',
-        form: forgotForm,
-        showTabs: false,
-        focusEl: forgotEmailInput
-      },
-      recovery: {
-        title: 'Set New Password',
-        subtitle: 'Enter a new password (minimum 8 characters) to recover your account.',
-        form: recoveryForm,
-        showTabs: false,
-        focusEl: recoveryPasswordInput
-      }
-    };
-
-    const BUTTON_DEFAULTS = {
-      login: '<i class="fa-solid fa-right-to-bracket"></i><span>Sign In</span>',
-      signup: '<i class="fa-solid fa-user-plus"></i><span>Create Account</span>',
-      forgot: '<i class="fa-regular fa-paper-plane"></i><span>Send Reset Link</span>',
-      recovery: '<i class="fa-solid fa-check"></i><span>Update Password</span>'
-    };
-
-    let currentMode = 'login';
-
-    function clearMessages() {
-      if (errorBox) errorBox.classList.remove('visible');
-      if (errorText) errorText.textContent = '';
-      if (successBox) successBox.classList.remove('visible');
-      if (successText) successText.textContent = '';
-      ALL_INPUTS.forEach((el) => el?.removeAttribute('aria-invalid'));
-    }
-
-    function showError(message, focusEl) {
-      if (successBox) successBox.classList.remove('visible');
-      if (successText) successText.textContent = '';
-      if (errorText) errorText.textContent = message;
-      if (errorBox) errorBox.classList.add('visible');
-      if (focusEl) {
-        focusEl.setAttribute('aria-invalid', 'true');
-        focusEl.focus();
-      }
-    }
-
-    function showSuccess(message) {
-      if (errorBox) errorBox.classList.remove('visible');
-      if (errorText) errorText.textContent = '';
-      if (successText) successText.textContent = message;
-      if (successBox) successBox.classList.add('visible');
-    }
-
-    function setSubmitting(btn, loading, mode, loadingLabel) {
-      if (!btn) return;
-      btn.disabled = loading;
-      btn.innerHTML = loading
-        ? `<i class="fa-solid fa-spinner fa-spin"></i><span>${loadingLabel}</span>`
-        : BUTTON_DEFAULTS[mode];
-    }
-
-    function switchMode(mode, { preserveMessages = false, focus = true } = {}) {
-      const target = VIEW_META[mode] ? mode : 'login';
-      currentMode = target;
-      const cfg = VIEW_META[target];
-
-      if (!preserveMessages) {
-        clearMessages();
-      } else {
-        ALL_INPUTS.forEach((el) => el?.removeAttribute('aria-invalid'));
-      }
-
-      if (authHeading) authHeading.textContent = cfg.title;
-      if (authSubheading) authSubheading.textContent = cfg.subtitle;
-      if (authTabs) authTabs.hidden = !cfg.showTabs;
-      if (tabSignIn) tabSignIn.setAttribute('aria-selected', String(target === 'login'));
-      if (tabSignUp) tabSignUp.setAttribute('aria-selected', String(target === 'signup'));
-
-      [loginForm, signupForm, forgotForm, recoveryForm].forEach((f) => {
-        if (f) f.hidden = f !== cfg.form;
-      });
-
-      if (focus && cfg.focusEl) {
-        cfg.focusEl.focus();
-      }
-    }
-
-    function bindPasswordToggle(inputEl, btnEl, iconEl) {
-      if (!inputEl || !btnEl) return;
-      btnEl.addEventListener('click', () => {
-        const show = inputEl.type === 'password';
-        inputEl.type = show ? 'text' : 'password';
-        btnEl.setAttribute('aria-pressed', String(show));
-        btnEl.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
-        if (iconEl) iconEl.className = show ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye';
-      });
-    }
-
-    function getRedirectUrl() {
-      const href = window.location.href || '';
-      return href.split('#')[0].split('?')[0];
-    }
-
-    function persistSession(user) {
-      const email = user?.email || '';
-      const meta = user?.user_metadata || {};
-      const fullName = meta.full_name || meta.name || (email ? email.split('@')[0] : 'Warehouseman');
-      const role = meta.role || 'Warehouseman';
-
-      sessionStorage.setItem('isAuthenticated', 'true');
-      sessionStorage.setItem('userEmail', email);
-      sessionStorage.setItem('userFullName', fullName);
-      sessionStorage.setItem('userRole', role);
-      if (user?.id) sessionStorage.setItem('userId', user.id);
-    }
-
-    function validateEmailInput(inputEl) {
-      const email = (inputEl?.value || '').trim();
-      if (!email) {
-        showError('Please enter your email address.', inputEl);
-        return null;
-      }
-      if (!inputEl.checkValidity()) {
-        showError('Please enter a valid email address.', inputEl);
-        return null;
-      }
-      return email;
-    }
-
-    ALL_INPUTS.forEach((el) => {
-      el?.addEventListener('input', () => {
-        el.removeAttribute('aria-invalid');
-        if (errorBox?.classList.contains('visible')) {
-          errorBox.classList.remove('visible');
-          if (errorText) errorText.textContent = '';
-        }
-      });
-    });
-
-    bindPasswordToggle(
-      loginPasswordInput,
-      document.getElementById('toggleLoginPasswordBtn'),
-      document.getElementById('toggleLoginPasswordIcon')
-    );
-    bindPasswordToggle(
-      signupPasswordInput,
-      document.getElementById('toggleSignupPasswordBtn'),
-      document.getElementById('toggleSignupPasswordIcon')
-    );
-    bindPasswordToggle(
-      recoveryPasswordInput,
-      document.getElementById('toggleRecoveryPasswordBtn'),
-      document.getElementById('toggleRecoveryPasswordIcon')
-    );
-
-    tabSignIn?.addEventListener('click', () => switchMode('login'));
-    tabSignUp?.addEventListener('click', () => switchMode('signup'));
-    document.getElementById('openForgotBtn')?.addEventListener('click', () => {
-      const prefill = (loginEmailInput?.value || '').trim();
-      if (prefill && forgotEmailInput && !forgotEmailInput.value) {
-        forgotEmailInput.value = prefill;
-      }
-      switchMode('forgot');
-    });
-    document.getElementById('backToLoginFromForgotBtn')?.addEventListener('click', () => switchMode('login'));
-    document.getElementById('backToLoginFromRecoveryBtn')?.addEventListener('click', () => switchMode('login'));
-
-    const isRecoveryHash = () => {
-      const hash = window.location.hash || '';
-      const search = window.location.search || '';
-      return hash.includes('type=recovery') || search.includes('type=recovery');
-    };
-
-    supabase.auth.onAuthStateChange?.((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        switchMode('recovery');
-      }
-    });
-
-    // Redirect immediately if already authenticated with an active Supabase session (unless recovering password)
-    (async () => {
-      try {
-        if (isRecoveryHash()) {
-          switchMode('recovery');
-          return;
-        }
-        if (sessionStorage.getItem('isAuthenticated') === 'true') {
-          const { data } = await supabase.auth.getSession();
-          if (data?.session?.user) {
-            persistSession(data.session.user);
-            window.location.replace(DASHBOARD_URL);
-          } else {
-            sessionStorage.removeItem('isAuthenticated');
-          }
-        }
-      } catch (e) { }
-    })();
-
-    loginForm?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      clearMessages();
-
-      const email = validateEmailInput(loginEmailInput);
-      if (!email) return;
-
-      const password = loginPasswordInput?.value || '';
-      if (!password) {
-        showError('Please enter your password.', loginPasswordInput);
-        return;
-      }
-
-      setSubmitting(loginSubmitBtn, true, 'login', 'Signing In...');
-
-      try {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) {
-          loginEmailInput?.setAttribute('aria-invalid', 'true');
-          loginPasswordInput?.setAttribute('aria-invalid', 'true');
-          showError(error.message || 'Invalid email or password. Please try again.', loginPasswordInput);
-          setSubmitting(loginSubmitBtn, false, 'login');
-          return;
+        if (sessionStorage.getItem(authKey) === 'true') {
+            window.location.replace('./property_mgt_system_dahsboard.html');
         }
 
-        if (!data?.user) {
-          showError('Authentication succeeded without a user session. Please try again.', loginEmailInput);
-          setSubmitting(loginSubmitBtn, false, 'login');
-          return;
+        const cookieConsent = localStorage.getItem(cookieConsentKey);
+        window.hasOptionalCookieConsent = () => localStorage.getItem(cookieConsentKey) === 'accepted';
+        if (cookieConsent) cookieBanner.style.display = 'none';
+
+        if (cookieConsent === 'optional' || cookieConsent === 'accepted') {
+            const rememberedEmail = localStorage.getItem(rememberedKey);
+            if (rememberedEmail) {
+                emailInput.value = rememberedEmail;
+                rememberMeInput.checked = true;
+            }
         }
 
-        persistSession(data.user);
-        window.location.replace(DASHBOARD_URL);
-      } catch (err) {
-        showError(err?.message || 'Unable to reach authentication service. Please check your connection.', loginEmailInput);
-        setSubmitting(loginSubmitBtn, false, 'login');
-      }
-    });
+        function setCookieConsent(value) {
+            localStorage.setItem(cookieConsentKey, value);
+            cookieBanner.style.display = 'none';
+            cookieDialog.classList.remove('open');
+        }
 
-    signupForm?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      clearMessages();
-
-      const fullName = (signupFullNameInput?.value || '').trim();
-      if (!fullName) {
-        showError('Please enter your full name.', signupFullNameInput);
-        return;
-      }
-
-      const email = validateEmailInput(signupEmailInput);
-      if (!email) return;
-
-      const password = signupPasswordInput?.value || '';
-      if (password.length < MIN_PASSWORD_LEN) {
-        showError(`Password must be at least ${MIN_PASSWORD_LEN} characters.`, signupPasswordInput);
-        return;
-      }
-
-      setSubmitting(signupSubmitBtn, true, 'signup', 'Creating Account...');
-
-      try {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { full_name: fullName, role: 'Warehouseman' },
-            emailRedirectTo: getRedirectUrl()
-          }
+        document.getElementById('acceptOptionalCookies').addEventListener('click', () => setCookieConsent('accepted'));
+        document.getElementById('rejectOptionalCookies').addEventListener('click', () => setCookieConsent('rejected'));
+        document.getElementById('openCookieSettings').addEventListener('click', () => cookieDialog.classList.add('open'));
+        document.getElementById('closeCookieSettings').addEventListener('click', () => cookieDialog.classList.remove('open'));
+        document.getElementById('saveCookieSettings').addEventListener('click', () => {
+            setCookieConsent(document.getElementById('optionalCookies').checked ? 'accepted' : 'rejected');
         });
 
-        if (error) {
-          showError(error.message || 'Unable to create account. Please try again.', signupEmailInput);
-          setSubmitting(signupSubmitBtn, false, 'signup');
-          return;
-        }
-
-        if (data?.session?.user) {
-          persistSession(data.session.user);
-          window.location.replace(DASHBOARD_URL);
-          return;
-        }
-
-        if (data?.user) {
-          if (loginEmailInput) loginEmailInput.value = email;
-          signupForm.reset();
-          setSubmitting(signupSubmitBtn, false, 'signup');
-          switchMode('login', { preserveMessages: true, focus: false });
-          showSuccess('Account created! Please check your email inbox to confirm your address, then sign in.');
-          return;
-        }
-
-        showError('Account creation did not complete. Please try again.', signupEmailInput);
-        setSubmitting(signupSubmitBtn, false, 'signup');
-      } catch (err) {
-        showError(err?.message || 'Unable to reach authentication service. Please check your connection.', signupEmailInput);
-        setSubmitting(signupSubmitBtn, false, 'signup');
-      }
-    });
-
-    forgotForm?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      clearMessages();
-
-      const email = validateEmailInput(forgotEmailInput);
-      if (!email) return;
-
-      setSubmitting(forgotSubmitBtn, true, 'forgot', 'Sending Link...');
-
-      try {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: getRedirectUrl()
+        document.querySelector('.forgot-link').addEventListener('click', (event) => {
+            event.preventDefault();
+            errorMsg.style.display = 'flex';
+            errorMsg.querySelector('span').textContent = 'Please contact an administrator to reset your password.';
         });
 
-        if (error) {
-          showError(error.message || 'Unable to send password reset email. Please try again.', forgotEmailInput);
-          setSubmitting(forgotSubmitBtn, false, 'forgot');
-          return;
-        }
+        toggleSignup.addEventListener('click', (event) => {
+            event.preventDefault();
+            signupMode = !signupMode;
+            nameGroup.classList.toggle('hidden-field', !signupMode);
+            nameGroup.style.display = signupMode ? 'block' : 'none';
+            fullNameInput.required = signupMode;
+            document.querySelector('.brand-header h1').textContent = signupMode ? 'Create Account' : 'Welcome Back';
+            document.querySelector('.brand-header p').textContent = signupMode
+                ? 'Request access to R-II Builders Management System'
+                : 'Admin Request Management System';
+            document.querySelector('.btn-text').textContent = signupMode ? 'Sign Up' : 'Sign In';
+        });
 
-        setSubmitting(forgotSubmitBtn, false, 'forgot');
-        showSuccess(`If an account exists for ${email}, a password reset link has been sent. Please check your inbox.`);
-      } catch (err) {
-        showError(err?.message || 'Unable to reach authentication service. Please check your connection.', forgotEmailInput);
-        setSubmitting(forgotSubmitBtn, false, 'forgot');
-      }
-    });
+        loginForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const normalizedEmail = emailInput.value.trim().toLowerCase();
+            const password = passwordInput.value;
+            const allowedDomains = ['@riibuilders.com', '@riibuilders.com.ph', '@rmrriibuilders.com', '@rmrriibuilders.com.ph'];
+            errorMsg.style.display = 'none';
 
-    recoveryForm?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      clearMessages();
+            if (signupMode) {
+                errorMsg.style.display = 'flex';
+                errorMsg.querySelector('span').textContent = 'Please contact an administrator to create your account.';
+                return;
+            }
 
-      const password = recoveryPasswordInput?.value || '';
-      if (password.length < MIN_PASSWORD_LEN) {
-        showError(`New password must be at least ${MIN_PASSWORD_LEN} characters.`, recoveryPasswordInput);
-        return;
-      }
+            if (!allowedDomains.some((domain) => normalizedEmail.endsWith(domain))) {
+                errorMsg.style.display = 'flex';
+                errorMsg.querySelector('span').textContent = 'Use an authorized R-II Builders email address.';
+                return;
+            }
 
-      setSubmitting(recoverySubmitBtn, true, 'recovery', 'Updating Password...');
+            if (password.length < 6) {
+                errorMsg.style.display = 'flex';
+                errorMsg.querySelector('span').textContent = 'Password must be at least 6 characters.';
+                return;
+            }
 
-      try {
-        const { data, error } = await supabase.auth.updateUser({ password });
-        if (error) {
-          showError(error.message || 'Unable to update password. Please request a new reset link.', recoveryPasswordInput);
-          setSubmitting(recoverySubmitBtn, false, 'recovery');
-          return;
-        }
+            if (rememberMeInput.checked && localStorage.getItem(cookieConsentKey) !== 'rejected') {
+                localStorage.setItem(rememberedKey, normalizedEmail);
+            } else {
+                localStorage.removeItem(rememberedKey);
+            }
 
-        if (data?.user) {
-          persistSession(data.user);
-          window.location.replace(DASHBOARD_URL);
-          return;
-        }
+            sessionStorage.setItem(authKey, 'true');
+            sessionStorage.setItem(emailKey, normalizedEmail);
+            window.location.replace('./property_mgt_system_dahsboard.html');
+        });
+    </script>
 
-        recoveryForm.reset();
-        setSubmitting(recoverySubmitBtn, false, 'recovery');
-        switchMode('login', { preserveMessages: true, focus: false });
-        showSuccess('Password updated! You can now sign in with your new password.');
-      } catch (err) {
-        showError(err?.message || 'Unable to reach authentication service. Please check your connection.', recoveryPasswordInput);
-        setSubmitting(recoverySubmitBtn, false, 'recovery');
-      }
-    });
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggleBtns = document.querySelectorAll('button[title="Toggle dark mode"]');
+
+            // Initialize
+            if (window.hasOptionalCookieConsent() && localStorage.getItem('darkMode') === 'true') {
+                document.body.classList.add('dark-mode');
+                toggleBtns.forEach(btn => {
+                    const icon = btn.querySelector('i');
+                    if (icon) {
+                        icon.classList.remove('fa-moon');
+                        icon.classList.add('fa-sun');
+                    }
+                });
+            }
+
+            // Toggle
+            toggleBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const isDark = document.body.classList.toggle('dark-mode');
+                    if (window.hasOptionalCookieConsent()) {
+                        localStorage.setItem('darkMode', isDark);
+                    }
+
+                    toggleBtns.forEach(b => {
+                        const icon = b.querySelector('i');
+                        if (icon) {
+                            if (isDark) {
+                                icon.classList.remove('fa-moon');
+                                icon.classList.add('fa-sun');
+                            } else {
+                                icon.classList.remove('fa-sun');
+                                icon.classList.add('fa-moon');
+                            }
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const activeSubLink = document.querySelector('.sub-link.active');
+            if (activeSubLink) {
+                const parentSubLinks = activeSubLink.closest('.sub-links');
+                if (parentSubLinks) {
+                    parentSubLinks.classList.add('open');
+                }
+            }
+        });
+    </script>
+  <!-- AI Bot Logic and Styles -->
+  <style id="ai-bot-logic-style">
+    .ai-chat-body {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .ai-msg-bot {
+        align-self: flex-start;
+        background: white;
+        padding: 10px 15px;
+        border-radius: 15px;
+        border-bottom-left-radius: 4px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        max-width: 85%;
+        font-size: 0.85rem;
+        color: #2d3748;
+        line-height: 1.4;
+    }
+    .ai-msg-bot strong {
+        color: #1E355F;
+        display: block;
+        margin-bottom: 3px;
+    }
+    .ai-msg-user {
+        align-self: flex-end;
+        background: #1E355F;
+        color: white;
+        padding: 10px 15px;
+        border-radius: 15px;
+        border-bottom-right-radius: 4px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        max-width: 85%;
+        font-size: 0.85rem;
+        line-height: 1.4;
+    }
+    .typing-indicator {
+        align-self: flex-start;
+        font-size: 0.8rem;
+        color: #94a3b8;
+        font-style: italic;
+        padding: 5px 15px;
+    }
+    body.dark-mode .ai-msg-bot {
+        background: #334155;
+        color: #f8fafc;
+    }
+    body.dark-mode .ai-msg-bot strong {
+        color: #FCAE16;
+    }
+  </style>
+  <script>
+      document.querySelector('.bg-video')?.play().catch(() => {});
   </script>
 </body>
 
