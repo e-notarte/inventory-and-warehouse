@@ -831,7 +831,8 @@
         let signupMode = false;
 
         if (sessionStorage.getItem(authKey) === 'true') {
-            window.location.replace('./property_mgt_system_dahsboard.html');
+            sessionStorage.setItem('isAuthenticated', 'true');
+            window.location.replace('./warehouseman-account.html');
         }
 
         const cookieConsent = localStorage.getItem(cookieConsentKey);
@@ -912,7 +913,9 @@
 
             sessionStorage.setItem(authKey, 'true');
             sessionStorage.setItem(emailKey, normalizedEmail);
-            window.location.replace('./property_mgt_system_dahsboard.html');
+            sessionStorage.setItem('isAuthenticated', 'true');
+            sessionStorage.setItem('userEmail', normalizedEmail);
+            window.location.replace('./warehouseman-account.html');
         });
     </script>
 
