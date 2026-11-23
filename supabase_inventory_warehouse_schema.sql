@@ -250,6 +250,28 @@ CREATE TABLE IF NOT EXISTS services_registry (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- 13B. VEHICLE REPAIR & PMS REGISTRY
+CREATE TABLE IF NOT EXISTS vehicle_pms_registry (
+    id TEXT PRIMARY KEY,
+    item_code TEXT NOT NULL,
+    description TEXT NOT NULL,
+    item_type TEXT DEFAULT 'Vehicle Repair & Maintenance',
+    qty NUMERIC(12,2) DEFAULT 1,
+    uom TEXT DEFAULT 'LOT',
+    unit_cost NUMERIC(12,2) DEFAULT 0.00,
+    total_amount NUMERIC(15,2) DEFAULT 0.00,
+    rr_id TEXT,
+    rr_no VARCHAR(50),
+    po_no VARCHAR(50),
+    date_received DATE DEFAULT CURRENT_DATE,
+    supplier_name VARCHAR(150),
+    project VARCHAR(150),
+    department VARCHAR(100),
+    condition VARCHAR(100) DEFAULT 'Accepted in Good Condition',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- 14. CAPEX REGISTRY (FROM RECEIVING REPORTS WITH ITEM TYPE = CAPITAL EXPENDITURE)
 CREATE TABLE IF NOT EXISTS capex_registry (
     id TEXT PRIMARY KEY,
@@ -330,6 +352,7 @@ ALTER TABLE material_issuances ENABLE ROW LEVEL SECURITY;
 ALTER TABLE on_hand_inventory ENABLE ROW LEVEL SECURITY;
 ALTER TABLE fixed_assets_registry ENABLE ROW LEVEL SECURITY;
 ALTER TABLE services_registry ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vehicle_pms_registry ENABLE ROW LEVEL SECURITY;
 ALTER TABLE capex_registry ENABLE ROW LEVEL SECURITY;
 ALTER TABLE rr_masterfile_registry ENABLE ROW LEVEL SECURITY;
 ALTER TABLE stocks_2025 ENABLE ROW LEVEL SECURITY;
@@ -372,6 +395,9 @@ CREATE POLICY "Allow public read/write for fixed_assets_registry" ON fixed_asset
 
 DROP POLICY IF EXISTS "Allow public read/write for services_registry" ON services_registry;
 CREATE POLICY "Allow public read/write for services_registry" ON services_registry FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow public read/write for vehicle_pms_registry" ON vehicle_pms_registry;
+CREATE POLICY "Allow public read/write for vehicle_pms_registry" ON vehicle_pms_registry FOR ALL USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Allow public read/write for capex_registry" ON capex_registry;
 CREATE POLICY "Allow public read/write for capex_registry" ON capex_registry FOR ALL USING (true) WITH CHECK (true);
