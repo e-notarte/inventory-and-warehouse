@@ -2485,6 +2485,19 @@
           </li>
         </ul>
 
+        <!-- UTILITIES & BILLING MODULE -->
+        <div class="nav-group-title">Utilities &amp; Billing</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="soa-billing/index.html">
+              <div class="nav-label-wrap">
+                <i class="fa-solid fa-file-invoice-dollar"></i>
+                <span>SOA &amp; Billing</span>
+              </div>
+            </a>
+          </li>
+        </ul>
+
       </div>
 
       <!-- SIDEBAR FOOTER -->
@@ -2899,7 +2912,7 @@
                   <option value="Construction Materials">Construction Materials</option>
                   <option value="Fixed Assets">Fixed Assets</option>
                   <option value="Services">Services</option>
-                  <option value="Services">Vehicle Repair & Maintenance</option>
+                  <option value="Vehicle Repair &amp; Maintenance">Vehicle Repair &amp; Maintenance</option>
                   <option value="Capital Expenditure">Capital Expenditure</option>
                 </select>
               </div>
@@ -3363,6 +3376,7 @@
                 <option value="Construction Materials">Construction Materials</option>
                 <option value="Fixed Assets">Fixed Assets</option>
                 <option value="Services">Services</option>
+                <option value="Vehicle Repair &amp; Maintenance">Vehicle Repair &amp; Maintenance</option>
                 <option value="Capital Expenditure">Capital Expenditure</option>
                 <option value="UNCLASSIFIED">Unclassified</option>
               </select>
@@ -4733,6 +4747,7 @@
       if (lower.includes('consumable') || lower.includes('office supplies')) return 'Consumables & Office Supplies';
       if (lower.includes('construction')) return 'Construction Materials';
       if (lower.includes('fixed asset') || lower === 'hardware & fasteners') return 'Fixed Assets';
+      if (lower.includes('vehicle') || (lower.includes('repair') && lower.includes('maintenance'))) return 'Vehicle Repair & Maintenance';
       if (lower.includes('service') || lower === 'tools & equipment') return 'Services';
       if (lower.includes('capital expenditure') || lower.includes('capex') || lower === 'spare parts & maintenance') return 'Capital Expenditure';
       return val;
@@ -4746,7 +4761,7 @@
       if (t === 'Fixed Assets') {
         return { key: 'fixed_assets', label: 'Fixed Asset Registry', viewId: 'view-fixed-assets' };
       }
-      if (t === 'Services') {
+      if (t === 'Services' || t === 'Vehicle Repair & Maintenance') {
         return { key: 'services', label: 'Services', viewId: 'view-services' };
       }
       if (t === 'Capital Expenditure') {
@@ -5318,6 +5333,7 @@
               <option value="Construction Materials" ${rrNormalizedType === 'Construction Materials' ? 'selected' : ''}>Construction Materials</option>
               <option value="Fixed Assets" ${rrNormalizedType === 'Fixed Assets' ? 'selected' : ''}>Fixed Assets</option>
               <option value="Services" ${rrNormalizedType === 'Services' ? 'selected' : ''}>Services</option>
+              <option value="Vehicle Repair &amp; Maintenance" ${rrNormalizedType === 'Vehicle Repair & Maintenance' ? 'selected' : ''}>Vehicle Repair &amp; Maintenance</option>
               <option value="Capital Expenditure" ${rrNormalizedType === 'Capital Expenditure' ? 'selected' : ''}>Capital Expenditure</option>
             </select>
           </div>
