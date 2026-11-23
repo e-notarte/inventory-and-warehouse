@@ -191,6 +191,66 @@
       border: 2px solid var(--primary);
     }
 
+    .cloud-status-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      user-select: none;
+      letter-spacing: 0.2px;
+    }
+    .cloud-status-indicator.online {
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      color: #34d399;
+    }
+    .cloud-status-indicator.online:hover {
+      background: rgba(16, 185, 129, 0.2);
+    }
+    .cloud-status-indicator.online .cloud-status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 6px rgba(16, 185, 129, 0.8);
+    }
+    .cloud-status-indicator.offline {
+      background: rgba(245, 158, 11, 0.16);
+      border: 1px solid rgba(245, 158, 11, 0.45);
+      color: #fbbf24;
+    }
+    .cloud-status-indicator.offline:hover {
+      background: rgba(245, 158, 11, 0.25);
+    }
+    .cloud-status-indicator.offline .cloud-status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #f59e0b;
+      box-shadow: 0 0 6px rgba(245, 158, 11, 0.8);
+    }
+    .cloud-status-indicator.syncing {
+      background: rgba(59, 130, 246, 0.16);
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      color: #93c5fd;
+    }
+    .cloud-status-indicator.syncing .cloud-status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #60a5fa;
+      animation: pulse-cloud-dot 1s infinite alternate;
+    }
+    @keyframes pulse-cloud-dot {
+      from { opacity: 0.35; transform: scale(0.85); }
+      to { opacity: 1; transform: scale(1.2); }
+    }
+
     .user-profile-badge {
       display: flex;
       align-items: center;
@@ -2338,6 +2398,13 @@
 
     <!-- Header Actions -->
     <div class="header-right">
+      <!-- Live Cloud Sync Indicator -->
+      <div id="cloudStatusIndicator" class="cloud-status-indicator online" title="Cloud Database Connected • Click to sync now" onclick="flushOfflineQueueAndSync()">
+        <span class="cloud-status-dot"></span>
+        <i class="fa-solid fa-cloud" id="cloudStatusIcon"></i>
+        <span id="cloudStatusText">Cloud Connected</span>
+      </div>
+
       <button type="button" class="theme-toggle-btn" title="Toggle Dark/Light Mode" onclick="toggleTheme()"
         style="background:transparent; border:none;">
         <i class="fa-solid fa-moon" id="themeIcon"></i>
@@ -5744,6 +5811,10 @@
       initMrrForm();
 
       populateMisSuppliesDropdown();
+      updateCloudStatusUi();
+      if (navigator.onLine && getOfflineQueue().length > 0) {
+        flushOfflineQueueAndSync();
+      }
     }
 
     function migrate2026RecordsIfNeeded() {
@@ -9192,8 +9263,161 @@
       };
     }
 
-    // --- SUPABASE REST HELPERS ---
-    async function sbUpsertRows(table, rawRecords, primaryMapper, fallbackMapper = null, onConflict = 'id') {
+    // ==============================================================
+    // PROGRESSIVE CLOUD SYNC & OFFLINE QUEUE ENGINE
+    // ==============================================================
+    const OFFLINE_QUEUE_KEY = 'warehouse_offline_sync_queue';
+    let isFlushingOfflineQueue = false;
+
+    const SB_MAPPERS = {
+      mapProjectToSb,
+      mapDeptToSb,
+      mapSupplierToSb,
+      mapItemRegistryToSb,
+      mapCoaToSb,
+      mapPoToSb,
+      mapRrToSbFull,
+      mapRrToSbCore,
+      mapRrMasterfileToSb,
+      mapMisToSbFull,
+      mapMisToSbCore,
+      mapInventoryToSb,
+      mapStocks2025ToSb,
+      mapCategoryRecordToSb
+    };
+
+    function getMapperName(fn) {
+      if (!fn) return null;
+      if (typeof fn === 'string') return fn;
+      return fn.name || null;
+    }
+
+    function getOfflineQueue() {
+      try {
+        const q = JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]');
+        return Array.isArray(q) ? q : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveOfflineQueue(queue) {
+      try {
+        localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queue));
+      } catch (e) { }
+      updateCloudStatusUi();
+    }
+
+    function enqueueOfflineOp(op) {
+      if (!op || (!op.table && !op.type)) return;
+      const queue = getOfflineQueue();
+      const firstId = op.id || (op.records && op.records[0] ? (op.records[0].id || op.records[0].reference) : Date.now());
+      const key = `${op.type || 'upsert'}::${op.table || 'supplies'}::${firstId}`;
+      const existingIdx = queue.findIndex(x => x._qKey === key);
+      const queueItem = {
+        ...op,
+        _qKey: key,
+        queuedAt: new Date().toISOString()
+      };
+      if (existingIdx !== -1) {
+        queue[existingIdx] = queueItem;
+      } else {
+        queue.push(queueItem);
+      }
+      saveOfflineQueue(queue);
+      console.log(`[Offline Storage] Saved locally. Pending cloud sync queue size: ${queue.length}`);
+    }
+
+    function updateCloudStatusUi(forcedState = null, pendingCount = null) {
+      const indicator = document.getElementById('cloudStatusIndicator');
+      const icon = document.getElementById('cloudStatusIcon');
+      const text = document.getElementById('cloudStatusText');
+      if (!indicator || !text || !icon) return;
+
+      const queue = getOfflineQueue();
+      const count = pendingCount !== null ? pendingCount : queue.length;
+      const isOnline = navigator.onLine;
+
+      if (forcedState === 'syncing' || isFlushingOfflineQueue) {
+        indicator.className = 'cloud-status-indicator syncing';
+        icon.className = 'fa-solid fa-rotate fa-spin';
+        text.textContent = count > 0 ? `Syncing ${count} to Cloud...` : 'Syncing to Cloud...';
+        indicator.title = 'Uploading local changes to Supabase cloud database';
+      } else if (!isOnline || count > 0 || forcedState === 'offline') {
+        indicator.className = 'cloud-status-indicator offline';
+        icon.className = 'fa-solid fa-cloud-arrow-up';
+        text.textContent = count > 0 ? `Offline (${count} Pending)` : 'Offline (Local Mode)';
+        indicator.title = 'No internet connection detected or changes pending. Data is safely stored locally and will auto-sync to cloud when online. Click to retry sync.';
+      } else {
+        indicator.className = 'cloud-status-indicator online';
+        icon.className = 'fa-solid fa-cloud-check';
+        text.textContent = 'Cloud Connected';
+        indicator.title = 'Real-time connection with Supabase active. Click to check for cloud updates.';
+      }
+    }
+
+    async function flushOfflineQueueAndSync() {
+      if (isFlushingOfflineQueue) return;
+      if (!navigator.onLine) {
+        updateCloudStatusUi('offline');
+        return;
+      }
+
+      const queue = getOfflineQueue();
+      if (queue.length === 0) {
+        updateCloudStatusUi('syncing');
+        await pullFromSupabase();
+        updateCloudStatusUi('online');
+        return;
+      }
+
+      isFlushingOfflineQueue = true;
+      updateCloudStatusUi('syncing', queue.length);
+      console.log(`[Auto-Sync] Internet detected. Flushing ${queue.length} offline operation(s) to cloud...`);
+
+      const failedQueue = [];
+
+      for (const op of queue) {
+        try {
+          let res = { ok: false };
+          if (op.type === 'delete') {
+            await sbDeleteRowDirect(op.table, op.id, op.matchCol || 'id');
+            res = { ok: true };
+          } else if (op.type === 'supplies_upsert') {
+            res = await sbSyncSuppliesRequestsDirect(op.records);
+          } else if (op.type === 'supplies_delete') {
+            await sbDeleteSupplyRequestDirect(op.target);
+            res = { ok: true };
+          } else {
+            const mapper = SB_MAPPERS[op.mapper] || ((x) => x);
+            const fallback = op.fallbackMapper ? SB_MAPPERS[op.fallbackMapper] : null;
+            res = await sbUpsertRowsDirect(op.table, op.records, mapper, fallback, op.onConflict || 'id');
+          }
+
+          if (!res || res.ok === false) {
+            failedQueue.push(op);
+          }
+        } catch (e) {
+          console.warn('[Auto-Sync] Failed to sync offline item:', e);
+          failedQueue.push(op);
+        }
+      }
+
+      isFlushingOfflineQueue = false;
+      saveOfflineQueue(failedQueue);
+
+      if (failedQueue.length === 0) {
+        console.log('[Auto-Sync] All offline operations successfully uploaded to Supabase cloud!');
+        await pullFromSupabase();
+        updateCloudStatusUi('online');
+      } else {
+        console.warn(`[Auto-Sync] ${failedQueue.length} operations still pending cloud sync.`);
+        updateCloudStatusUi('offline', failedQueue.length);
+      }
+    }
+
+    // Direct HTTP execution primitives
+    async function sbUpsertRowsDirect(table, rawRecords, primaryMapper, fallbackMapper = null, onConflict = 'id') {
       if (!Array.isArray(rawRecords) || rawRecords.length === 0) {
         return { ok: true, count: 0, status: 200 };
       }
@@ -9218,7 +9442,6 @@
           body: JSON.stringify(payload)
         });
 
-        // If table exists with legacy column set before ALTER TABLE runs, retry with core mapper
         if (res.status === 400 && fallbackMapper) {
           payload = chunk.map(fallbackMapper);
           if (onConflict) {
@@ -9246,18 +9469,14 @@
       return { ok: true, count: syncedCount, status: 200 };
     }
 
-    async function sbDeleteRow(table, id, matchCol = 'id') {
-      try {
-        await fetch(`${SUPABASE_URL}/rest/v1/${table}?${matchCol}=eq.${encodeURIComponent(id)}`, {
-          method: 'DELETE',
-          headers: sbHeaders({ 'Prefer': 'return=minimal' })
-        });
-      } catch (e) {
-        console.warn(`Supabase delete notice (${table}):`, e);
-      }
+    async function sbDeleteRowDirect(table, id, matchCol = 'id') {
+      await fetch(`${SUPABASE_URL}/rest/v1/${table}?${matchCol}=eq.${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+        headers: sbHeaders({ 'Prefer': 'return=minimal' })
+      });
     }
 
-    async function sbSyncSuppliesRequests(list) {
+    async function sbSyncSuppliesRequestsDirect(list) {
       if (!Array.isArray(list) || list.length === 0) {
         return { ok: true, count: 0, status: 200 };
       }
@@ -9265,80 +9484,76 @@
       let dirty = false;
 
       for (const s of list) {
-        try {
-          const refVal = s.reference || ('SUP-' + Date.now());
-          let existingId = s.supabase_id || (/^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(String(s.id || '')) ? s.id : null);
+        const refVal = s.reference || ('SUP-' + Date.now());
+        let existingId = s.supabase_id || (/^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(String(s.id || '')) ? s.id : null);
 
-          if (!existingId) {
-            const qRes = await fetch(`${SUPABASE_URL}/rest/v1/supplies_requests?reference_number=eq.${encodeURIComponent(refVal)}&select=id&limit=1`, {
-              headers: sbHeaders()
-            });
-            if (qRes.ok) {
-              const found = await qRes.json();
-              if (Array.isArray(found) && found.length > 0) existingId = found[0].id;
-            } else if (qRes.status === 404) {
-              return { ok: false, count: syncedCount, status: 404, missingTable: true, error: 'supplies_requests table not found' };
-            }
+        if (!existingId) {
+          const qRes = await fetch(`${SUPABASE_URL}/rest/v1/supplies_requests?reference_number=eq.${encodeURIComponent(refVal)}&select=id&limit=1`, {
+            headers: sbHeaders()
+          });
+          if (qRes.ok) {
+            const found = await qRes.json();
+            if (Array.isArray(found) && found.length > 0) existingId = found[0].id;
+          } else if (qRes.status === 404) {
+            return { ok: false, count: syncedCount, status: 404, missingTable: true, error: 'supplies_requests table not found' };
           }
+        }
 
-          if (existingId) {
-            const patchRes = await fetch(`${SUPABASE_URL}/rest/v1/supplies_requests?id=eq.${encodeURIComponent(existingId)}`, {
-              method: 'PATCH',
-              headers: sbHeaders({ 'Prefer': 'return=minimal' }),
-              body: JSON.stringify({
-                department: s.department || 'Admin',
-                requestor_name: s.requestor || 'Staff',
-                status: s.status || 'Pending'
-              })
-            });
-            if (patchRes.ok) {
-              s.supabase_id = existingId;
+        if (existingId) {
+          const patchRes = await fetch(`${SUPABASE_URL}/rest/v1/supplies_requests?id=eq.${encodeURIComponent(existingId)}`, {
+            method: 'PATCH',
+            headers: sbHeaders({ 'Prefer': 'return=minimal' }),
+            body: JSON.stringify({
+              department: s.department || 'Admin',
+              requestor_name: s.requestor || 'Staff',
+              status: s.status || 'Pending'
+            })
+          });
+          if (patchRes.ok) {
+            s.supabase_id = existingId;
+            dirty = true;
+            syncedCount++;
+          }
+        } else {
+          const postRes = await fetch(`${SUPABASE_URL}/rest/v1/supplies_requests`, {
+            method: 'POST',
+            headers: sbHeaders({ 'Prefer': 'return=representation' }),
+            body: JSON.stringify([{
+              reference_number: refVal,
+              department: s.department || 'Admin',
+              requestor_name: s.requestor || 'Staff',
+              status: s.status || 'Pending'
+            }])
+          });
+          if (postRes.ok) {
+            const created = await postRes.json();
+            const newUuid = Array.isArray(created) && created[0] ? created[0].id : null;
+            if (newUuid) {
+              s.supabase_id = newUuid;
               dirty = true;
-              syncedCount++;
-            }
-          } else {
-            const postRes = await fetch(`${SUPABASE_URL}/rest/v1/supplies_requests`, {
-              method: 'POST',
-              headers: sbHeaders({ 'Prefer': 'return=representation' }),
-              body: JSON.stringify([{
-                reference_number: refVal,
-                department: s.department || 'Admin',
-                requestor_name: s.requestor || 'Staff',
-                status: s.status || 'Pending'
-              }])
-            });
-            if (postRes.ok) {
-              const created = await postRes.json();
-              const newUuid = Array.isArray(created) && created[0] ? created[0].id : null;
-              if (newUuid) {
-                s.supabase_id = newUuid;
-                dirty = true;
-                const itemLines = String(s.requested_items || '').split(/\r?\n|;/).map(x => x.trim()).filter(Boolean);
-                if (itemLines.length > 0) {
-                  const supItemsPayload = itemLines.map(line => {
-                    const m = line.match(/^(.+?)\s*[×x]\s*(\d+(?:\.\d+)?)$/i);
-                    return {
-                      request_id: newUuid,
-                      description: m ? m[1].trim() : line,
-                      quantity: m ? (parseFloat(m[2]) || 1) : 1,
-                      purpose: s.purpose || ''
-                    };
-                  });
-                  await fetch(`${SUPABASE_URL}/rest/v1/supplies_items`, {
-                    method: 'POST',
-                    headers: sbHeaders({ 'Prefer': 'return=minimal' }),
-                    body: JSON.stringify(supItemsPayload)
-                  });
-                }
+              const itemLines = String(s.requested_items || '').split(/\r?\n|;/).map(x => x.trim()).filter(Boolean);
+              if (itemLines.length > 0) {
+                const supItemsPayload = itemLines.map(line => {
+                  const m = line.match(/^(.+?)\s*[×x]\s*(\d+(?:\.\d+)?)$/i);
+                  return {
+                    request_id: newUuid,
+                    description: m ? m[1].trim() : line,
+                    quantity: m ? (parseFloat(m[2]) || 1) : 1,
+                    purpose: s.purpose || ''
+                  };
+                });
+                await fetch(`${SUPABASE_URL}/rest/v1/supplies_items`, {
+                  method: 'POST',
+                  headers: sbHeaders({ 'Prefer': 'return=minimal' }),
+                  body: JSON.stringify(supItemsPayload)
+                });
               }
-              syncedCount++;
-            } else {
-              const errTxt = await postRes.text();
-              return { ok: false, count: syncedCount, status: postRes.status, error: errTxt };
             }
+            syncedCount++;
+          } else {
+            const errTxt = await postRes.text();
+            return { ok: false, count: syncedCount, status: postRes.status, error: errTxt };
           }
-        } catch (err) {
-          return { ok: false, count: syncedCount, error: err.message };
         }
       }
 
@@ -9348,31 +9563,150 @@
       return { ok: true, count: syncedCount, status: 200 };
     }
 
-    async function sbDeleteSupplyRequest(supObj) {
+    async function sbDeleteSupplyRequestDirect(supObj) {
       if (!supObj) return;
-      try {
-        const targetId = supObj.supabase_id || (/^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(String(supObj.id || '')) ? supObj.id : null);
-        if (targetId) {
-          await sbDeleteRow('supplies_requests', targetId, 'id');
-        } else if (supObj.reference) {
-          await sbDeleteRow('supplies_requests', supObj.reference, 'reference_number');
-        }
-      } catch (e) { }
+      const targetId = supObj.supabase_id || (/^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(String(supObj.id || '')) ? supObj.id : null);
+      if (targetId) {
+        await sbDeleteRowDirect('supplies_requests', targetId, 'id');
+      } else if (supObj.reference) {
+        await sbDeleteRowDirect('supplies_requests', supObj.reference, 'reference_number');
+      }
     }
 
-    // Background silent helper for single/small saves
+    // Smart Cloud-First Wrappers with Automatic Offline Queueing
+    async function sbUpsertRows(table, rawRecords, primaryMapper, fallbackMapper = null, onConflict = 'id') {
+      if (!Array.isArray(rawRecords) || rawRecords.length === 0) return { ok: true, count: 0 };
+      if (!navigator.onLine) {
+        enqueueOfflineOp({
+          type: 'upsert',
+          table,
+          records: rawRecords,
+          mapper: getMapperName(primaryMapper),
+          fallbackMapper: getMapperName(fallbackMapper),
+          onConflict
+        });
+        return { ok: true, offlineQueued: true };
+      }
+      try {
+        const res = await sbUpsertRowsDirect(table, rawRecords, primaryMapper, fallbackMapper, onConflict);
+        if (res && res.ok === false && !res.missingTable) {
+          enqueueOfflineOp({
+            type: 'upsert',
+            table,
+            records: rawRecords,
+            mapper: getMapperName(primaryMapper),
+            fallbackMapper: getMapperName(fallbackMapper),
+            onConflict
+          });
+        } else if (res && res.ok) {
+          updateCloudStatusUi('online');
+        }
+        return res;
+      } catch (err) {
+        console.warn(`[Offline Queue] ${table} upsert queued due to network issue:`, err);
+        enqueueOfflineOp({
+          type: 'upsert',
+          table,
+          records: rawRecords,
+          mapper: getMapperName(primaryMapper),
+          fallbackMapper: getMapperName(fallbackMapper),
+          onConflict
+        });
+        return { ok: true, offlineQueued: true };
+      }
+    }
+
+    async function sbDeleteRow(table, id, matchCol = 'id') {
+      if (!navigator.onLine) {
+        enqueueOfflineOp({ type: 'delete', table, id, matchCol });
+        return;
+      }
+      try {
+        await sbDeleteRowDirect(table, id, matchCol);
+        updateCloudStatusUi('online');
+      } catch (err) {
+        console.warn(`[Offline Queue] ${table} delete queued due to network issue:`, err);
+        enqueueOfflineOp({ type: 'delete', table, id, matchCol });
+      }
+    }
+
+    async function sbSyncSuppliesRequests(list) {
+      if (!Array.isArray(list) || list.length === 0) return { ok: true, count: 0 };
+      if (!navigator.onLine) {
+        enqueueOfflineOp({ type: 'supplies_upsert', records: list });
+        return { ok: true, offlineQueued: true };
+      }
+      try {
+        const res = await sbSyncSuppliesRequestsDirect(list);
+        if (res && res.ok === false && !res.missingTable) {
+          enqueueOfflineOp({ type: 'supplies_upsert', records: list });
+        } else if (res && res.ok) {
+          updateCloudStatusUi('online');
+        }
+        return res;
+      } catch (err) {
+        console.warn('[Offline Queue] Supplies sync queued due to network issue:', err);
+        enqueueOfflineOp({ type: 'supplies_upsert', records: list });
+        return { ok: true, offlineQueued: true };
+      }
+    }
+
+    async function sbDeleteSupplyRequest(supObj) {
+      if (!supObj) return;
+      if (!navigator.onLine) {
+        enqueueOfflineOp({ type: 'supplies_delete', target: supObj });
+        return;
+      }
+      try {
+        await sbDeleteSupplyRequestDirect(supObj);
+        updateCloudStatusUi('online');
+      } catch (err) {
+        console.warn('[Offline Queue] Supplies delete queued due to network issue:', err);
+        enqueueOfflineOp({ type: 'supplies_delete', target: supObj });
+      }
+    }
+
     function sbSyncBackground(promiseFn) {
       if (typeof promiseFn === 'function') {
         Promise.resolve()
           .then(() => promiseFn())
-          .then(res => {
-            if (res && res.ok === false) {
-              console.warn('Background Supabase sync failed:', res.status, res.error);
-            }
-          })
-          .catch(err => console.warn('Background Supabase sync notice:', err));
+          .then(() => updateCloudStatusUi())
+          .catch(err => {
+            console.warn('[Sync Notice]:', err);
+            updateCloudStatusUi();
+          });
       }
     }
+
+    // Network connection and auto-sync event listeners
+    window.addEventListener('online', () => {
+      console.log('[Network] Internet restored. Auto-syncing pending offline changes to cloud...');
+      flushOfflineQueueAndSync();
+    });
+
+    window.addEventListener('offline', () => {
+      console.log('[Network] Internet lost. Switched to offline local storage mode.');
+      updateCloudStatusUi('offline');
+    });
+
+    window.addEventListener('focus', () => {
+      if (navigator.onLine) {
+        flushOfflineQueueAndSync();
+      }
+    });
+
+    setInterval(() => {
+      if (navigator.onLine) {
+        const q = getOfflineQueue();
+        if (q.length > 0) {
+          flushOfflineQueueAndSync();
+        } else {
+          pullFromSupabase();
+        }
+      } else {
+        updateCloudStatusUi('offline');
+      }
+    }, 25000);
 
     async function pullFromSupabase() {
       try {
@@ -9629,8 +9963,10 @@
         if (mrrNoEl) mrrNoEl.value = getNextRrNumber();
         populateMisSuppliesDropdown();
         populateMrrPoDropdown();
+        updateCloudStatusUi('online');
       } catch (err) {
         console.warn('Initial Supabase pull notice (offline mode active):', err);
+        updateCloudStatusUi('offline');
       }
     }
 
