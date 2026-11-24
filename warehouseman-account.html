@@ -2814,7 +2814,7 @@
           <div class="po-form-eyebrow">R-II Builders, Inc.</div>
           <div class="po-form-title-row">
             <i class="fa-solid fa-file-invoice"></i>
-            <h2>Purchase Order (PO)</h2>
+            <h2 id="poFormTitle">Purchase Order (PO)</h2>
           </div>
           <p class="po-form-subtitle">Admin Entry</p>
 
@@ -2945,8 +2945,8 @@
                 <button type="button" class="btn-po-reset" onclick="resetPoForm()">
                   <i class="fa-solid fa-rotate-left"></i> Reset
                 </button>
-                <button type="submit" class="btn-po-record">
-                  <i class="fa-solid fa-file-circle-check"></i> Record
+                <button type="submit" class="btn-po-record" id="poSubmitButton">
+                  <i class="fa-solid fa-file-circle-check"></i> <span id="poSubmitLabel">Record</span>
                 </button>
               </div>
             </div>
@@ -4628,6 +4628,7 @@
     let fixedAssets = [];
     let serviceRecords = [];
     let vehiclePmsRecords = [];
+    let editingPoId = null;
     let capexRecords = [];
     let rrMasterfile = [];
     let stocks2025Items = [];
@@ -6499,6 +6500,7 @@
     }
 
     function resetPoForm() {
+      editingPoId = null;
       setFormattedDateInputValue('poDateInput', formatTodayDisplayDate());
 
       const noInput = document.getElementById('poNoInput');
@@ -6521,6 +6523,10 @@
         tbody.innerHTML = '';
         addPoItemRow();
       }
+      const title = document.getElementById('poFormTitle');
+      if (title) title.textContent = 'Purchase Order (PO)';
+      const submitLabel = document.getElementById('poSubmitLabel');
+      if (submitLabel) submitLabel.textContent = 'Record';
       calcPoFormTotals();
     }
 
@@ -6605,26 +6611,56 @@
 
       const itemsDesc = lineItems.map(item => `${item.desc} (${item.qty} ${item.uom.split(' ')[0]})`).join(', ');
 
-      const newPo = {
-        id: 'po_' + Date.now(),
-        po_no: poNo,
-        prf_no: prfNo,
-        date: dateVal,
-        project: projVal,
-        department: deptVal,
-        supplier_name: supplierVal,
-        items: lineItems,
-        items_desc: itemsDesc,
-        grand_total: grandTotal,
-        status: 'Approved',
-        created_at: new Date().toISOString()
-      };
+      if (editingPoId) {
+        const index = purchaseOrders.findIndex(p => p.id === editingPoId);
+        if (index === -1) {
+          showSystemAlert('Purchase Order Not Found', 'The purchase order could not be found for updating.', false);
+          return;
+        }
 
-      purchaseOrders.unshift(newPo);
-      localStorage.setItem(PO_KEY, JSON.stringify(purchaseOrders));
-      sbSyncBackground(() => sbUpsertRows('purchase_orders', [newPo], mapPoToSb, null, 'id'));
+        const existingPo = purchaseOrders[index];
+        const updatedPo = {
+          ...existingPo,
+          po_no: poNo,
+          prf_no: prfNo,
+          date: dateVal,
+          project: projVal,
+          department: deptVal,
+          supplier_name: supplierVal,
+          items: lineItems,
+          items_desc: itemsDesc,
+          grand_total: grandTotal,
+          status: existingPo.status || 'Approved',
+          updated_at: new Date().toISOString()
+        };
 
-      showSystemAlert('Purchase Order Saved', `PO ${newPo.po_no} registered for ${formatCurrency(grandTotal)}.`);
+        purchaseOrders[index] = updatedPo;
+        localStorage.setItem(PO_KEY, JSON.stringify(purchaseOrders));
+        sbSyncBackground(() => sbUpsertRows('purchase_orders', [updatedPo], mapPoToSb, null, 'id'));
+
+        showSystemAlert('Purchase Order Updated', `PO ${updatedPo.po_no} was updated successfully.`);
+      } else {
+        const newPo = {
+          id: 'po_' + Date.now(),
+          po_no: poNo,
+          prf_no: prfNo,
+          date: dateVal,
+          project: projVal,
+          department: deptVal,
+          supplier_name: supplierVal,
+          items: lineItems,
+          items_desc: itemsDesc,
+          grand_total: grandTotal,
+          status: 'Approved',
+          created_at: new Date().toISOString()
+        };
+
+        purchaseOrders.unshift(newPo);
+        localStorage.setItem(PO_KEY, JSON.stringify(purchaseOrders));
+        sbSyncBackground(() => sbUpsertRows('purchase_orders', [newPo], mapPoToSb, null, 'id'));
+
+        showSystemAlert('Purchase Order Saved', `PO ${newPo.po_no} registered for ${formatCurrency(grandTotal)}.`);
+      }
       resetPoForm();
       renderAll();
       populateMrrPoDropdown();
@@ -6696,12 +6732,54 @@
             <button class="btn-slip-row" onclick="openDocumentSlip('po', '${p.id}')" title="View Purchase Order Slip" style="margin-right:4px;">
               <i class="fa-solid fa-file-lines"></i> Slip
             </button>
+            <button class="btn btn-outline btn-sm" onclick="openUpdatePoForm('${p.id}')" title="Update PO" style="color:#0284c7; border-color:#bae6fd; margin-right:4px;">
+              <i class="fa-solid fa-pen-to-square"></i>
+            </button>
             <button class="btn btn-outline btn-sm" onclick="deletePo('${p.id}')" title="Delete PO" style="color:#ef4444; border-color:#fee2e2;">
               <i class="fa-solid fa-trash"></i>
             </button>
           </td>
         </tr>
       `).join('');
+    }
+
+    function openUpdatePoForm(id) {
+      const po = purchaseOrders.find(p => p.id === id);
+      if (!po) {
+        showSystemAlert('Purchase Order Not Found', 'The selected purchase order could not be found.', false);
+        return;
+      }
+
+      editingPoId = id;
+      switchView('view-purchase-order', document.querySelector('.nav-item[data-view="view-purchase-order"] a'));
+
+      setFormattedDateInputValue('poDateInput', po.date);
+      document.getElementById('poProjectSelect').value = po.project || '';
+      document.getElementById('poDeptSelect').value = po.department || '';
+      document.getElementById('poNoInput').value = po.po_no || '';
+      document.getElementById('poPrfInput').value = po.prf_no || '';
+      document.getElementById('poSupplierInput').value = po.supplier_name || '';
+
+      const tbody = document.getElementById('poItemsTableBody');
+      if (tbody) {
+        tbody.innerHTML = '';
+        const items = Array.isArray(po.items) && po.items.length ? po.items : [{
+          desc: po.items_desc || '',
+          qty: 1,
+          uom: 'Pcs (Pieces)',
+          cost: po.grand_total || 0
+        }];
+        items.forEach(item => addPoItemRow(item));
+      }
+
+      const title = document.getElementById('poFormTitle');
+      if (title) title.textContent = 'Update Purchase Order (PO)';
+      const submitLabel = document.getElementById('poSubmitLabel');
+      if (submitLabel) submitLabel.textContent = 'Update';
+
+      calcPoFormTotals();
+      document.querySelector('.po-form-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.getElementById('poNoInput')?.focus();
     }
 
     function deletePo(id) {
