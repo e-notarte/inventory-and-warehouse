@@ -2699,6 +2699,14 @@
               </div>
             </a>
           </li>
+          <li class="nav-item" data-view="view-petty-cash">
+            <a href="javascript:void(0)" onclick="switchView('view-petty-cash', this)">
+              <div class="nav-label-wrap">
+                <i class="fa-solid fa-money-bill-wave"></i>
+                <span>Petty Cash (PCV)</span>
+              </div>
+            </a>
+          </li>
         </ul>
 
       </div>
@@ -3767,6 +3775,271 @@
       </section>
 
       <!-- ============================================================== -->
+      <!-- VIEW: PETTY CASH VOUCHER (PCV) -->
+      <!-- ============================================================== -->
+<!-- PETTY CASH ENTRY VIEW -->
+<div id="view-petty-cash" class="view-section">
+  <!-- FORM ENTRY CARD -->
+  <div class="data-card" style="margin-bottom: 24px; padding: 24px; border-radius: 12px; box-shadow: 0 4px 18px rgba(0,0,0,0.06); border: 1px solid var(--border); background: #ffffff;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:18px;">
+      <div>
+        <div style="font-size:0.75rem; font-weight:800; color:var(--accent); letter-spacing:1px; text-transform:uppercase;">
+          FINANCIAL DISBURSEMENT SYSTEM
+        </div>
+        <h2 style="margin:2px 0 4px; font-size:1.3rem; color:var(--primary); font-weight:800; display:flex; align-items:center; gap:10px;">
+          <i class="fa-solid fa-money-bill-wave" style="color:var(--accent);"></i> Petty Cash Voucher (PCV)
+        </h2>
+        <span style="font-size:0.82rem; color:var(--text-muted);">
+          Admin Entry &amp; Cash Disbursement Log
+        </span>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button type="button" class="btn-primary" onclick="exportPettyCashCSV()"
+          style="font-size:0.82rem; padding:8px 16px; background:#0284c7; border-radius:6px; font-weight:700;">
+          <i class="fa-solid fa-file-excel"></i> Export CSV
+        </button>
+      </div>
+    </div>
+
+    <form id="pettyCashEntryForm" novalidate onsubmit="event.preventDefault(); submitPettyCashVoucher(event);">
+      <!-- Top Metadata Grid (2-column layout matching the screenshot) -->
+      <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:16px; background:#f8fafc; border:1px solid var(--border); border-radius:8px; padding:18px; margin-bottom:20px;">
+        <!-- Row 1 -->
+        <div>
+          <label style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
+            <span style="color:var(--accent);">#</span> PCV No. <span style="color:#ef4444;">*</span>
+          </label>
+          <input type="text" id="pcVoucherNo" required placeholder="e.g. PCV-2026-0001"
+            style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; font-weight:800; font-family:monospace; color:var(--primary); background:white; box-sizing:border-box;">
+        </div>
+
+        <div>
+          <label style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
+            <i class="fa-solid fa-file-lines" style="color:var(--accent); margin-right:4px;"></i> PO No. / Reference / PRF No. <span style="color:#ef4444;">*</span>
+          </label>
+          <input type="text" id="pcReferenceNo" required placeholder="Type or select Reference No. (e.g. PRF-2026-001)"
+            style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; font-weight:700; color:var(--primary); background:white; box-sizing:border-box;">
+        </div>
+
+        <!-- Row 2 -->
+        <div>
+          <label style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
+            <i class="fa-solid fa-calendar-day" style="color:var(--accent); margin-right:4px;"></i> PCV Date <span style="color:#ef4444;">*</span>
+          </label>
+          <input type="date" id="pcDate" required
+            style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; font-weight:700; color:var(--primary); background:white; box-sizing:border-box;">
+        </div>
+
+        <div>
+          <label style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
+            <i class="fa-solid fa-diagram-project" style="color:var(--accent); margin-right:4px;"></i> Project / Charge To
+          </label>
+          <input type="text" id="pcProject" placeholder="e.g. Head Office, Skyway Project, Depot Maintenance"
+            style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; font-weight:700; color:var(--primary); background:white; box-sizing:border-box;">
+        </div>
+
+        <!-- Row 3 -->
+        <div>
+          <label style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
+            <i class="fa-solid fa-landmark" style="color:var(--accent); margin-right:4px;"></i> Company <span style="color:#ef4444;">*</span>
+          </label>
+          <select id="pcCompany" required onchange="handlePettyCashCompanyChange()"
+            style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; font-weight:700; color:var(--primary); background:white; box-sizing:border-box;">
+            <option value="" disabled selected>-- Select Company --</option>
+            <option value="RBI">R-II Builders, Inc. (RBI)</option>
+            <option value="RMRCI">R-II Metro Rail Transport Services, Inc. (RMRCI)</option>
+            <option value="PESC">Philippine Ecology Systems Corp. (PESC)</option>
+            <option value="RLAND">R-Land Development Inc. (RLAND)</option>
+            <option value="FRHI">First R-II Holdings Inc. (FRHI)</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
+            <i class="fa-solid fa-users" style="color:var(--accent); margin-right:4px;"></i> Department <span style="color:#ef4444;">*</span>
+          </label>
+          <select id="pcDepartment" required
+            style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; font-weight:700; color:var(--primary); background:white; box-sizing:border-box;">
+            <option value="" disabled selected>-- Select Department --</option>
+            <option value="Admin">Admin</option>
+            <option value="HR">HR</option>
+            <option value="Purchasing">Purchasing</option>
+            <option value="BDG">BDG</option>
+            <option value="Engineering">Engineering</option>
+            <option value="Accounting">Accounting</option>
+            <option value="Finance">Finance</option>
+            <option value="Operations">Operations</option>
+          </select>
+        </div>
+
+        <!-- Row 4 -->
+        <div>
+          <label style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
+            <i class="fa-solid fa-user-tag" style="color:var(--accent); margin-right:4px;"></i> Payee / Supplier Name <span style="color:#ef4444;">*</span>
+          </label>
+          <input type="text" id="pcPayee" required placeholder="Enter Payee or Supplier Name"
+            style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; font-weight:700; color:var(--primary); background:white; box-sizing:border-box;">
+        </div>
+
+        <div>
+          <label style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
+            <i class="fa-solid fa-tags" style="color:var(--accent); margin-right:4px;"></i> Expense Account / Item Type
+          </label>
+          <select id="pcExpenseAccount"
+            style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; font-weight:700; color:var(--primary); background:white; box-sizing:border-box;">
+            <option value="Office Supplies">Office Supplies</option>
+            <option value="Fuel &amp; Oil">Fuel &amp; Oil</option>
+            <option value="Meals &amp; Representation">Meals &amp; Representation</option>
+            <option value="Transportation &amp; Travel">Transportation &amp; Travel</option>
+            <option value="Repairs &amp; Maintenance">Repairs &amp; Maintenance</option>
+            <option value="Communication &amp; Load">Communication &amp; Load</option>
+            <option value="Tools &amp; Hardware">Tools &amp; Hardware</option>
+            <option value="Postage &amp; Delivery">Postage &amp; Delivery</option>
+            <option value="Taxes &amp; Permits">Taxes &amp; Permits</option>
+            <option value="Miscellaneous">Miscellaneous</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Line Items Table Header (Matching the screenshot exactly) -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:10px;">
+        <h3 style="margin:0; font-size:0.95rem; font-weight:800; color:var(--primary); display:flex; align-items:center; gap:8px;">
+          <i class="fa-solid fa-list-check" style="color:var(--accent);"></i> Disbursed Line Items (Item Description, Qty, UOM, Unit Cost &amp; Total)
+        </h3>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <span style="font-size:0.75rem; color:var(--text-muted);">Items and descriptions for cash disbursement.</span>
+          <button type="button" class="btn-primary" onclick="addPettyCashItemRow()"
+            style="font-size:0.78rem; padding:6px 12px; background:#4f46e5; border-radius:4px; font-weight:700;">
+            <i class="fa-solid fa-plus"></i> Add Item
+          </button>
+        </div>
+      </div>
+
+      <!-- Line Items Grid Table -->
+      <div style="overflow-x:auto; margin-bottom:18px;">
+        <table style="width:100%; border-collapse:collapse; background:white; border-radius:6px; overflow:hidden; border:1px solid var(--border);">
+          <thead>
+            <tr style="background:#1e293b; color:white; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px;">
+              <th style="padding:10px 8px; width:45px; text-align:center;">#</th>
+              <th style="padding:10px 12px; min-width:280px; text-align:left;">Item Description <span style="color:#ef4444;">*</span></th>
+              <th style="padding:10px 8px; width:95px; text-align:center;">Qty <span style="color:#ef4444;">*</span></th>
+              <th style="padding:10px 8px; width:125px; text-align:center;">Unit of Measure</th>
+              <th style="padding:10px 10px; width:135px; text-align:right;">Unit Cost (₱) <span style="color:#ef4444;">*</span></th>
+              <th style="padding:10px 12px; width:150px; text-align:right;">Total Amount (₱) <span style="color:#ef4444;">*</span></th>
+              <th style="padding:10px 8px; width:50px; text-align:center;"></th>
+            </tr>
+          </thead>
+          <tbody id="pettyCashItemsBody">
+            <!-- Generated dynamic rows -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Bottom Summary & Action Row (Matching screenshot) -->
+      <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; border:1px solid var(--border); border-radius:8px; padding:16px 20px; flex-wrap:wrap; gap:16px;">
+        <div style="display:flex; align-items:center; gap:8px; font-size:0.84rem; color:#334155;">
+          <i class="fa-solid fa-user-check" style="color:var(--accent);"></i>
+          <span>Disbursed &amp; Certified by: <strong id="pcCustodianName" style="color:var(--primary);">System Admin</strong></span>
+        </div>
+        <div style="display:flex; align-items:center; gap:20px;">
+          <div style="font-size:1.05rem; font-weight:800; color:#334155;">
+            TOTAL AMOUNT: <span style="color:#16a34a; font-size:1.25rem;" id="pcTotalDisplay">₱ 0.00</span>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <button type="button" class="btn-primary" onclick="resetPettyCashForm()"
+              style="background:#64748b; padding:10px 18px; font-size:0.85rem; border-radius:6px; cursor:pointer;">
+              <i class="fa-solid fa-rotate-left"></i> Reset
+            </button>
+            <button type="submit" class="btn-primary" id="btnSubmitPettyCash"
+              style="padding:10px 22px; font-size:0.85rem; font-weight:700; background:#16a34a; border-radius:6px; cursor:pointer;">
+              <i class="fa-solid fa-floppy-disk"></i> Submit Petty Cash Voucher
+            </button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- MASTER PETTY CASH TABLE & FILTER CARD -->
+  <div class="data-card" style="padding: 24px; border-radius: 12px; box-shadow: 0 4px 18px rgba(0,0,0,0.06); border: 1px solid var(--border); background: #ffffff;">
+    <!-- Filter Controls (Department, Search, Month, Date, Export CSV) -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; flex-wrap:wrap; gap:12px;">
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; flex:1;">
+        <select id="pcDeptFilter" onchange="renderPettyCashTable()"
+          style="padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-size:0.82rem; font-weight:600; color:var(--primary); background:white;">
+          <option value="ALL">All Departments</option>
+        </select>
+
+        <div class="search-box" style="margin:0; width:100%; max-width:320px;">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="pcSearchInput" placeholder="Search PCV, PO, Payee, item..."
+            oninput="renderPettyCashTable()">
+        </div>
+
+        <select id="pcMonthFilter" onchange="renderPettyCashTable()"
+          style="padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-size:0.82rem; font-weight:600; color:var(--primary); background:white;">
+          <option value="ALL">All Months</option>
+          <option value="01">January</option>
+          <option value="02">February</option>
+          <option value="03">March</option>
+          <option value="04">April</option>
+          <option value="05">May</option>
+          <option value="06">June</option>
+          <option value="07">July</option>
+          <option value="08">August</option>
+          <option value="09">September</option>
+          <option value="10">October</option>
+          <option value="11">November</option>
+          <option value="12">December</option>
+        </select>
+
+        <input type="date" id="pcDateFilter" onchange="renderPettyCashTable()"
+          style="padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-size:0.82rem; font-weight:600; color:var(--primary); background:white;">
+      </div>
+
+      <div>
+        <button type="button" class="btn-primary" onclick="exportPettyCashCSV()"
+          style="font-size:0.82rem; padding:8px 16px; background:#0284c7; border-radius:6px; font-weight:700;">
+          <i class="fa-solid fa-file-excel"></i> Export CSV
+        </button>
+      </div>
+    </div>
+
+    <!-- Master Table -->
+    <div style="overflow-x:auto;">
+      <table class="dispatch-table" style="min-width: 1050px;">
+        <thead>
+          <tr>
+            <th style="width:120px;">Date Disbursed</th>
+            <th style="width:130px;">PCV No.</th>
+            <th style="width:150px;">PO / PRF No.</th>
+            <th style="min-width:180px;">Payee / Supplier</th>
+            <th style="min-width:160px;">Project / Dept</th>
+            <th style="width:150px;">Expense Type</th>
+            <th style="min-width:220px;">Particulars / Line Items</th>
+            <th style="width:130px; text-align:right;">Total Valuation</th>
+            <th style="width:110px; text-align:center;">Condition</th>
+            <th style="width:130px; text-align:center;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="pettyCashTableBody">
+          <!-- Dynamically populated -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Bottom Summary Badge Notice -->
+    <div style="margin-top:24px; padding:16px; text-align:center; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px;">
+      <div style="display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:50%; background:#22c55e; color:white; margin-bottom:6px;">
+        <i class="fa-solid fa-check"></i>
+      </div>
+      <div style="font-weight:700; color:#166534; font-size:0.95rem;">All Petty Cash Vouchers Recorded &amp; Accounted</div>
+      <div style="font-size:0.78rem; color:#15803d; margin-top:2px;">Disbursement entries are stored in the Masterfile Register and routed to respective accounting cost centers.</div>
+    </div>
+  </div>
+</div>
+
+      <!-- ============================================================== -->
       <!-- VIEW 7: DIRECTORY REGISTER (MASTER DATA MAPPING) -->
       <!-- ============================================================== -->
       <section id="view-directory" class="view-section">
@@ -4615,6 +4888,7 @@
     const SRV_KEY = 'warehouse_services_data';
     const VPMS_KEY = 'warehouse_vehicle_pms_data';
     const CPX_KEY = 'warehouse_capex_data';
+    const PCV_KEY = 'warehouse_petty_cash_data';
     const RR_MASTERFILE_KEY = 'warehouse_rr_masterfile_backup';
     const STOCKS_2025_STATE_KEY = 'warehouse_stocks_2025_state';
     const MIGRATION_2026_KEY = 'warehouse_migrated_2026_applied_v1';
@@ -4631,6 +4905,8 @@
     let editingPoId = null;
     let editingRrId = null;
     let capexRecords = [];
+    let pettyCashVouchers = [];
+    let editingPcvId = null;
     let rrMasterfile = [];
     let stocks2025Items = [];
     let currentStocks2025Filter = 'ALL';
@@ -5543,6 +5819,39 @@
             rowTotal: parseFloat(p.grand_total) || 0
           }];
         }
+      } else if (type === 'pcv') {
+        const p = pettyCashVouchers.find(x => x.id === id);
+        if (!p) return;
+        badgeText = 'PETTY CASH VOUCHER';
+        docNo = p.pcv_no || 'PCV';
+        titleText = 'PETTY CASH DISBURSEMENT VOUCHER';
+        subtitleText = 'Official Cash Disbursement, Minor Expenses & Accounting Liquidation Record';
+        metaLeft = [
+          ['Company / Entity:', p.company_name || p.company || 'R-II Builders, Inc.'],
+          ['PO No. / PRF / Ref:', p.ref_no || '—'],
+          ['Project / Charge To:', p.project || 'Head Office'],
+          ['Department:', p.department || 'Admin']
+        ];
+        metaRight = [
+          ['PCV Date:', formatDisplayDate(p.date)],
+          ['Payee / Supplier:', p.payee || '—'],
+          ['Expense Account:', p.expense_account || 'Miscellaneous'],
+          ['Status / Condition:', p.condition || 'Disbursed & Accounted']
+        ];
+        totalLabel = 'TOTAL CASH DISBURSED:';
+        policyText = '<strong>Petty Cash Disbursement Policy:</strong> All petty cash disbursements are subject to official liquidation, verified official receipts (OR), and internal financial controls under R-II Builders, Inc.';
+        totalAmountOverride = p.total_amount || 0;
+        sigLeft = { label: 'Disbursed / Paid by:', name: p.custodian || 'System Admin', role: 'Petty Cash Custodian' };
+        sigCenter = { label: 'Received / Liquidated by:', name: p.payee || 'Payee', role: 'Authorized Payee' };
+        sigRight = { label: 'Approved by:', name: 'Clarisa P Lasam', role: 'Admin Supervisor' };
+
+        items = Array.isArray(p.items) && p.items.length > 0 ? p.items : [{
+          desc: p.items_desc || 'Petty Cash Expense',
+          qty: 1,
+          uom: 'LOT',
+          cost: p.total_amount || 0,
+          rowTotal: p.total_amount || 0
+        }];
       }
 
       const totalQty = items.reduce((sum, it) => sum + (parseFloat(it.qty) || 0), 0);
@@ -5945,6 +6254,13 @@
       // 9. Stocks from 2025 Carry-Over Register
       loadStocks2025();
 
+      // 10. Petty Cash Vouchers
+      try {
+        const parsedPcv = JSON.parse(localStorage.getItem(PCV_KEY) || '[]');
+        pettyCashVouchers = Array.isArray(parsedPcv) ? parsedPcv : [];
+      } catch (e) { pettyCashVouchers = []; }
+      initPettyCashForm();
+
       // 10. Migrate 2026 PO & MRR records once per browser storage
       migrate2026RecordsIfNeeded();
 
@@ -6048,6 +6364,7 @@
       renderServicesTable();
       renderVehiclePmsTable();
       renderCapexTable();
+      renderPettyCashTable();
       renderRrMasterfileTable();
       renderStocks2025Table();
       renderAllDirectoryRegistries();
@@ -7899,6 +8216,507 @@
         ].join(',') + '\n';
       });
       downloadCSV(csv, cfg.csvFilename);
+    }
+
+    // ==============================================================
+    // PETTY CASH VOUCHER (PCV) CONTROLLER & LOGIC
+    // ==============================================================
+    function getCompanyFullName(code) {
+      const map = {
+        'RBI': 'R-II Builders, Inc. (RBI)',
+        'RMRCI': 'R-II Metro Rail Transport Services, Inc. (RMRCI)',
+        'PESC': 'Philippine Ecology Systems Corp. (PESC)',
+        'RLAND': 'R-Land Development Inc. (RLAND)',
+        'FRHI': 'First R-II Holdings Inc. (FRHI)'
+      };
+      return map[code] || code || 'R-II Builders, Inc.';
+    }
+
+    function initPettyCashForm() {
+      const vNo = document.getElementById('pcVoucherNo');
+      if (vNo && (!vNo.value || vNo.value === 'e.g. PCV-2026-0001')) {
+        vNo.value = getNextPcvNumber();
+      }
+      const dInput = document.getElementById('pcDate');
+      if (dInput && !dInput.value) {
+        dInput.value = new Date().toISOString().split('T')[0];
+      }
+      const custEl = document.getElementById('pcCustodianName');
+      if (custEl) {
+        custEl.textContent = sessionStorage.getItem('userFullName') || 'System Admin';
+      }
+      const tbody = document.getElementById('pettyCashItemsBody');
+      if (tbody && tbody.children.length === 0) {
+        addPettyCashItemRow();
+      }
+      calcPettyCashTotals();
+    }
+
+    function getNextPcvNumber() {
+      const year = new Date().getFullYear();
+      let maxSeq = 0;
+      pettyCashVouchers.forEach(v => {
+        if (v.pcv_no) {
+          const match = String(v.pcv_no).match(/PCV-(\d{4})-(\d+)/i);
+          if (match && parseInt(match[1]) === year) {
+            const seq = parseInt(match[2], 10);
+            if (seq > maxSeq) maxSeq = seq;
+          }
+        }
+      });
+      return `PCV-${year}-${String(maxSeq + 1).padStart(4, '0')}`;
+    }
+
+    function handlePettyCashCompanyChange() {
+      const compEl = document.getElementById('pcCompany');
+      const projEl = document.getElementById('pcProject');
+      if (compEl && projEl && !projEl.value) {
+        if (compEl.value === 'RBI') projEl.placeholder = 'e.g. Head Office, Skyway Project, Diliman';
+        else if (compEl.value === 'RMRCI') projEl.placeholder = 'e.g. MRT Depot, Track Maintenance';
+        else if (compEl.value === 'PESC') projEl.placeholder = 'e.g. Waste Management Plant, Site Operations';
+      }
+    }
+
+    function addPettyCashItemRow(item = null) {
+      const tbody = document.getElementById('pettyCashItemsBody');
+      if (!tbody) return;
+      const tr = document.createElement('tr');
+      tr.className = 'pc-item-row';
+      tr.style.borderBottom = '1px solid #f1f5f9';
+
+      const descVal = item ? (item.desc || '') : '';
+      const qtyVal = item ? (Number(item.qty) || 1) : 1;
+      const uomVal = item ? (item.uom || 'PCS') : 'PCS';
+      const costVal = item ? (Number(item.cost) || 0) : 0;
+      const totalVal = item ? (Number(item.rowTotal || item.total) || (qtyVal * costVal)) : (qtyVal * costVal);
+
+      tr.innerHTML = `
+        <td style="padding:8px 8px; text-align:center; font-weight:700; color:#64748b; font-size:0.8rem;" class="pc-row-index">1</td>
+        <td style="padding:8px 12px;">
+          <input type="text" class="pc-item-desc" required placeholder="Enter item description / expense particulars"
+            value="${escapeHtml(descVal)}"
+            style="width:100%; padding:8px 10px; border-radius:5px; border:1px solid var(--border); font-size:0.82rem; font-weight:600; color:var(--primary); background:white; box-sizing:border-box;">
+        </td>
+        <td style="padding:8px 8px; text-align:center;">
+          <input type="number" class="pc-item-qty" min="0.01" step="any" value="${qtyVal}" oninput="calcPettyCashTotals()"
+            style="width:100%; padding:8px 6px; text-align:center; border-radius:5px; border:1px solid var(--border); font-size:0.82rem; font-weight:700; color:var(--primary); background:white; box-sizing:border-box;">
+        </td>
+        <td style="padding:8px 8px; text-align:center;">
+          <select class="pc-item-uom" style="width:100%; padding:8px 6px; border-radius:5px; border:1px solid var(--border); font-size:0.82rem; font-weight:600; color:var(--primary); background:white; box-sizing:border-box;">
+            ${['PCS', 'LOT', 'UNIT', 'BOX', 'SET', 'ROLL', 'PACK', 'LTR', 'GAL', 'KG', 'MTR', 'TRIP', 'REAMS', 'PAD'].map(u => `<option value="${u}" ${u === uomVal ? 'selected' : ''}>${u}</option>`).join('')}
+          </select>
+        </td>
+        <td style="padding:8px 10px; text-align:right;">
+          <input type="number" class="pc-item-cost" min="0" step="any" value="${costVal.toFixed(2)}" oninput="calcPettyCashTotals()"
+            style="width:100%; padding:8px 10px; text-align:right; border-radius:5px; border:1px solid var(--border); font-size:0.82rem; font-weight:700; color:var(--primary); background:white; box-sizing:border-box;">
+        </td>
+        <td style="padding:8px 12px; text-align:right;">
+          <input type="text" class="pc-item-total" readonly value="${formatCurrency(totalVal)}"
+            style="width:100%; padding:8px 10px; text-align:right; border-radius:5px; border:1px solid #e2e8f0; font-size:0.85rem; font-weight:800; color:#16a34a; background:#f8fafc; box-sizing:border-box;">
+        </td>
+        <td style="padding:8px 8px; text-align:center;">
+          <button type="button" onclick="removePettyCashItemRow(this)" title="Remove item"
+            style="border:none; background:transparent; color:#ef4444; cursor:pointer; font-size:0.85rem; padding:4px;">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+      renumberPettyCashRows();
+      calcPettyCashTotals();
+    }
+
+    function removePettyCashItemRow(btn) {
+      const tr = btn.closest('tr');
+      const tbody = document.getElementById('pettyCashItemsBody');
+      if (tbody && tbody.children.length <= 1) {
+        showSystemAlert('Cannot Remove', 'At least one disbursed line item is required.', false);
+        return;
+      }
+      if (tr) tr.remove();
+      renumberPettyCashRows();
+      calcPettyCashTotals();
+    }
+
+    function renumberPettyCashRows() {
+      const rows = document.querySelectorAll('#pettyCashItemsBody .pc-item-row');
+      rows.forEach((r, idx) => {
+        const idxEl = r.querySelector('.pc-row-index');
+        if (idxEl) idxEl.textContent = idx + 1;
+      });
+    }
+
+    function calcPettyCashTotals() {
+      const rows = document.querySelectorAll('#pettyCashItemsBody .pc-item-row');
+      let grandTotal = 0;
+      rows.forEach(r => {
+        const qty = parseFloat(r.querySelector('.pc-item-qty')?.value) || 0;
+        const cost = parseFloat(r.querySelector('.pc-item-cost')?.value) || 0;
+        const rowTotal = qty * cost;
+        const totalEl = r.querySelector('.pc-item-total');
+        if (totalEl) totalEl.value = formatCurrency(rowTotal);
+        grandTotal += rowTotal;
+      });
+      const totalDisplay = document.getElementById('pcTotalDisplay');
+      if (totalDisplay) totalDisplay.textContent = formatCurrency(grandTotal);
+      return grandTotal;
+    }
+
+    function submitPettyCashVoucher(e) {
+      if (e && e.preventDefault) e.preventDefault();
+
+      const pcvNo = (document.getElementById('pcVoucherNo')?.value || '').trim();
+      const refNo = (document.getElementById('pcReferenceNo')?.value || '').trim();
+      const dateVal = document.getElementById('pcDate')?.value || new Date().toISOString().split('T')[0];
+      const project = (document.getElementById('pcProject')?.value || '').trim();
+      const company = document.getElementById('pcCompany')?.value || '';
+      const department = document.getElementById('pcDepartment')?.value || '';
+      const payee = (document.getElementById('pcPayee')?.value || '').trim();
+      const expenseAccount = document.getElementById('pcExpenseAccount')?.value || 'Miscellaneous';
+
+      if (!pcvNo) {
+        showSystemAlert('Missing Field', 'Please enter a valid PCV Number.', false);
+        return;
+      }
+      if (!refNo) {
+        showSystemAlert('Missing Field', 'Please enter PO No. / Reference / PRF No.', false);
+        return;
+      }
+      if (!dateVal) {
+        showSystemAlert('Missing Field', 'Please specify the PCV Date.', false);
+        return;
+      }
+      if (!company) {
+        showSystemAlert('Missing Field', 'Please select a Company.', false);
+        return;
+      }
+      if (!department) {
+        showSystemAlert('Missing Field', 'Please select a Department.', false);
+        return;
+      }
+      if (!payee) {
+        showSystemAlert('Missing Field', 'Please enter the Payee / Supplier Name.', false);
+        return;
+      }
+
+      const rowEls = document.querySelectorAll('#pettyCashItemsBody .pc-item-row');
+      const items = [];
+      let valid = true;
+
+      rowEls.forEach(r => {
+        const desc = (r.querySelector('.pc-item-desc')?.value || '').trim();
+        const qty = parseFloat(r.querySelector('.pc-item-qty')?.value) || 0;
+        const uom = r.querySelector('.pc-item-uom')?.value || 'PCS';
+        const cost = parseFloat(r.querySelector('.pc-item-cost')?.value) || 0;
+        const rowTotal = qty * cost;
+
+        if (!desc) {
+          valid = false;
+          return;
+        }
+        items.push({
+          desc,
+          qty,
+          uom,
+          cost,
+          rowTotal
+        });
+      });
+
+      if (!valid || items.length === 0) {
+        showSystemAlert('Invalid Items', 'Please provide a valid description and quantity for all disbursed line items.', false);
+        return;
+      }
+
+      const grandTotal = items.reduce((acc, it) => acc + (it.rowTotal || 0), 0);
+      const custodianName = document.getElementById('pcCustodianName')?.textContent || sessionStorage.getItem('userFullName') || 'System Admin';
+
+      const voucherRecord = {
+        id: editingPcvId || ('pcv_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6)),
+        pcv_no: pcvNo,
+        ref_no: refNo,
+        date: dateVal,
+        project: project || 'Head Office',
+        company: company,
+        company_name: getCompanyFullName(company),
+        department: department,
+        payee: payee,
+        expense_account: expenseAccount,
+        items: items,
+        items_desc: items.map(it => `${it.desc} (${it.qty} ${it.uom})`).join(', '),
+        total_amount: grandTotal,
+        condition: 'Disbursed',
+        custodian: custodianName,
+        created_at: new Date().toISOString()
+      };
+
+      if (editingPcvId) {
+        const idx = pettyCashVouchers.findIndex(x => x.id === editingPcvId);
+        if (idx !== -1) {
+          voucherRecord.created_at = pettyCashVouchers[idx].created_at || voucherRecord.created_at;
+          pettyCashVouchers[idx] = voucherRecord;
+        } else {
+          pettyCashVouchers.unshift(voucherRecord);
+        }
+      } else {
+        const dup = pettyCashVouchers.some(x => x.pcv_no.toLowerCase() === pcvNo.toLowerCase());
+        if (dup) {
+          showSystemAlert('Duplicate PCV No.', `Petty Cash Voucher "${pcvNo}" already exists.`, false);
+          return;
+        }
+        pettyCashVouchers.unshift(voucherRecord);
+      }
+
+      localStorage.setItem(PCV_KEY, JSON.stringify(pettyCashVouchers));
+
+      sbSyncBackground(async () => {
+        return sbUpsertRows('petty_cash_vouchers', [voucherRecord], p => ({
+          id: p.id,
+          pcv_no: p.pcv_no,
+          ref_no: p.ref_no,
+          date: p.date,
+          project: p.project,
+          company: p.company,
+          company_name: p.company_name,
+          department: p.department,
+          payee: p.payee,
+          expense_account: p.expense_account,
+          items: p.items,
+          items_desc: p.items_desc,
+          total_amount: p.total_amount,
+          condition: p.condition,
+          custodian: p.custodian,
+          created_at: p.created_at
+        }), null, 'id');
+      });
+
+      const savedMsg = editingPcvId ? `Updated Petty Cash Voucher "${pcvNo}".` : `Recorded Petty Cash Voucher "${pcvNo}" totaling ${formatCurrency(grandTotal)}.`;
+      resetPettyCashForm();
+      renderPettyCashTable();
+      showSystemAlert('Petty Cash Voucher Saved', savedMsg, true);
+    }
+
+    function resetPettyCashForm() {
+      editingPcvId = null;
+      const form = document.getElementById('pettyCashEntryForm');
+      if (form) form.reset();
+
+      const vNo = document.getElementById('pcVoucherNo');
+      if (vNo) vNo.value = getNextPcvNumber();
+
+      const dInput = document.getElementById('pcDate');
+      if (dInput) dInput.value = new Date().toISOString().split('T')[0];
+
+      const custEl = document.getElementById('pcCustodianName');
+      if (custEl) custEl.textContent = sessionStorage.getItem('userFullName') || 'System Admin';
+
+      const tbody = document.getElementById('pettyCashItemsBody');
+      if (tbody) {
+        tbody.innerHTML = '';
+        addPettyCashItemRow();
+      }
+
+      const btn = document.getElementById('btnSubmitPettyCash');
+      if (btn) btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Submit Petty Cash Voucher';
+
+      calcPettyCashTotals();
+    }
+
+    function editPettyCashVoucher(id) {
+      const p = pettyCashVouchers.find(x => x.id === id);
+      if (!p) {
+        showSystemAlert('Not Found', 'The selected Petty Cash Voucher could not be found.', false);
+        return;
+      }
+      editingPcvId = id;
+
+      switchView('view-petty-cash', document.querySelector('.nav-item[data-view="view-petty-cash"] a'));
+
+      const vNo = document.getElementById('pcVoucherNo');
+      if (vNo) vNo.value = p.pcv_no || '';
+
+      const refNo = document.getElementById('pcReferenceNo');
+      if (refNo) refNo.value = p.ref_no || '';
+
+      const dInput = document.getElementById('pcDate');
+      if (dInput) dInput.value = p.date ? p.date.substring(0, 10) : '';
+
+      const proj = document.getElementById('pcProject');
+      if (proj) proj.value = p.project || '';
+
+      const comp = document.getElementById('pcCompany');
+      if (comp) comp.value = p.company || '';
+
+      const dept = document.getElementById('pcDepartment');
+      if (dept) dept.value = p.department || '';
+
+      const payee = document.getElementById('pcPayee');
+      if (payee) payee.value = p.payee || '';
+
+      const exp = document.getElementById('pcExpenseAccount');
+      if (exp) exp.value = p.expense_account || 'Miscellaneous';
+
+      const custEl = document.getElementById('pcCustodianName');
+      if (custEl) custEl.textContent = p.custodian || 'System Admin';
+
+      const tbody = document.getElementById('pettyCashItemsBody');
+      if (tbody) {
+        tbody.innerHTML = '';
+        if (Array.isArray(p.items) && p.items.length > 0) {
+          p.items.forEach(it => addPettyCashItemRow(it));
+        } else {
+          addPettyCashItemRow({
+            desc: p.items_desc || 'Petty Cash Expense',
+            qty: 1,
+            uom: 'LOT',
+            cost: p.total_amount || 0,
+            rowTotal: p.total_amount || 0
+          });
+        }
+      }
+
+      calcPettyCashTotals();
+
+      const btn = document.getElementById('btnSubmitPettyCash');
+      if (btn) btn.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Update Petty Cash Voucher';
+
+      const formCard = document.querySelector('#view-petty-cash .data-card');
+      if (formCard) formCard.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function deletePettyCashVoucher(id) {
+      const p = pettyCashVouchers.find(x => x.id === id);
+      const label = p ? p.pcv_no : 'this record';
+
+      showSystemConfirm('Delete Petty Cash Voucher', `Are you sure you want to delete Petty Cash Voucher "${label}"?`, () => {
+        pettyCashVouchers = pettyCashVouchers.filter(x => x.id !== id);
+        localStorage.setItem(PCV_KEY, JSON.stringify(pettyCashVouchers));
+        sbSyncBackground(() => sbDeleteRow('petty_cash_vouchers', id, 'id'));
+        renderPettyCashTable();
+        showSystemAlert('Voucher Removed', `Removed Petty Cash Voucher "${label}".`, true);
+      });
+    }
+
+    function renderPettyCashTable() {
+      const tbody = document.getElementById('pettyCashTableBody');
+      if (!tbody) return;
+
+      const deptFilter = document.getElementById('pcDeptFilter')?.value || 'ALL';
+      const search = (document.getElementById('pcSearchInput')?.value || '').trim().toLowerCase();
+      const monthFilterVal = document.getElementById('pcMonthFilter')?.value || 'ALL';
+      const dateFilterVal = document.getElementById('pcDateFilter')?.value || '';
+
+      const deptSelect = document.getElementById('pcDeptFilter');
+      if (deptSelect && deptSelect.options.length <= 1) {
+        const depts = new Set(['Admin', 'HR', 'Purchasing', 'BDG', 'Engineering', 'Accounting', 'Finance', 'Operations']);
+        pettyCashVouchers.forEach(v => { if (v.department) depts.add(v.department); });
+        deptSelect.innerHTML = '<option value="ALL">All Departments</option>' +
+          Array.from(depts).sort().map(d => `<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join('');
+        deptSelect.value = deptFilter;
+      }
+
+      let list = [...pettyCashVouchers];
+
+      if (deptFilter !== 'ALL') {
+        list = list.filter(v => (v.department || '').toLowerCase() === deptFilter.toLowerCase());
+      }
+
+      if (monthFilterVal !== 'ALL') {
+        list = list.filter(v => {
+          const d = v.date || '';
+          return d.slice(5, 7) === monthFilterVal;
+        });
+      }
+
+      if (dateFilterVal) {
+        list = list.filter(v => (v.date || '').startsWith(dateFilterVal));
+      }
+
+      if (search) {
+        list = list.filter(v => {
+          return (v.pcv_no || '').toLowerCase().includes(search) ||
+            (v.ref_no || '').toLowerCase().includes(search) ||
+            (v.payee || '').toLowerCase().includes(search) ||
+            (v.project || '').toLowerCase().includes(search) ||
+            (v.department || '').toLowerCase().includes(search) ||
+            (v.expense_account || '').toLowerCase().includes(search) ||
+            (v.items_desc || '').toLowerCase().includes(search);
+        });
+      }
+
+      if (list.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="10" style="text-align:center; padding:48px 20px; color:var(--text-muted);">
+              <i class="fa-solid fa-money-bill-wave" style="font-size:2rem; opacity:0.4; margin-bottom:10px; display:block; color:var(--accent);"></i>
+              <strong style="font-size:0.95rem;">No Petty Cash Vouchers Found</strong>
+              <div style="font-size:0.82rem; margin-top:4px;">Use the Petty Cash Voucher (PCV) form above to disburse cash and record expenditures.</div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = list.map(v => {
+        const formattedDate = formatDisplayDate(v.date);
+        const displayProjectDept = [v.project, v.department].filter(Boolean).join(' / ') || 'Admin';
+        const itemsText = v.items_desc || (Array.isArray(v.items) ? v.items.map(it => `${it.desc} (${it.qty} ${it.uom})`).join(', ') : '—');
+        return `
+          <tr>
+            <td style="white-space:nowrap;">${escapeHtml(formattedDate)}</td>
+            <td><span class="code-badge" style="font-family:monospace; font-weight:800; color:var(--primary);">${escapeHtml(v.pcv_no)}</span></td>
+            <td><span style="font-weight:700; color:#334155;">${escapeHtml(v.ref_no || '—')}</span></td>
+            <td><strong>${escapeHtml(v.payee || '—')}</strong></td>
+            <td>${escapeHtml(displayProjectDept)}</td>
+            <td><span style="font-size:0.8rem; font-weight:700; color:#475569; background:#f1f5f9; padding:2px 8px; border-radius:4px;">${escapeHtml(v.expense_account || 'Miscellaneous')}</span></td>
+            <td style="max-width:280px; font-size:0.82rem;">${escapeHtml(itemsText)}</td>
+            <td style="text-align:right;"><strong style="color:var(--success); font-size:0.88rem;">${formatCurrency(v.total_amount || 0)}</strong></td>
+            <td style="text-align:center;"><span class="status-badge active" style="background:#dcfce7; color:#15803d; font-size:0.75rem; padding:3px 10px; border-radius:12px; font-weight:700;">Disbursed</span></td>
+            <td style="text-align:center; white-space:nowrap;">
+              <button class="btn-slip-row" onclick="openPettyCashSlip('${v.id}')" title="View Petty Cash Voucher Slip" style="margin-right:4px;">
+                <i class="fa-solid fa-file-lines"></i> Slip
+              </button>
+              <button class="btn btn-outline btn-sm" onclick="editPettyCashVoucher('${v.id}')" title="Edit Voucher" style="color:#0284c7; border-color:#bae6fd; margin-right:4px;">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </button>
+              <button class="btn btn-outline btn-sm" onclick="deletePettyCashVoucher('${v.id}')" title="Delete Voucher" style="color:#ef4444; border-color:#fee2e2;">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function exportPettyCashCSV() {
+      if (pettyCashVouchers.length === 0) {
+        showSystemAlert('No Data to Export', 'There are no Petty Cash Vouchers to export.', false);
+        return;
+      }
+
+      let csv = 'PCV No,Reference / PRF No,Date Disbursed,Company,Department,Project,Payee / Supplier,Expense Type,Items,Total Amount,Condition,Disbursed By\n';
+      pettyCashVouchers.forEach(v => {
+        const pcvNo = `"${(v.pcv_no || '').replace(/"/g, '""')}"`;
+        const refNo = `"${(v.ref_no || '').replace(/"/g, '""')}"`;
+        const d = `"${formatDisplayDate(v.date)}"`;
+        const comp = `"${(v.company_name || v.company || '').replace(/"/g, '""')}"`;
+        const dept = `"${(v.department || '').replace(/"/g, '""')}"`;
+        const proj = `"${(v.project || '').replace(/"/g, '""')}"`;
+        const payee = `"${(v.payee || '').replace(/"/g, '""')}"`;
+        const exp = `"${(v.expense_account || '').replace(/"/g, '""')}"`;
+        const items = `"${(v.items_desc || '').replace(/"/g, '""')}"`;
+        const amt = Number(v.total_amount || 0).toFixed(2);
+        const cond = `"${(v.condition || 'Disbursed').replace(/"/g, '""')}"`;
+        const cust = `"${(v.custodian || 'System Admin').replace(/"/g, '""')}"`;
+
+        csv += `${pcvNo},${refNo},${d},${comp},${dept},${proj},${payee},${exp},${items},${amt},${cond},${cust}\n`;
+      });
+
+      downloadCSV(csv, `Petty_Cash_Vouchers_${new Date().toISOString().split('T')[0]}.csv`);
+    }
+
+    function openPettyCashSlip(id) {
+      openDocumentSlip('pcv', id);
     }
 
     // ==============================================================
@@ -10233,6 +11051,24 @@
           mergeRegistry('services_registry', serviceRecords, SRV_KEY, mapCategoryFromSb, true),
           mergeRegistry('vehicle_pms_registry', vehiclePmsRecords, VPMS_KEY, mapCategoryFromSb, true),
           mergeRegistry('capex_registry', capexRecords, CPX_KEY, mapCategoryFromSb, true),
+          mergeRegistry('petty_cash_vouchers', pettyCashVouchers, PCV_KEY, r => ({
+            id: r.id,
+            pcv_no: r.pcv_no || '',
+            ref_no: r.ref_no || '',
+            date: r.date || '',
+            project: r.project || '',
+            company: r.company || '',
+            company_name: r.company_name || '',
+            department: r.department || '',
+            payee: r.payee || '',
+            expense_account: r.expense_account || '',
+            items: Array.isArray(r.items) ? r.items : [],
+            items_desc: r.items_desc || '',
+            total_amount: Number(r.total_amount) || 0,
+            condition: r.condition || 'Disbursed',
+            custodian: r.custodian || 'System Admin',
+            created_at: r.created_at || ''
+          }), true),
           mergeRegistry('rr_masterfile_registry', rrMasterfile, RR_MASTERFILE_KEY, r => {
             const localItems = mapSbItemsToLocal(r.items);
             return {
@@ -10299,7 +11135,29 @@
         { label: 'Fixed Asset Registry', table: 'fixed_assets_registry', fn: () => sbUpsertRows('fixed_assets_registry', fixedAssets, mapCategoryRecordToSb, null, 'id') },
         { label: 'Services Registry', table: 'services_registry', fn: () => sbUpsertRows('services_registry', serviceRecords, mapCategoryRecordToSb, null, 'id') },
         { label: 'Vehicle Repair & PMS Registry', table: 'vehicle_pms_registry', fn: () => sbUpsertRows('vehicle_pms_registry', vehiclePmsRecords, mapCategoryRecordToSb, null, 'id') },
-        { label: 'CAPEX Registry', table: 'capex_registry', fn: () => sbUpsertRows('capex_registry', capexRecords, mapCategoryRecordToSb, null, 'id') }
+        { label: 'CAPEX Registry', table: 'capex_registry', fn: () => sbUpsertRows('capex_registry', capexRecords, mapCategoryRecordToSb, null, 'id') },
+        {
+          label: 'Petty Cash Vouchers',
+          table: 'petty_cash_vouchers',
+          fn: () => sbUpsertRows('petty_cash_vouchers', pettyCashVouchers, p => ({
+            id: p.id,
+            pcv_no: p.pcv_no,
+            ref_no: p.ref_no || null,
+            date: p.date ? p.date.substring(0, 10) : null,
+            project: p.project || null,
+            company: p.company || null,
+            company_name: p.company_name || null,
+            department: p.department || null,
+            payee: p.payee,
+            expense_account: p.expense_account || null,
+            items: p.items || [],
+            items_desc: p.items_desc || null,
+            total_amount: Number(p.total_amount) || 0,
+            condition: p.condition || 'Disbursed',
+            custodian: p.custodian || 'System Admin',
+            created_at: p.created_at || new Date().toISOString()
+          }), null, 'id')
+        }
       ];
 
       const reportLines = [];

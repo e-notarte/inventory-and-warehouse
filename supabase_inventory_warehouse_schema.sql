@@ -336,6 +336,27 @@ CREATE TABLE IF NOT EXISTS stocks_2025 (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- 17. PETTY CASH VOUCHERS (PCV DISBURSEMENT SYSTEM)
+CREATE TABLE IF NOT EXISTS petty_cash_vouchers (
+    id TEXT PRIMARY KEY,
+    pcv_no VARCHAR(50) NOT NULL,
+    ref_no VARCHAR(100),
+    date DATE DEFAULT CURRENT_DATE,
+    project VARCHAR(150),
+    company VARCHAR(50),
+    company_name VARCHAR(150),
+    department VARCHAR(100),
+    payee VARCHAR(150) NOT NULL,
+    expense_account VARCHAR(100),
+    items JSONB DEFAULT '[]'::jsonb,
+    items_desc TEXT,
+    total_amount NUMERIC(15,2) DEFAULT 0.00,
+    condition VARCHAR(100) DEFAULT 'Disbursed',
+    custodian VARCHAR(150) DEFAULT 'System Admin',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- ====================================================================
 -- PART 3: ROW LEVEL SECURITY (RLS) POLICIES (IDEMPOTENT)
 -- ====================================================================
@@ -356,6 +377,7 @@ ALTER TABLE vehicle_pms_registry ENABLE ROW LEVEL SECURITY;
 ALTER TABLE capex_registry ENABLE ROW LEVEL SECURITY;
 ALTER TABLE rr_masterfile_registry ENABLE ROW LEVEL SECURITY;
 ALTER TABLE stocks_2025 ENABLE ROW LEVEL SECURITY;
+ALTER TABLE petty_cash_vouchers ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Allow public read/write for projects_registry" ON projects_registry;
 CREATE POLICY "Allow public read/write for projects_registry" ON projects_registry FOR ALL USING (true) WITH CHECK (true);
@@ -407,3 +429,7 @@ CREATE POLICY "Allow public read/write for rr_masterfile_registry" ON rr_masterf
 
 DROP POLICY IF EXISTS "Allow public read/write for stocks_2025" ON stocks_2025;
 CREATE POLICY "Allow public read/write for stocks_2025" ON stocks_2025 FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow public read/write for petty_cash_vouchers" ON petty_cash_vouchers;
+CREATE POLICY "Allow public read/write for petty_cash_vouchers" ON petty_cash_vouchers FOR ALL USING (true) WITH CHECK (true);
+
