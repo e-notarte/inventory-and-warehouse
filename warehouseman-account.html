@@ -4043,6 +4043,9 @@
             <button type="button" class="dir-tab-btn" onclick="switchDirTab('coa', this)">
               <i class="fa-solid fa-coins"></i> Chart of Accounts <span class="badge" id="badgeDirCoa">0</span>
             </button>
+            <button type="button" class="dir-tab-btn" onclick="switchDirTab('itemtypes', this)">
+              <i class="fa-solid fa-layer-group"></i> Item Types Registry <span class="badge" id="badgeDirItemTypes">0</span>
+            </button>
           </div>
         </div>
 
@@ -4337,11 +4340,23 @@
                   <input type="text" id="encItemCode" class="form-control-neat" placeholder="e.g. ITM-HW-1029" required>
                 </div>
                 <div class="po-field-group">
-                  <label for="encItemDesc"><i class="fa-solid fa-tag"></i> DESCRIPTION <span
+                  <label for="encItemType"><i class="fa-solid fa-layer-group"></i> ITEM TYPE <span
                       class="po-req">*</span></label>
-                  <input type="text" id="encItemDesc" class="form-control-neat"
-                    placeholder="e.g. Portland Cement Type 1P (40kg/bag)" required>
+                  <select id="encItemType" class="form-control-neat" required>
+                    <option value="Consumables & Office Supplies">Consumables &amp; Office Supplies</option>
+                    <option value="Construction Materials">Construction Materials</option>
+                    <option value="Fixed Assets">Fixed Assets</option>
+                    <option value="Services">Services</option>
+                    <option value="Vehicle Repair & Maintenance">Vehicle Repair &amp; Maintenance</option>
+                    <option value="Capital Expenditure">Capital Expenditure</option>
+                  </select>
                 </div>
+              </div>
+              <div class="po-field-group" style="margin-bottom:14px;">
+                <label for="encItemDesc"><i class="fa-solid fa-tag"></i> DESCRIPTION <span
+                    class="po-req">*</span></label>
+                <input type="text" id="encItemDesc" class="form-control-neat"
+                  placeholder="e.g. Portland Cement Type 1P (40kg/bag)" required>
               </div>
               <div class="dir-grid-2">
                 <div class="po-field-group">
@@ -4361,7 +4376,7 @@
               <div
                 style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-top:14px; padding-top:12px; border-top:1px solid var(--border);">
                 <div style="font-size:0.8rem; color:var(--text-muted);">
-                  Header: <strong>No. | Item Code | Description | UOM | Unit Cost</strong>
+                  Header: <strong>No. | Item Code | Description | Item Type | UOM | Unit Cost</strong>
                 </div>
                 <div style="display:flex; gap:8px;">
                   <button type="button" class="btn btn-outline"
@@ -4389,7 +4404,7 @@
               </div>
               <div style="display:flex; gap:10px;">
                 <input type="text" id="searchItemsInput" class="form-control-neat"
-                  placeholder="Search item code or desc..." style="width:260px;" oninput="renderItemsTable()">
+                  placeholder="Search item code, desc, or type..." style="width:260px;" oninput="renderItemsTable()">
                 <button class="btn btn-outline btn-sm" onclick="exportItemsRegistryCSV()"><i
                     class="fa-solid fa-file-csv"></i> Export CSV</button>
               </div>
@@ -4402,6 +4417,7 @@
                     <th style="width:60px;">No.</th>
                     <th>Item Code</th>
                     <th>Description</th>
+                    <th>Item Type</th>
                     <th>UOM</th>
                     <th>Unit Cost</th>
                     <th style="width:140px; text-align:center;">Actions</th>
@@ -4504,6 +4520,94 @@
                   </tr>
                 </thead>
                 <tbody id="coaTableBody">
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ============================================================== -->
+        <!-- 6. ITEM TYPES REGISTRY SUBVIEW -->
+        <!-- ============================================================== -->
+        <div id="dir-subview-itemtypes" class="dir-subview">
+
+          <!-- ITEM TYPE ENCODER CARD -->
+          <div class="po-form-card">
+            <div class="po-form-eyebrow">ITEM TYPE ENCODER</div>
+            <div class="po-form-title-row">
+              <i class="fa-solid fa-layer-group"></i>
+              <h2>Item Type Registration Encoder</h2>
+            </div>
+            <p class="po-form-subtitle">
+              Encoder form to accomplish new Item Type classifications and configure automatic inventory routing targets.
+            </p>
+
+            <form id="formItemTypeEncoder" onsubmit="event.preventDefault(); submitItemTypeEncoder();">
+              <div class="dir-grid-2">
+                <div class="po-field-group">
+                  <label for="encItemTypeName"><i class="fa-solid fa-tag"></i> ITEM TYPE NAME <span class="po-req">*</span></label>
+                  <input type="text" id="encItemTypeName" class="form-control-neat" placeholder="e.g. Electrical &amp; Hardware" required>
+                </div>
+                <div class="po-field-group">
+                  <label for="encItemTypeTarget"><i class="fa-solid fa-share-nodes"></i> ROUTED TARGET / MODULE <span class="po-req">*</span></label>
+                  <select id="encItemTypeTarget" class="form-control-neat" required>
+                    <option value="On-Hand Inventory">On-Hand Inventory (Consumables/Warehouse)</option>
+                    <option value="Direct Project Charge">Direct Project Charge (Construction Materials)</option>
+                    <option value="Fixed Asset Registry">Fixed Asset Registry (Equipment/Machinery)</option>
+                    <option value="Services Registry">Services Registry (Labor/Rentals)</option>
+                    <option value="Vehicle Repair & PMS Registry">Vehicle Repair &amp; PMS Registry (Fleet/Maintenance)</option>
+                    <option value="Capex Registry">Capex Registry (Capital Outlay)</option>
+                  </select>
+                </div>
+              </div>
+              <div class="po-field-group" style="margin-bottom:14px;">
+                <label for="encItemTypeDesc"><i class="fa-solid fa-file-lines"></i> DESCRIPTION / SCOPE</label>
+                <input type="text" id="encItemTypeDesc" class="form-control-neat" placeholder="e.g. General electrical conduit, wires, breakers, switches and panelboards">
+              </div>
+
+              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-top:14px; padding-top:12px; border-top:1px solid var(--border);">
+                <div style="font-size:0.8rem; color:var(--text-muted);">
+                  Header: <strong>No. | Item Type Name | Target Destination | Description / Scope</strong>
+                </div>
+                <div style="display:flex; gap:8px;">
+                  <button type="button" class="btn btn-outline" onclick="document.getElementById('formItemTypeEncoder').reset()">
+                    <i class="fa-solid fa-rotate-left"></i> Reset
+                  </button>
+                  <button type="submit" class="btn btn-primary" style="background:#10b981; border-color:#10b981; color:#fff;">
+                    <i class="fa-solid fa-plus"></i> Save Item Type to Registry
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- ITEM TYPES DATA TABLE CARD -->
+          <div class="card" style="margin-top:20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+              <div>
+                <h3 style="margin:0; font-size:1.15rem; font-weight:700;"><i class="fa-solid fa-list-check" style="color:#d97706; margin-right:8px;"></i>Item Types Registry</h3>
+                <div style="font-size:0.82rem; color:var(--text-muted); margin-top:2px;" id="itemTypesTableCount">Showing all registered item types</div>
+              </div>
+              <div style="display:flex; gap:10px;">
+                <input type="text" id="searchItemTypesInput" class="form-control-neat" placeholder="Search item type or target..." style="width:260px;" oninput="renderItemTypesTable()">
+                <button class="btn btn-outline btn-sm" onclick="exportItemTypesCSV()"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th style="width:60px;">No.</th>
+                    <th>Item Type Name</th>
+                    <th>Routed Target Module</th>
+                    <th>Description / Scope</th>
+                    <th style="width:140px; text-align:center;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="itemTypesTableBody">
                   <!-- Populated dynamically -->
                 </tbody>
               </table>
@@ -9274,12 +9378,14 @@
     const REG_SUPPLIERS_KEY = 'warehouse_reg_suppliers';
     const REG_ITEMS_KEY = 'warehouse_reg_items';
     const REG_COA_KEY = 'warehouse_reg_coa';
+    const REG_ITEM_TYPES_KEY = 'warehouse_reg_item_types';
 
     let regProjects = [];
     let regDepartments = [];
     let regSuppliers = [];
     let regItems = [];
     let regCoa = [];
+    let regItemTypes = [];
 
     function switchDirTab(tabName, btn) {
       document.querySelectorAll('.dir-subview').forEach(el => el.classList.remove('active'));
@@ -9294,6 +9400,7 @@
       else if (tabName === 'suppliers') renderSuppliersTable();
       else if (tabName === 'items') renderItemsTable();
       else if (tabName === 'coa') renderCoaTable();
+      else if (tabName === 'itemtypes') renderItemTypesTable();
     }
 
     function loadMasterDataRegistries() {
@@ -9321,6 +9428,22 @@
       try {
         regCoa = JSON.parse(localStorage.getItem(REG_COA_KEY) || '[]');
       } catch (e) { regCoa = []; }
+
+      // 6. Item Types
+      try {
+        regItemTypes = JSON.parse(localStorage.getItem(REG_ITEM_TYPES_KEY) || '[]');
+        if (!Array.isArray(regItemTypes) || regItemTypes.length === 0) {
+          regItemTypes = [
+            { id: 'it_1', name: 'Consumables & Office Supplies', target: 'On-Hand Inventory', description: 'General office, administrative, paper, inks, and consumable warehouse stock' },
+            { id: 'it_2', name: 'Construction Materials', target: 'Direct Project Charge', description: 'Civil works, structural steel, cement, lumber, hardware & aggregate materials' },
+            { id: 'it_3', name: 'Fixed Assets', target: 'Fixed Asset Registry', description: 'Long-term plant equipment, IT computers, survey machinery & corporate furniture' },
+            { id: 'it_4', name: 'Services', target: 'Services Registry', description: 'External service contracts, equipment rentals, hauling & professional service fees' },
+            { id: 'it_5', name: 'Vehicle Repair & Maintenance', target: 'Vehicle Repair & PMS Registry', description: 'Fleet PMS, motor oil, lubricants, brake pads, tires, batteries & automotive parts' },
+            { id: 'it_6', name: 'Capital Expenditure', target: 'Capex Registry', description: 'Major infrastructure additions, plant rehabilitation & high-value capital assets' }
+          ];
+          localStorage.setItem(REG_ITEM_TYPES_KEY, JSON.stringify(regItemTypes));
+        }
+      } catch (e) { regItemTypes = []; }
     }
 
     function updateDirectoryBadges() {
@@ -9333,6 +9456,7 @@
       setEl('badgeDirSuppliers', regSuppliers.length);
       setEl('badgeDirItems', regItems.length);
       setEl('badgeDirCoa', regCoa.length);
+      setEl('badgeDirItemTypes', regItemTypes.length);
     }
 
     // --- 1. PROJECTS REGISTRY FUNCTIONS ---
@@ -9563,6 +9687,7 @@
       const list = regItems.filter(it => !q ||
         (it.code && it.code.toLowerCase().includes(q)) ||
         (it.description && it.description.toLowerCase().includes(q)) ||
+        (it.item_type && it.item_type.toLowerCase().includes(q)) ||
         (it.uom && it.uom.toLowerCase().includes(q))
       );
 
@@ -9570,7 +9695,7 @@
       if (countEl) countEl.textContent = `Showing ${list.length} of ${regItems.length} registered items`;
 
       if (list.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:32px; color:var(--text-muted);"><i class="fa-solid fa-boxes-stacked" style="opacity:0.4; font-size:1.8rem; margin-bottom:8px; display:block;"></i>No items found in registry.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:32px; color:var(--text-muted);"><i class="fa-solid fa-boxes-stacked" style="opacity:0.4; font-size:1.8rem; margin-bottom:8px; display:block;"></i>No items found in registry.</td></tr>';
         return;
       }
       tbody.innerHTML = list.map((it, idx) => `
@@ -9578,6 +9703,7 @@
           <td style="font-weight:600; color:var(--text-muted);">${idx + 1}</td>
           <td><span style="font-family:monospace; font-weight:700; color:#0f766e; background:#f0fdf4; border:1px solid #bbf7d0; padding:2px 8px; border-radius:4px; font-size:0.84rem;">${escapeHtml(it.code)}</span></td>
           <td><strong style="color:var(--text);">${escapeHtml(it.description)}</strong></td>
+          <td><span class="badge" style="background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; font-size:0.78rem; font-weight:600;"><i class="fa-solid fa-layer-group" style="margin-right:4px;"></i>${escapeHtml(it.item_type || 'Consumables & Office Supplies')}</span></td>
           <td><span class="badge" style="background:#f1f5f9; color:#475569;">${escapeHtml(it.uom)}</span></td>
           <td style="font-weight:600; color:#047857;">${formatCurrency(it.unit_cost)}</td>
           <td style="text-align:center; white-space:nowrap;">
@@ -9595,6 +9721,7 @@
     function submitItemEncoder() {
       const code = (document.getElementById('encItemCode')?.value || '').trim();
       const desc = (document.getElementById('encItemDesc')?.value || '').trim();
+      const itemType = (document.getElementById('encItemType')?.value || 'Consumables & Office Supplies').trim();
       const uom = (document.getElementById('encItemUom')?.value || '').trim().toUpperCase();
       const cost = parseFloat(document.getElementById('encItemCost')?.value || '0');
 
@@ -9602,10 +9729,10 @@
         showSystemAlert('Required Fields Missing', 'Please enter Item Code, Description, and UOM.', false);
         return;
       }
-      const newItem = { id: 'i_' + Date.now(), code: code, description: desc, uom: uom, unit_cost: cost };
+      const newItem = { id: 'i_' + Date.now(), code: code, description: desc, item_type: itemType, uom: uom, unit_cost: cost };
       regItems.unshift(newItem);
       localStorage.setItem(REG_ITEMS_KEY, JSON.stringify(regItems));
-      sbSyncBackground(() => sbUpsertRows('items_registry', [newItem], mapItemRegistryToSb, null, 'item_code'));
+      sbSyncBackground(() => sbUpsertRows('items_registry', [newItem], mapItemRegistryToSb, mapItemRegistryToSbCore, 'item_code'));
       document.getElementById('formItemEncoder')?.reset();
       renderItemsTable();
       updateDirectoryBadges();
@@ -9629,9 +9756,9 @@
 
     function exportItemsRegistryCSV() {
       if (regItems.length === 0) return showSystemAlert('No Data', 'No items to export.', false);
-      let csv = 'No,Item Code,Description,UOM,Unit Cost\n';
+      let csv = 'No,Item Code,Description,Item Type,UOM,Unit Cost\n';
       regItems.forEach((it, i) => {
-        csv += `${i + 1},"${(it.code || '').replace(/"/g, '""')}","${(it.description || '').replace(/"/g, '""')}","${(it.uom || '').replace(/"/g, '""')}",${it.unit_cost || 0}\n`;
+        csv += `${i + 1},"${(it.code || '').replace(/"/g, '""')}","${(it.description || '').replace(/"/g, '""')}","${(it.item_type || 'Consumables & Office Supplies').replace(/"/g, '""')}","${(it.uom || '').replace(/"/g, '""')}",${it.unit_cost || 0}\n`;
       });
       downloadCSV(csv, 'Item_Registry.csv');
     }
@@ -9715,6 +9842,84 @@
       downloadCSV(csv, 'Chart_of_Accounts_Registry.csv');
     }
 
+    // --- 6. ITEM TYPES REGISTRY FUNCTIONS ---
+    function renderItemTypesTable() {
+      const tbody = document.getElementById('itemTypesTableBody');
+      if (!tbody) return;
+      const q = (document.getElementById('searchItemTypesInput')?.value || '').toLowerCase().trim();
+      const list = regItemTypes.filter(t => !q ||
+        (t.name && t.name.toLowerCase().includes(q)) ||
+        (t.target && t.target.toLowerCase().includes(q)) ||
+        (t.description && t.description.toLowerCase().includes(q))
+      );
+
+      const countEl = document.getElementById('itemTypesTableCount');
+      if (countEl) countEl.textContent = `Showing ${list.length} of ${regItemTypes.length} registered item types`;
+
+      if (list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:32px; color:var(--text-muted);"><i class="fa-solid fa-layer-group" style="opacity:0.4; font-size:1.8rem; margin-bottom:8px; display:block;"></i>No item types found in registry.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = list.map((t, idx) => `
+        <tr>
+          <td style="font-weight:600; color:var(--text-muted);">${idx + 1}</td>
+          <td><strong style="color:var(--text);"><i class="fa-solid fa-tag" style="color:#d97706; margin-right:6px; font-size:0.8rem;"></i>${escapeHtml(t.name)}</strong></td>
+          <td><span class="badge" style="background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; font-size:0.82rem; font-weight:700;"><i class="fa-solid fa-share-nodes" style="margin-right:4px;"></i>${escapeHtml(t.target || 'On-Hand Inventory')}</span></td>
+          <td style="color:var(--text-muted); font-size:0.84rem;">${escapeHtml(t.description || '—')}</td>
+          <td style="text-align:center; white-space:nowrap;">
+            <button class="btn btn-outline btn-sm" onclick="openUpdateItemTypeModal('${t.id}')" title="Update Item Type" style="color:#0284c7; border-color:#bae6fd; padding:3px 8px; margin-right:4px;">
+              <i class="fa-solid fa-pen-to-square"></i> Update
+            </button>
+            <button class="btn btn-outline btn-sm" onclick="deleteItemType('${t.id}')" title="Delete Item Type" style="color:#ef4444; border-color:#fee2e2; padding:3px 8px;">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function submitItemTypeEncoder() {
+      const name = (document.getElementById('encItemTypeName')?.value || '').trim();
+      const target = (document.getElementById('encItemTypeTarget')?.value || 'On-Hand Inventory').trim();
+      const desc = (document.getElementById('encItemTypeDesc')?.value || '').trim();
+      if (!name) {
+        showSystemAlert('Required Field Missing', 'Please enter Item Type Name.', false);
+        return;
+      }
+      const newType = { id: 'it_' + Date.now(), name: name, target: target, description: desc };
+      regItemTypes.push(newType);
+      localStorage.setItem(REG_ITEM_TYPES_KEY, JSON.stringify(regItemTypes));
+      sbSyncBackground(() => sbUpsertRows('item_types_registry', [newType], mapItemTypeToSb, null, 'id'));
+      document.getElementById('formItemTypeEncoder')?.reset();
+      renderItemTypesTable();
+      updateDirectoryBadges();
+      syncAppDropdowns();
+      showSystemAlert('Item Type Registered', `Successfully added "${name}" to Item Types Registry.`, true);
+    }
+
+    function deleteItemType(id) {
+      const t = regItemTypes.find(x => x.id === id);
+      const label = t ? t.name : 'item type';
+      showSystemConfirm('Remove Item Type', `Remove "${label}" from Item Types Registry?`, () => {
+        regItemTypes = regItemTypes.filter(x => x.id !== id);
+        localStorage.setItem(REG_ITEM_TYPES_KEY, JSON.stringify(regItemTypes));
+        sbSyncBackground(() => sbDeleteRow('item_types_registry', id, 'id'));
+        renderItemTypesTable();
+        updateDirectoryBadges();
+        syncAppDropdowns();
+        showSystemAlert('Item Type Removed', `Removed "${label}" from Item Types Registry.`, true);
+      });
+    }
+
+    function exportItemTypesCSV() {
+      if (regItemTypes.length === 0) return showSystemAlert('No Data', 'No item types to export.', false);
+      let csv = 'No,Item Type Name,Routed Target,Description\n';
+      regItemTypes.forEach((t, i) => {
+        csv += `${i + 1},"${(t.name || '').replace(/"/g, '""')}","${(t.target || '').replace(/"/g, '""')}","${(t.description || '').replace(/"/g, '""')}"\n`;
+      });
+      downloadCSV(csv, 'Item_Types_Registry.csv');
+    }
+
     // --- CROSS-APPLICATION SYNCHRONIZATION ---
     function syncAppDropdowns() {
       // 1. Sync PO Project select
@@ -9743,6 +9948,23 @@
         const curVal = supDept.value;
         supDept.innerHTML = regDepartments.map(d => `<option value="${escapeHtml(d.name)}">${escapeHtml(d.name)}</option>`).join('');
         if (curVal) supDept.value = curVal;
+      }
+
+      // 4. Sync MRR Item Type & Item Encoder Item Type dropdowns
+      const mrrItemTypeEl = document.getElementById('mrrItemType');
+      const encItemTypeEl = document.getElementById('encItemType');
+      if (regItemTypes && regItemTypes.length > 0) {
+        const itemTypeOptions = regItemTypes.map(t => `<option value="${escapeHtml(t.name)}">${escapeHtml(t.name)}</option>`).join('');
+        if (mrrItemTypeEl) {
+          const curVal = mrrItemTypeEl.value;
+          mrrItemTypeEl.innerHTML = '<option value="">Select Item Type (Optional)</option>' + itemTypeOptions;
+          if (curVal) mrrItemTypeEl.value = curVal;
+        }
+        if (encItemTypeEl) {
+          const curVal = encItemTypeEl.value;
+          encItemTypeEl.innerHTML = itemTypeOptions;
+          if (curVal) encItemTypeEl.value = curVal;
+        }
       }
     }
 
@@ -9813,6 +10035,15 @@
       document.getElementById('modalUpdateTitle').innerHTML = '<i class="fa-solid fa-boxes-stacked" style="color:#d97706; margin-right:6px;"></i> Update Item Master Record';
       document.getElementById('editRegType').value = 'items';
       document.getElementById('editRegId').value = id;
+      const typeOptions = (regItemTypes && regItemTypes.length > 0 ? regItemTypes : [
+        { name: 'Consumables & Office Supplies' },
+        { name: 'Construction Materials' },
+        { name: 'Fixed Assets' },
+        { name: 'Services' },
+        { name: 'Vehicle Repair & Maintenance' },
+        { name: 'Capital Expenditure' }
+      ]).map(t => `<option value="${escapeHtml(t.name)}" ${(t.name === (it.item_type || 'Consumables & Office Supplies')) ? 'selected' : ''}>${escapeHtml(t.name)}</option>`).join('');
+
       document.getElementById('modalUpdateBody').innerHTML = `
         <div class="form-grid-2" style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">
           <div class="form-group">
@@ -9820,17 +10051,55 @@
             <input type="text" id="editItemCode" class="form-control-neat" required value="${escapeHtml(it.code)}">
           </div>
           <div class="form-group">
-            <label style="font-weight:700; font-size:0.8rem; margin-bottom:4px; display:block;">Unit of Measure (UOM) <span class="po-req">*</span></label>
-            <input type="text" id="editItemUom" class="form-control-neat" required value="${escapeHtml(it.uom)}">
+            <label style="font-weight:700; font-size:0.8rem; margin-bottom:4px; display:block;">Item Type <span class="po-req">*</span></label>
+            <select id="editItemType" class="form-control-neat" required>
+              ${typeOptions}
+            </select>
           </div>
         </div>
         <div class="form-group" style="margin-bottom:14px;">
           <label style="font-weight:700; font-size:0.8rem; margin-bottom:4px; display:block;">Description <span class="po-req">*</span></label>
           <input type="text" id="editItemDesc" class="form-control-neat" required value="${escapeHtml(it.description)}">
         </div>
+        <div class="form-grid-2" style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">
+          <div class="form-group">
+            <label style="font-weight:700; font-size:0.8rem; margin-bottom:4px; display:block;">Unit of Measure (UOM) <span class="po-req">*</span></label>
+            <input type="text" id="editItemUom" class="form-control-neat" required value="${escapeHtml(it.uom)}">
+          </div>
+          <div class="form-group">
+            <label style="font-weight:700; font-size:0.8rem; margin-bottom:4px; display:block;">Unit Cost (₱) <span class="po-req">*</span></label>
+            <input type="number" step="0.01" min="0" id="editItemCost" class="form-control-neat" required value="${it.unit_cost || 0}">
+          </div>
+        </div>
+      `;
+      openModal('modalUpdateRegistry');
+    }
+
+    function openUpdateItemTypeModal(id) {
+      const t = regItemTypes.find(x => x.id === id);
+      if (!t) return;
+      document.getElementById('modalUpdateTitle').innerHTML = '<i class="fa-solid fa-layer-group" style="color:#d97706; margin-right:6px;"></i> Update Item Type Record';
+      document.getElementById('editRegType').value = 'itemtypes';
+      document.getElementById('editRegId').value = id;
+      document.getElementById('modalUpdateBody').innerHTML = `
         <div class="form-group" style="margin-bottom:14px;">
-          <label style="font-weight:700; font-size:0.8rem; margin-bottom:4px; display:block;">Unit Cost (₱) <span class="po-req">*</span></label>
-          <input type="number" step="0.01" min="0" id="editItemCost" class="form-control-neat" required value="${it.unit_cost || 0}">
+          <label style="font-weight:700; font-size:0.8rem; margin-bottom:4px; display:block;">Item Type Name <span class="po-req">*</span></label>
+          <input type="text" id="editItemTypeName" class="form-control-neat" required value="${escapeHtml(t.name)}">
+        </div>
+        <div class="form-group" style="margin-bottom:14px;">
+          <label style="font-weight:700; font-size:0.8rem; margin-bottom:4px; display:block;">Routed Target Module <span class="po-req">*</span></label>
+          <select id="editItemTypeTarget" class="form-control-neat" required>
+            <option value="On-Hand Inventory" ${t.target === 'On-Hand Inventory' ? 'selected' : ''}>On-Hand Inventory (Consumables/Warehouse)</option>
+            <option value="Direct Project Charge" ${t.target === 'Direct Project Charge' ? 'selected' : ''}>Direct Project Charge (Construction Materials)</option>
+            <option value="Fixed Asset Registry" ${t.target === 'Fixed Asset Registry' ? 'selected' : ''}>Fixed Asset Registry (Equipment/Machinery)</option>
+            <option value="Services Registry" ${t.target === 'Services Registry' ? 'selected' : ''}>Services Registry (Labor/Rentals)</option>
+            <option value="Vehicle Repair & PMS Registry" ${t.target === 'Vehicle Repair & PMS Registry' ? 'selected' : ''}>Vehicle Repair & PMS Registry (Fleet/Maintenance)</option>
+            <option value="Capex Registry" ${t.target === 'Capex Registry' ? 'selected' : ''}>Capex Registry (Capital Outlay)</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:14px;">
+          <label style="font-weight:700; font-size:0.8rem; margin-bottom:4px; display:block;">Description / Scope</label>
+          <input type="text" id="editItemTypeDesc" class="form-control-neat" value="${escapeHtml(t.description || '')}">
         </div>
       `;
       openModal('modalUpdateRegistry');
@@ -9913,6 +10182,7 @@
       } else if (type === 'items') {
         const code = (document.getElementById('editItemCode')?.value || '').trim();
         const desc = (document.getElementById('editItemDesc')?.value || '').trim();
+        const itemType = (document.getElementById('editItemType')?.value || 'Consumables & Office Supplies').trim();
         const uom = (document.getElementById('editItemUom')?.value || '').trim().toUpperCase();
         const cost = parseFloat(document.getElementById('editItemCost')?.value || '0');
         if (!code || !desc || !uom) return showSystemAlert('Missing Information', 'Please complete all required fields.', false);
@@ -9920,10 +10190,11 @@
         if (item) {
           item.code = code;
           item.description = desc;
+          item.item_type = itemType;
           item.uom = uom;
           item.unit_cost = cost;
           localStorage.setItem(REG_ITEMS_KEY, JSON.stringify(regItems));
-          sbSyncBackground(() => sbUpsertRows('items_registry', [item], mapItemRegistryToSb, null, 'id'));
+          sbSyncBackground(() => sbUpsertRows('items_registry', [item], mapItemRegistryToSb, mapItemRegistryToSbCore, 'item_code'));
           renderItemsTable();
           syncAppDropdowns();
           closeModal('modalUpdateRegistry');
@@ -9946,6 +10217,23 @@
           closeModal('modalUpdateRegistry');
           showSystemAlert('Chart of Accounts Updated', `Successfully updated "${code} - ${title}".`, true);
         }
+      } else if (type === 'itemtypes') {
+        const name = (document.getElementById('editItemTypeName')?.value || '').trim();
+        const target = (document.getElementById('editItemTypeTarget')?.value || 'On-Hand Inventory').trim();
+        const desc = (document.getElementById('editItemTypeDesc')?.value || '').trim();
+        if (!name) return showSystemAlert('Missing Information', 'Please complete Item Type Name.', false);
+        const item = regItemTypes.find(x => x.id === id);
+        if (item) {
+          item.name = name;
+          item.target = target;
+          item.description = desc;
+          localStorage.setItem(REG_ITEM_TYPES_KEY, JSON.stringify(regItemTypes));
+          sbSyncBackground(() => sbUpsertRows('item_types_registry', [item], mapItemTypeToSb, null, 'id'));
+          renderItemTypesTable();
+          syncAppDropdowns();
+          closeModal('modalUpdateRegistry');
+          showSystemAlert('Item Type Updated', `Successfully updated "${name}".`, true);
+        }
       }
     }
 
@@ -9955,6 +10243,7 @@
       renderSuppliersTable();
       renderItemsTable();
       renderCoaTable();
+      renderItemTypesTable();
       updateDirectoryBadges();
       syncAppDropdowns();
     }
@@ -10068,10 +10357,30 @@
     function mapItemRegistryToSb(it) {
       return {
         id: String(it.id),
-        item_code: it.code || '',
+        item_code: it.code || it.item_code || '',
+        description: it.description || '',
+        item_type: it.item_type || 'Consumables & Office Supplies',
+        uom: it.uom || 'PCS',
+        unit_cost: Number(it.unit_cost) || 0
+      };
+    }
+
+    function mapItemRegistryToSbCore(it) {
+      return {
+        id: String(it.id),
+        item_code: it.code || it.item_code || '',
         description: it.description || '',
         uom: it.uom || 'PCS',
         unit_cost: Number(it.unit_cost) || 0
+      };
+    }
+
+    function mapItemTypeToSb(it) {
+      return {
+        id: String(it.id),
+        type_name: it.name || it.type_name || '',
+        target_destination: it.target || it.target_destination || 'On-Hand Inventory',
+        description: it.description || ''
       };
     }
 
@@ -10320,6 +10629,8 @@
       mapDeptToSb,
       mapSupplierToSb,
       mapItemRegistryToSb,
+      mapItemRegistryToSbCore,
+      mapItemTypeToSb,
       mapCoaToSb,
       mapPoToSb,
       mapRrToSbFull,
@@ -10995,8 +11306,9 @@
           mergeRegistry('projects_registry', regProjects, REG_PROJECTS_KEY, r => ({ id: r.id, name: r.project_name, location: r.location || '' })),
           mergeRegistry('departments_registry', regDepartments, REG_DEPTS_KEY, r => ({ id: r.id, name: r.department_name })),
           mergeRegistry('suppliers_registry', regSuppliers, REG_SUPPLIERS_KEY, r => ({ id: r.id, name: r.supplier_name, address: r.address || '', tin: r.tin || '' })),
-          mergeRegistry('items_registry', regItems, REG_ITEMS_KEY, r => ({ id: r.id, code: r.item_code, description: r.description, uom: r.uom || 'PCS', unit_cost: Number(r.unit_cost) || 0 })),
+          mergeRegistry('items_registry', regItems, REG_ITEMS_KEY, r => ({ id: r.id, code: r.item_code, description: r.description, item_type: r.item_type || 'Consumables & Office Supplies', uom: r.uom || 'PCS', unit_cost: Number(r.unit_cost) || 0 })),
           mergeRegistry('chart_of_accounts_registry', regCoa, REG_COA_KEY, r => ({ id: r.id, code: r.account_code, title: r.account_title, category: r.category || '' })),
+          mergeRegistry('item_types_registry', regItemTypes, REG_ITEM_TYPES_KEY, r => ({ id: r.id, name: r.type_name, target: r.target_destination, description: r.description || '' })),
           mergeRegistry('purchase_orders', purchaseOrders, PO_KEY, r => ({
             id: r.id, po_no: r.po_no, prf_no: r.prf_no || '', date: r.date || '', project: r.project || '',
             department: r.department || '', supplier_name: r.supplier_name || '',
@@ -11101,6 +11413,7 @@
         { label: 'Supplier Registry', table: 'suppliers_registry', fn: () => sbUpsertRows('suppliers_registry', regSuppliers, mapSupplierToSb, null, 'id') },
         { label: 'Items Registry', table: 'items_registry', fn: () => sbUpsertRows('items_registry', regItems, mapItemRegistryToSb, null, 'item_code') },
         { label: 'Chart of Accounts', table: 'chart_of_accounts_registry', fn: () => sbUpsertRows('chart_of_accounts_registry', regCoa, mapCoaToSb, null, 'id') },
+        { label: 'Item Types Registry', table: 'item_types_registry', fn: () => sbUpsertRows('item_types_registry', regItemTypes, mapItemTypeToSb, null, 'id') },
         { label: 'Supplies Requests', table: 'supplies_requests', fn: () => sbSyncSuppliesRequests(suppliesRequests) },
         { label: 'Purchase Orders', table: 'purchase_orders', fn: () => sbUpsertRows('purchase_orders', purchaseOrders, mapPoToSb, null, 'id') },
         { label: 'Receiving Reports', table: 'receiving_reports', fn: () => sbUpsertRows('receiving_reports', receivingReports, mapRrToSbFull, mapRrToSbCore, 'id') },

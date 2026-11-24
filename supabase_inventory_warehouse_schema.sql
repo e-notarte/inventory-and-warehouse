@@ -37,16 +37,20 @@ CREATE TABLE IF NOT EXISTS suppliers_registry (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 4. ITEMS REGISTRY (No. | Item Code | Description | UOM | Unit Cost)
+-- 4. ITEMS REGISTRY (No. | Item Code | Description | Item Type | UOM | Unit Cost)
 CREATE TABLE IF NOT EXISTS items_registry (
     id TEXT PRIMARY KEY,
     item_code TEXT UNIQUE NOT NULL,
     description TEXT NOT NULL,
+    item_type TEXT DEFAULT 'Consumables & Office Supplies',
     uom TEXT DEFAULT 'PCS',
     unit_cost NUMERIC(12,2) DEFAULT 0.00,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Idempotent column addition for existing databases
+ALTER TABLE items_registry ADD COLUMN IF NOT EXISTS item_type TEXT DEFAULT 'Consumables & Office Supplies';
 
 -- 5. CHART OF ACCOUNTS REGISTRY (No. | Account Code | Account Title | Category)
 CREATE TABLE IF NOT EXISTS chart_of_accounts_registry (
@@ -54,6 +58,16 @@ CREATE TABLE IF NOT EXISTS chart_of_accounts_registry (
     account_code TEXT NOT NULL,
     account_title TEXT NOT NULL,
     category TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 6. ITEM TYPES REGISTRY (No. | Item Type Name | Target Destination | Description / Scope)
+CREATE TABLE IF NOT EXISTS item_types_registry (
+    id TEXT PRIMARY KEY,
+    type_name TEXT NOT NULL,
+    target_destination TEXT NOT NULL,
+    description TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -368,6 +382,7 @@ ALTER TABLE departments_registry ENABLE ROW LEVEL SECURITY;
 ALTER TABLE suppliers_registry ENABLE ROW LEVEL SECURITY;
 ALTER TABLE items_registry ENABLE ROW LEVEL SECURITY;
 ALTER TABLE chart_of_accounts_registry ENABLE ROW LEVEL SECURITY;
+ALTER TABLE item_types_registry ENABLE ROW LEVEL SECURITY;
 ALTER TABLE supplies_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE supplies_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE purchase_orders ENABLE ROW LEVEL SECURITY;
@@ -396,6 +411,9 @@ CREATE POLICY "Allow public read/write for items_registry" ON items_registry FOR
 
 DROP POLICY IF EXISTS "Allow public read/write for chart_of_accounts_registry" ON chart_of_accounts_registry;
 CREATE POLICY "Allow public read/write for chart_of_accounts_registry" ON chart_of_accounts_registry FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow public read/write for item_types_registry" ON item_types_registry;
+CREATE POLICY "Allow public read/write for item_types_registry" ON item_types_registry FOR ALL USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Allow public read/write for supplies_requests" ON supplies_requests;
 CREATE POLICY "Allow public read/write for supplies_requests" ON supplies_requests FOR ALL USING (true) WITH CHECK (true);
