@@ -3277,7 +3277,7 @@
     </div>
 
     <form id="pettyCashEntryForm" novalidate onsubmit="event.preventDefault(); submitPettyCashVoucher(event);">
-      <!-- Top Metadata Grid (2-column layout matching the screenshot) -->
+      <!-- Top Metadata Grid (2-column layout) -->
       <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:16px; background:#f8fafc; border:1px solid var(--border); border-radius:8px; padding:18px; margin-bottom:20px;">
         <!-- Row 1 -->
         <div>
@@ -3290,45 +3290,13 @@
 
         <div>
           <label style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
-            <i class="fa-solid fa-file-lines" style="color:var(--accent); margin-right:4px;"></i> PO No. / Reference / PRF No. <span style="color:#ef4444;">*</span>
-          </label>
-          <input type="text" id="pcReferenceNo" required placeholder="Type or select Reference No. (e.g. PRF-2026-001)"
-            style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; font-weight:700; color:var(--primary); background:white; box-sizing:border-box;">
-        </div>
-
-        <!-- Row 2 -->
-        <div>
-          <label style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
             <i class="fa-solid fa-calendar-day" style="color:var(--accent); margin-right:4px;"></i> PCV Date <span style="color:#ef4444;">*</span>
           </label>
           <input type="date" id="pcDate" required
             style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; font-weight:700; color:var(--primary); background:white; box-sizing:border-box;">
         </div>
 
-        <div>
-          <label style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
-            <i class="fa-solid fa-diagram-project" style="color:var(--accent); margin-right:4px;"></i> Project / Charge To
-          </label>
-          <input type="text" id="pcProject" placeholder="e.g. Head Office, Skyway Project, Depot Maintenance"
-            style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; font-weight:700; color:var(--primary); background:white; box-sizing:border-box;">
-        </div>
-
-        <!-- Row 3 -->
-        <div>
-          <label style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
-            <i class="fa-solid fa-landmark" style="color:var(--accent); margin-right:4px;"></i> Company <span style="color:#ef4444;">*</span>
-          </label>
-          <select id="pcCompany" required onchange="handlePettyCashCompanyChange()"
-            style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; font-weight:700; color:var(--primary); background:white; box-sizing:border-box;">
-            <option value="" disabled selected>-- Select Company --</option>
-            <option value="RBI">R-II Builders, Inc. (RBI)</option>
-            <option value="RMRCI">R-II Metro Rail Transport Services, Inc. (RMRCI)</option>
-            <option value="PESC">Philippine Ecology Systems Corp. (PESC)</option>
-            <option value="RLAND">R-Land Development Inc. (RLAND)</option>
-            <option value="FRHI">First R-II Holdings Inc. (FRHI)</option>
-          </select>
-        </div>
-
+        <!-- Row 2 -->
         <div>
           <label style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
             <i class="fa-solid fa-users" style="color:var(--accent); margin-right:4px;"></i> Department <span style="color:#ef4444;">*</span>
@@ -3347,7 +3315,6 @@
           </select>
         </div>
 
-        <!-- Row 4 -->
         <div>
           <label style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
             <i class="fa-solid fa-user-tag" style="color:var(--accent); margin-right:4px;"></i> Payee / Supplier Name <span style="color:#ef4444;">*</span>
@@ -3356,7 +3323,8 @@
             style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; font-weight:700; color:var(--primary); background:white; box-sizing:border-box;">
         </div>
 
-        <div>
+        <!-- Row 3: Expense Account -->
+        <div style="grid-column: 1 / -1;">
           <label style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
             <i class="fa-solid fa-tags" style="color:var(--accent); margin-right:4px;"></i> Expense Account / Item Type
           </label>
@@ -3487,9 +3455,8 @@
           <tr>
             <th style="width:120px;">Date Disbursed</th>
             <th style="width:130px;">PCV No.</th>
-            <th style="width:150px;">PO / PRF No.</th>
             <th style="min-width:180px;">Payee / Supplier</th>
-            <th style="min-width:160px;">Project / Dept</th>
+            <th style="width:140px;">Department</th>
             <th style="width:150px;">Expense Type</th>
             <th style="min-width:220px;">Particulars / Line Items</th>
             <th style="width:130px; text-align:right;">Total Valuation</th>
@@ -5827,10 +5794,9 @@
         titleText = 'PETTY CASH DISBURSEMENT VOUCHER';
         subtitleText = 'Official Cash Disbursement, Minor Expenses & Accounting Liquidation Record';
         metaLeft = [
-          ['Company / Entity:', p.company_name || p.company || 'R-II Builders, Inc.'],
-          ['PO No. / PRF / Ref:', p.ref_no || '—'],
-          ['Project / Charge To:', p.project || 'Head Office'],
-          ['Department:', p.department || 'Admin']
+          ['Company / Entity:', 'R-II Builders, Inc.'],
+          ['Department:', p.department || 'Admin'],
+          ['Payee / Supplier:', p.payee || '—']
         ];
         metaRight = [
           ['PCV Date:', formatDisplayDate(p.date)],
@@ -8366,10 +8332,7 @@
       if (e && e.preventDefault) e.preventDefault();
 
       const pcvNo = (document.getElementById('pcVoucherNo')?.value || '').trim();
-      const refNo = (document.getElementById('pcReferenceNo')?.value || '').trim();
       const dateVal = document.getElementById('pcDate')?.value || new Date().toISOString().split('T')[0];
-      const project = (document.getElementById('pcProject')?.value || '').trim();
-      const company = document.getElementById('pcCompany')?.value || '';
       const department = document.getElementById('pcDepartment')?.value || '';
       const payee = (document.getElementById('pcPayee')?.value || '').trim();
       const expenseAccount = document.getElementById('pcExpenseAccount')?.value || 'Miscellaneous';
@@ -8378,16 +8341,8 @@
         showSystemAlert('Missing Field', 'Please enter a valid PCV Number.', false);
         return;
       }
-      if (!refNo) {
-        showSystemAlert('Missing Field', 'Please enter PO No. / Reference / PRF No.', false);
-        return;
-      }
       if (!dateVal) {
         showSystemAlert('Missing Field', 'Please specify the PCV Date.', false);
-        return;
-      }
-      if (!company) {
-        showSystemAlert('Missing Field', 'Please select a Company.', false);
         return;
       }
       if (!department) {
@@ -8434,11 +8389,11 @@
       const voucherRecord = {
         id: editingPcvId || ('pcv_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6)),
         pcv_no: pcvNo,
-        ref_no: refNo,
+        ref_no: '',
         date: dateVal,
-        project: project || 'Head Office',
-        company: company,
-        company_name: getCompanyFullName(company),
+        project: '',
+        company: 'RBI',
+        company_name: 'R-II Builders, Inc.',
         department: department,
         payee: payee,
         expense_account: expenseAccount,
@@ -8535,17 +8490,8 @@
       const vNo = document.getElementById('pcVoucherNo');
       if (vNo) vNo.value = p.pcv_no || '';
 
-      const refNo = document.getElementById('pcReferenceNo');
-      if (refNo) refNo.value = p.ref_no || '';
-
       const dInput = document.getElementById('pcDate');
       if (dInput) dInput.value = p.date ? p.date.substring(0, 10) : '';
-
-      const proj = document.getElementById('pcProject');
-      if (proj) proj.value = p.project || '';
-
-      const comp = document.getElementById('pcCompany');
-      if (comp) comp.value = p.company || '';
 
       const dept = document.getElementById('pcDepartment');
       if (dept) dept.value = p.department || '';
@@ -8635,9 +8581,7 @@
       if (search) {
         list = list.filter(v => {
           return (v.pcv_no || '').toLowerCase().includes(search) ||
-            (v.ref_no || '').toLowerCase().includes(search) ||
             (v.payee || '').toLowerCase().includes(search) ||
-            (v.project || '').toLowerCase().includes(search) ||
             (v.department || '').toLowerCase().includes(search) ||
             (v.expense_account || '').toLowerCase().includes(search) ||
             (v.items_desc || '').toLowerCase().includes(search);
@@ -8647,7 +8591,7 @@
       if (list.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="10" style="text-align:center; padding:48px 20px; color:var(--text-muted);">
+            <td colspan="9" style="text-align:center; padding:48px 20px; color:var(--text-muted);">
               <i class="fa-solid fa-money-bill-wave" style="font-size:2rem; opacity:0.4; margin-bottom:10px; display:block; color:var(--accent);"></i>
               <strong style="font-size:0.95rem;">No Petty Cash Vouchers Found</strong>
               <div style="font-size:0.82rem; margin-top:4px;">Use the Petty Cash Voucher (PCV) form above to disburse cash and record expenditures.</div>
@@ -8659,15 +8603,13 @@
 
       tbody.innerHTML = list.map(v => {
         const formattedDate = formatDisplayDate(v.date);
-        const displayProjectDept = [v.project, v.department].filter(Boolean).join(' / ') || 'Admin';
         const itemsText = v.items_desc || (Array.isArray(v.items) ? v.items.map(it => `${it.desc} (${it.qty} ${it.uom})`).join(', ') : '—');
         return `
           <tr>
             <td style="white-space:nowrap;">${escapeHtml(formattedDate)}</td>
             <td><span class="code-badge" style="font-family:monospace; font-weight:800; color:var(--primary);">${escapeHtml(v.pcv_no)}</span></td>
-            <td><span style="font-weight:700; color:#334155;">${escapeHtml(v.ref_no || '—')}</span></td>
             <td><strong>${escapeHtml(v.payee || '—')}</strong></td>
-            <td>${escapeHtml(displayProjectDept)}</td>
+            <td><span style="font-weight:600; color:#334155;">${escapeHtml(v.department || 'Admin')}</span></td>
             <td><span style="font-size:0.8rem; font-weight:700; color:#475569; background:#f1f5f9; padding:2px 8px; border-radius:4px;">${escapeHtml(v.expense_account || 'Miscellaneous')}</span></td>
             <td style="max-width:280px; font-size:0.82rem;">${escapeHtml(itemsText)}</td>
             <td style="text-align:right;"><strong style="color:var(--success); font-size:0.88rem;">${formatCurrency(v.total_amount || 0)}</strong></td>
@@ -8694,14 +8636,11 @@
         return;
       }
 
-      let csv = 'PCV No,Reference / PRF No,Date Disbursed,Company,Department,Project,Payee / Supplier,Expense Type,Items,Total Amount,Condition,Disbursed By\n';
+      let csv = 'PCV No,Date Disbursed,Department,Payee / Supplier,Expense Type,Items,Total Amount,Condition,Disbursed By\n';
       pettyCashVouchers.forEach(v => {
         const pcvNo = `"${(v.pcv_no || '').replace(/"/g, '""')}"`;
-        const refNo = `"${(v.ref_no || '').replace(/"/g, '""')}"`;
         const d = `"${formatDisplayDate(v.date)}"`;
-        const comp = `"${(v.company_name || v.company || '').replace(/"/g, '""')}"`;
         const dept = `"${(v.department || '').replace(/"/g, '""')}"`;
-        const proj = `"${(v.project || '').replace(/"/g, '""')}"`;
         const payee = `"${(v.payee || '').replace(/"/g, '""')}"`;
         const exp = `"${(v.expense_account || '').replace(/"/g, '""')}"`;
         const items = `"${(v.items_desc || '').replace(/"/g, '""')}"`;
@@ -8709,7 +8648,7 @@
         const cond = `"${(v.condition || 'Disbursed').replace(/"/g, '""')}"`;
         const cust = `"${(v.custodian || 'System Admin').replace(/"/g, '""')}"`;
 
-        csv += `${pcvNo},${refNo},${d},${comp},${dept},${proj},${payee},${exp},${items},${amt},${cond},${cust}\n`;
+        csv += `${pcvNo},${d},${dept},${payee},${exp},${items},${amt},${cond},${cust}\n`;
       });
 
       downloadCSV(csv, `Petty_Cash_Vouchers_${new Date().toISOString().split('T')[0]}.csv`);
