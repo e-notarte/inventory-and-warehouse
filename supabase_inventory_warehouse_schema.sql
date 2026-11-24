@@ -187,8 +187,8 @@ ALTER TABLE material_issuances ADD COLUMN IF NOT EXISTS linked_supplies_id TEXT;
 
 -- 11. ON-HAND INVENTORY & STOCK MASTER
 CREATE TABLE IF NOT EXISTS on_hand_inventory (
-    item_id VARCHAR(100) PRIMARY KEY,
-    item_code VARCHAR(50),
+    item_code VARCHAR(80) PRIMARY KEY,
+    item_id VARCHAR(100),
     description TEXT NOT NULL,
     expense_account VARCHAR(150),
     category VARCHAR(150) DEFAULT 'General Supplies',
@@ -205,6 +205,9 @@ CREATE TABLE IF NOT EXISTS on_hand_inventory (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Ensure unique index exists on both item_code and item_id if already created
+CREATE UNIQUE INDEX IF NOT EXISTS idx_on_hand_inventory_item_code ON on_hand_inventory (item_code);
 
 -- 12. FIXED ASSET REGISTRY (FROM RECEIVING REPORTS WITH ITEM TYPE = FIXED ASSETS)
 CREATE TABLE IF NOT EXISTS fixed_assets_registry (

@@ -5384,7 +5384,7 @@
             inventoryItems.splice(invIdx, 1);
             sbSyncBackground(() => sbDeleteRow('on_hand_inventory', removedId, 'item_id'));
           } else {
-            sbSyncBackground(() => sbUpsertRows('on_hand_inventory', [inv], mapInventoryToSb, null, 'item_id'));
+            sbSyncBackground(() => sbUpsertRows('on_hand_inventory', [inv], mapInventoryToSb, null, 'item_code'));
           }
           saveInventoryItems();
         }
@@ -5450,7 +5450,7 @@
         if (!deferPersist) {
           saveInventoryItems();
           populateItemDropdowns();
-          sbSyncBackground(() => sbUpsertRows('on_hand_inventory', [inv], mapInventoryToSb, null, 'item_id'));
+          sbSyncBackground(() => sbUpsertRows('on_hand_inventory', [inv], mapInventoryToSb, null, 'item_code'));
         }
         item.posted_created_new = createdNew;
       } else if (CATEGORY_REGISTRIES[target.key]) {
@@ -7894,7 +7894,7 @@
         item.on_hand_qty = Math.max(0, item.on_hand_qty - qty);
         item.on_hand_value = item.on_hand_qty * item.unit_cost;
         saveInventoryItems();
-        sbSyncBackground(() => sbUpsertRows('on_hand_inventory', [item], mapInventoryToSb, null, 'item_id'));
+        sbSyncBackground(() => sbUpsertRows('on_hand_inventory', [item], mapInventoryToSb, null, 'item_code'));
 
         // If linked to an approved supplies request, update status to Issued!
         if (linkedSupId) {
@@ -8071,7 +8071,7 @@
         }
         item.on_hand_value = item.on_hand_qty * item.unit_cost;
         saveInventoryItems();
-        sbSyncBackground(() => sbUpsertRows('on_hand_inventory', [item], mapInventoryToSb, null, 'item_id'));
+        sbSyncBackground(() => sbUpsertRows('on_hand_inventory', [item], mapInventoryToSb, null, 'item_code'));
         closeModal('modalAdjustStock');
         renderAll();
         showSystemAlert('Inventory Adjusted', `${item.item_code} adjusted by ${qty} units (${reason}).`);
@@ -9113,7 +9113,7 @@
       saveStocks2025State();
       populateItemDropdowns();
       populateSlipItemCodeDatalist();
-      sbSyncBackground(() => sbUpsertRows('on_hand_inventory', [inv], mapInventoryToSb, null, 'item_id'));
+      sbSyncBackground(() => sbUpsertRows('on_hand_inventory', [inv], mapInventoryToSb, null, 'item_code'));
       sbSyncBackground(() => sbUpsertRows('stocks_2025', [row], mapStocks2025ToSb, null, 'id'));
       renderAll();
       showSystemAlert('2025 Stock Added', `Added ${row.posted_qty} ${row.uom} of "${row.item_code}" (${row.description}) to On-Hand Inventory.`, true);
@@ -9146,7 +9146,7 @@
               inventoryItems.splice(invIdx, 1);
               sbSyncBackground(() => sbDeleteRow('on_hand_inventory', removedId, 'item_id'));
             } else {
-              sbSyncBackground(() => sbUpsertRows('on_hand_inventory', [inv], mapInventoryToSb, null, 'item_id'));
+              sbSyncBackground(() => sbUpsertRows('on_hand_inventory', [inv], mapInventoryToSb, null, 'item_code'));
             }
           }
 
@@ -9194,7 +9194,7 @@
           saveStocks2025State();
           populateItemDropdowns();
           populateSlipItemCodeDatalist();
-          sbSyncBackground(() => sbUpsertRows('on_hand_inventory', Array.from(touchedInv.values()), mapInventoryToSb, null, 'item_id'));
+          sbSyncBackground(() => sbUpsertRows('on_hand_inventory', Array.from(touchedInv.values()), mapInventoryToSb, null, 'item_code'));
           sbSyncBackground(() => sbUpsertRows('stocks_2025', ready, mapStocks2025ToSb, null, 'id'));
           renderAll();
           showSystemAlert('2025 Stocks Added to Inventory', `Successfully added ${totalQty.toLocaleString()} units across ${ready.length} row(s) to On-Hand Inventory.`, true);
@@ -10357,13 +10357,15 @@
     }
 
     function mapInventoryToSb(it) {
+      const code = String(it.item_code || it.item_id || ('ITEM-' + Math.random().toString(36).substr(2, 6).toUpperCase())).trim();
+      const idVal = String(it.item_id || it.item_code || code).trim();
       const qty = Number(it.on_hand_qty) || 0;
       return {
-        item_code: String(it.item_code || it.item_id || ''),
-        item_id: String(it.item_id || it.item_code || ''),
-        description: it.description || '',
+        item_code: code,
+        item_id: idVal,
+        description: it.description || 'Inventory Item',
         expense_account: it.expense_account || '',
-        category: it.expense_account || 'General Supplies',
+        category: it.category || it.expense_account || 'General Supplies',
         uom: it.uom || 'PCS',
         stock_2025_qty: Number(it.stock_2025_qty) || 0,
         deliveries_2026_qty: Number(it.deliveries_2026_qty) || 0,
@@ -10502,18 +10504,30 @@
             await sbDeleteSupplyRequestDirect(op.target);
             res = { ok: true };
           } else {
-            const mapper = SB_MAPPERS[op.mapper] || ((x) => x);
-            const fallback = op.fallbackMapper ? SB_MAPPERS[op.fallbackMapper] : null;
-            res = await sbUpsertRowsDirect(op.table, op.records, mapper, fallback, op.onConflict || 'id');
+            // Auto-repair legacy conflict column for on_hand_inventory
+          if (op.table === 'on_hand_inventory' && op.onConflict === 'item_id') {
+            op.onConflict = 'item_code';
           }
+          const mapper = SB_MAPPERS[op.mapper] || ((x) => x);
+          const fallback = op.fallbackMapper ? SB_MAPPERS[op.fallbackMapper] : null;
+          res = await sbUpsertRowsDirect(op.table, op.records, mapper, fallback, op.onConflict || 'id');
+        }
 
-          if (!res || res.ok === false) {
+        if (!res || res.ok === false) {
+          op.retries = (op.retries || 0) + 1;
+          if (op.retries < 4) {
             failedQueue.push(op);
+          } else {
+            console.warn(`[Auto-Sync] Dropping permanently rejected operation after ${op.retries} attempts on "${op.table}":`, res?.error || res);
           }
-        } catch (e) {
-          console.warn('[Auto-Sync] Failed to sync offline item:', e);
+        }
+      } catch (e) {
+        console.warn('[Auto-Sync] Failed to sync offline item:', e);
+        op.retries = (op.retries || 0) + 1;
+        if (op.retries < 4) {
           failedQueue.push(op);
         }
+      }
       }
 
       isFlushingOfflineQueue = false;
@@ -10555,21 +10569,44 @@
           body: JSON.stringify(payload)
         });
 
-        if (res.status === 400 && fallbackMapper) {
-          payload = chunk.map(fallbackMapper);
-          if (onConflict) {
+        if (!res.ok && res.status === 400) {
+          const errClone = await res.clone().text().catch(() => '');
+          // Handle mismatch in conflict target column (e.g. 42P10 constraint mismatch)
+          if (errClone.includes('42P10') || errClone.includes('ON CONFLICT') || (table === 'on_hand_inventory' && onConflict === 'item_id')) {
+            const altConflict = (table === 'on_hand_inventory')
+              ? (onConflict === 'item_id' ? 'item_code' : 'item_id')
+              : (onConflict === 'id' ? 'item_code' : 'id');
+            const altQuery = `?on_conflict=${encodeURIComponent(altConflict)}`;
+            let altPayload = chunk.map(primaryMapper);
             const dedupMap = new Map();
-            payload.forEach(row => {
-              const k = row[onConflict];
+            altPayload.forEach(row => {
+              const k = row[altConflict];
               if (k !== undefined && k !== null) dedupMap.set(String(k), row);
             });
-            payload = Array.from(dedupMap.values());
+            altPayload = Array.from(dedupMap.values());
+            res = await fetch(`${SUPABASE_URL}/rest/v1/${table}${altQuery}`, {
+              method: 'POST',
+              headers: sbHeaders({ 'Prefer': 'resolution=merge-duplicates,return=minimal' }),
+              body: JSON.stringify(altPayload)
+            });
           }
-          res = await fetch(`${SUPABASE_URL}/rest/v1/${table}${query}`, {
-            method: 'POST',
-            headers: sbHeaders({ 'Prefer': 'resolution=merge-duplicates,return=minimal' }),
-            body: JSON.stringify(payload)
-          });
+
+          if (!res.ok && fallbackMapper) {
+            payload = chunk.map(fallbackMapper);
+            if (onConflict) {
+              const dedupMap = new Map();
+              payload.forEach(row => {
+                const k = row[onConflict];
+                if (k !== undefined && k !== null) dedupMap.set(String(k), row);
+              });
+              payload = Array.from(dedupMap.values());
+            }
+            res = await fetch(`${SUPABASE_URL}/rest/v1/${table}${query}`, {
+              method: 'POST',
+              headers: sbHeaders({ 'Prefer': 'resolution=merge-duplicates,return=minimal' }),
+              body: JSON.stringify(payload)
+            });
+          }
         }
 
         if (!res.ok) {
@@ -11138,7 +11175,7 @@
         { label: 'Receiving Reports', table: 'receiving_reports', fn: () => sbUpsertRows('receiving_reports', receivingReports, mapRrToSbFull, mapRrToSbCore, 'id') },
         { label: 'RR Masterfile Register', table: 'rr_masterfile_registry', fn: () => sbUpsertRows('rr_masterfile_registry', rrMasterfile, mapRrMasterfileToSb, null, 'id') },
         { label: 'Material Issuances', table: 'material_issuances', fn: () => sbUpsertRows('material_issuances', materialIssuances, mapMisToSbFull, mapMisToSbCore, 'id') },
-        { label: 'On-Hand Inventory', table: 'on_hand_inventory', fn: () => sbUpsertRows('on_hand_inventory', inventoryItems, mapInventoryToSb, null, 'item_id') },
+        { label: 'On-Hand Inventory', table: 'on_hand_inventory', fn: () => sbUpsertRows('on_hand_inventory', inventoryItems, mapInventoryToSb, null, 'item_code') },
         { label: 'Stocks from 2025', table: 'stocks_2025', fn: () => sbUpsertRows('stocks_2025', stocks2025Items, mapStocks2025ToSb, null, 'id') },
         { label: 'Fixed Asset Registry', table: 'fixed_assets_registry', fn: () => sbUpsertRows('fixed_assets_registry', fixedAssets, mapCategoryRecordToSb, null, 'id') },
         { label: 'Services Registry', table: 'services_registry', fn: () => sbUpsertRows('services_registry', serviceRecords, mapCategoryRecordToSb, null, 'id') },
