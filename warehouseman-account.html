@@ -2635,6 +2635,14 @@
               </div>
             </a>
           </li>
+          <li class="nav-item" data-view="view-petty-cash">
+            <a href="javascript:void(0)" onclick="switchView('view-petty-cash', this)">
+              <div class="nav-label-wrap">
+                <i class="fa-solid fa-money-bill-wave"></i>
+                <span>Petty Cash (PCV)</span>
+              </div>
+            </a>
+          </li>
           <li class="nav-item" data-view="view-issuance">
             <a href="javascript:void(0)" onclick="switchView('view-issuance', this)">
               <div class="nav-label-wrap">
@@ -2696,14 +2704,6 @@
               <div class="nav-label-wrap">
                 <i class="fa-solid fa-boxes-packing"></i>
                 <span>Stocks from 2025</span>
-              </div>
-            </a>
-          </li>
-          <li class="nav-item" data-view="view-petty-cash">
-            <a href="javascript:void(0)" onclick="switchView('view-petty-cash', this)">
-              <div class="nav-label-wrap">
-                <i class="fa-solid fa-money-bill-wave"></i>
-                <span>Petty Cash (PCV)</span>
               </div>
             </a>
           </li>
@@ -3249,6 +3249,271 @@
         </div>
       </section>
 
+<!-- ============================================================== -->
+      <!-- VIEW: PETTY CASH VOUCHER (PCV) -->
+      <!-- ============================================================== -->
+<!-- PETTY CASH ENTRY VIEW -->
+<div id="view-petty-cash" class="view-section">
+  <!-- FORM ENTRY CARD -->
+  <div class="data-card" style="margin-bottom: 24px; padding: 24px; border-radius: 12px; box-shadow: 0 4px 18px rgba(0,0,0,0.06); border: 1px solid var(--border); background: #ffffff;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:18px;">
+      <div>
+        <div style="font-size:0.75rem; font-weight:800; color:var(--accent); letter-spacing:1px; text-transform:uppercase;">
+          FINANCIAL DISBURSEMENT SYSTEM
+        </div>
+        <h2 style="margin:2px 0 4px; font-size:1.3rem; color:var(--primary); font-weight:800; display:flex; align-items:center; gap:10px;">
+          <i class="fa-solid fa-money-bill-wave" style="color:var(--accent);"></i> Petty Cash Voucher (PCV)
+        </h2>
+        <span style="font-size:0.82rem; color:var(--text-muted);">
+          Admin Entry &amp; Cash Disbursement Log
+        </span>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button type="button" class="btn-primary" onclick="exportPettyCashCSV()"
+          style="font-size:0.82rem; padding:8px 16px; background:#0284c7; border-radius:6px; font-weight:700;">
+          <i class="fa-solid fa-file-excel"></i> Export CSV
+        </button>
+      </div>
+    </div>
+
+    <form id="pettyCashEntryForm" novalidate onsubmit="event.preventDefault(); submitPettyCashVoucher(event);">
+      <!-- Top Metadata Grid (2-column layout matching the screenshot) -->
+      <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:16px; background:#f8fafc; border:1px solid var(--border); border-radius:8px; padding:18px; margin-bottom:20px;">
+        <!-- Row 1 -->
+        <div>
+          <label style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
+            <span style="color:var(--accent);">#</span> PCV No. <span style="color:#ef4444;">*</span>
+          </label>
+          <input type="text" id="pcVoucherNo" required placeholder="e.g. PCV-2026-0001"
+            style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; font-weight:800; font-family:monospace; color:var(--primary); background:white; box-sizing:border-box;">
+        </div>
+
+        <div>
+          <label style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
+            <i class="fa-solid fa-file-lines" style="color:var(--accent); margin-right:4px;"></i> PO No. / Reference / PRF No. <span style="color:#ef4444;">*</span>
+          </label>
+          <input type="text" id="pcReferenceNo" required placeholder="Type or select Reference No. (e.g. PRF-2026-001)"
+            style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; font-weight:700; color:var(--primary); background:white; box-sizing:border-box;">
+        </div>
+
+        <!-- Row 2 -->
+        <div>
+          <label style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
+            <i class="fa-solid fa-calendar-day" style="color:var(--accent); margin-right:4px;"></i> PCV Date <span style="color:#ef4444;">*</span>
+          </label>
+          <input type="date" id="pcDate" required
+            style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; font-weight:700; color:var(--primary); background:white; box-sizing:border-box;">
+        </div>
+
+        <div>
+          <label style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
+            <i class="fa-solid fa-diagram-project" style="color:var(--accent); margin-right:4px;"></i> Project / Charge To
+          </label>
+          <input type="text" id="pcProject" placeholder="e.g. Head Office, Skyway Project, Depot Maintenance"
+            style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; font-weight:700; color:var(--primary); background:white; box-sizing:border-box;">
+        </div>
+
+        <!-- Row 3 -->
+        <div>
+          <label style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
+            <i class="fa-solid fa-landmark" style="color:var(--accent); margin-right:4px;"></i> Company <span style="color:#ef4444;">*</span>
+          </label>
+          <select id="pcCompany" required onchange="handlePettyCashCompanyChange()"
+            style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; font-weight:700; color:var(--primary); background:white; box-sizing:border-box;">
+            <option value="" disabled selected>-- Select Company --</option>
+            <option value="RBI">R-II Builders, Inc. (RBI)</option>
+            <option value="RMRCI">R-II Metro Rail Transport Services, Inc. (RMRCI)</option>
+            <option value="PESC">Philippine Ecology Systems Corp. (PESC)</option>
+            <option value="RLAND">R-Land Development Inc. (RLAND)</option>
+            <option value="FRHI">First R-II Holdings Inc. (FRHI)</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
+            <i class="fa-solid fa-users" style="color:var(--accent); margin-right:4px;"></i> Department <span style="color:#ef4444;">*</span>
+          </label>
+          <select id="pcDepartment" required
+            style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; font-weight:700; color:var(--primary); background:white; box-sizing:border-box;">
+            <option value="" disabled selected>-- Select Department --</option>
+            <option value="Admin">Admin</option>
+            <option value="HR">HR</option>
+            <option value="Purchasing">Purchasing</option>
+            <option value="BDG">BDG</option>
+            <option value="Engineering">Engineering</option>
+            <option value="Accounting">Accounting</option>
+            <option value="Finance">Finance</option>
+            <option value="Operations">Operations</option>
+          </select>
+        </div>
+
+        <!-- Row 4 -->
+        <div>
+          <label style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
+            <i class="fa-solid fa-user-tag" style="color:var(--accent); margin-right:4px;"></i> Payee / Supplier Name <span style="color:#ef4444;">*</span>
+          </label>
+          <input type="text" id="pcPayee" required placeholder="Enter Payee or Supplier Name"
+            style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; font-weight:700; color:var(--primary); background:white; box-sizing:border-box;">
+        </div>
+
+        <div>
+          <label style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
+            <i class="fa-solid fa-tags" style="color:var(--accent); margin-right:4px;"></i> Expense Account / Item Type
+          </label>
+          <select id="pcExpenseAccount"
+            style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; font-weight:700; color:var(--primary); background:white; box-sizing:border-box;">
+            <option value="Office Supplies">Office Supplies</option>
+            <option value="Fuel &amp; Oil">Fuel &amp; Oil</option>
+            <option value="Meals &amp; Representation">Meals &amp; Representation</option>
+            <option value="Transportation &amp; Travel">Transportation &amp; Travel</option>
+            <option value="Repairs &amp; Maintenance">Repairs &amp; Maintenance</option>
+            <option value="Communication &amp; Load">Communication &amp; Load</option>
+            <option value="Tools &amp; Hardware">Tools &amp; Hardware</option>
+            <option value="Postage &amp; Delivery">Postage &amp; Delivery</option>
+            <option value="Taxes &amp; Permits">Taxes &amp; Permits</option>
+            <option value="Miscellaneous">Miscellaneous</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Line Items Table Header (Matching the screenshot exactly) -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:10px;">
+        <h3 style="margin:0; font-size:0.95rem; font-weight:800; color:var(--primary); display:flex; align-items:center; gap:8px;">
+          <i class="fa-solid fa-list-check" style="color:var(--accent);"></i> Disbursed Line Items (Item Description, Qty, UOM, Unit Cost &amp; Total)
+        </h3>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <span style="font-size:0.75rem; color:var(--text-muted);">Items and descriptions for cash disbursement.</span>
+          <button type="button" class="btn-primary" onclick="addPettyCashItemRow()"
+            style="font-size:0.78rem; padding:6px 12px; background:#4f46e5; border-radius:4px; font-weight:700;">
+            <i class="fa-solid fa-plus"></i> Add Item
+          </button>
+        </div>
+      </div>
+
+      <!-- Line Items Grid Table -->
+      <div style="overflow-x:auto; margin-bottom:18px;">
+        <table style="width:100%; border-collapse:collapse; background:white; border-radius:6px; overflow:hidden; border:1px solid var(--border);">
+          <thead>
+            <tr style="background:#1e293b; color:white; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px;">
+              <th style="padding:10px 8px; width:45px; text-align:center;">#</th>
+              <th style="padding:10px 12px; min-width:280px; text-align:left;">Item Description <span style="color:#ef4444;">*</span></th>
+              <th style="padding:10px 8px; width:95px; text-align:center;">Qty <span style="color:#ef4444;">*</span></th>
+              <th style="padding:10px 8px; width:125px; text-align:center;">Unit of Measure</th>
+              <th style="padding:10px 10px; width:135px; text-align:right;">Unit Cost (₱) <span style="color:#ef4444;">*</span></th>
+              <th style="padding:10px 12px; width:150px; text-align:right;">Total Amount (₱) <span style="color:#ef4444;">*</span></th>
+              <th style="padding:10px 8px; width:50px; text-align:center;"></th>
+            </tr>
+          </thead>
+          <tbody id="pettyCashItemsBody">
+            <!-- Generated dynamic rows -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Bottom Summary & Action Row (Matching screenshot) -->
+      <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; border:1px solid var(--border); border-radius:8px; padding:16px 20px; flex-wrap:wrap; gap:16px;">
+        <div style="display:flex; align-items:center; gap:8px; font-size:0.84rem; color:#334155;">
+          <i class="fa-solid fa-user-check" style="color:var(--accent);"></i>
+          <span>Disbursed &amp; Certified by: <strong id="pcCustodianName" style="color:var(--primary);">System Admin</strong></span>
+        </div>
+        <div style="display:flex; align-items:center; gap:20px;">
+          <div style="font-size:1.05rem; font-weight:800; color:#334155;">
+            TOTAL AMOUNT: <span style="color:#16a34a; font-size:1.25rem;" id="pcTotalDisplay">₱ 0.00</span>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <button type="button" class="btn-primary" onclick="resetPettyCashForm()"
+              style="background:#64748b; padding:10px 18px; font-size:0.85rem; border-radius:6px; cursor:pointer;">
+              <i class="fa-solid fa-rotate-left"></i> Reset
+            </button>
+            <button type="submit" class="btn-primary" id="btnSubmitPettyCash"
+              style="padding:10px 22px; font-size:0.85rem; font-weight:700; background:#16a34a; border-radius:6px; cursor:pointer;">
+              <i class="fa-solid fa-floppy-disk"></i> Submit Petty Cash Voucher
+            </button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- MASTER PETTY CASH TABLE & FILTER CARD -->
+  <div class="data-card" style="padding: 24px; border-radius: 12px; box-shadow: 0 4px 18px rgba(0,0,0,0.06); border: 1px solid var(--border); background: #ffffff;">
+    <!-- Filter Controls (Department, Search, Month, Date, Export CSV) -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; flex-wrap:wrap; gap:12px;">
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; flex:1;">
+        <select id="pcDeptFilter" onchange="renderPettyCashTable()"
+          style="padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-size:0.82rem; font-weight:600; color:var(--primary); background:white;">
+          <option value="ALL">All Departments</option>
+        </select>
+
+        <div class="search-box" style="margin:0; width:100%; max-width:320px;">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="pcSearchInput" placeholder="Search PCV, PO, Payee, item..."
+            oninput="renderPettyCashTable()">
+        </div>
+
+        <select id="pcMonthFilter" onchange="renderPettyCashTable()"
+          style="padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-size:0.82rem; font-weight:600; color:var(--primary); background:white;">
+          <option value="ALL">All Months</option>
+          <option value="01">January</option>
+          <option value="02">February</option>
+          <option value="03">March</option>
+          <option value="04">April</option>
+          <option value="05">May</option>
+          <option value="06">June</option>
+          <option value="07">July</option>
+          <option value="08">August</option>
+          <option value="09">September</option>
+          <option value="10">October</option>
+          <option value="11">November</option>
+          <option value="12">December</option>
+        </select>
+
+        <input type="date" id="pcDateFilter" onchange="renderPettyCashTable()"
+          style="padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-size:0.82rem; font-weight:600; color:var(--primary); background:white;">
+      </div>
+
+      <div>
+        <button type="button" class="btn-primary" onclick="exportPettyCashCSV()"
+          style="font-size:0.82rem; padding:8px 16px; background:#0284c7; border-radius:6px; font-weight:700;">
+          <i class="fa-solid fa-file-excel"></i> Export CSV
+        </button>
+      </div>
+    </div>
+
+    <!-- Master Table -->
+    <div style="overflow-x:auto;">
+      <table class="dispatch-table" style="min-width: 1050px;">
+        <thead>
+          <tr>
+            <th style="width:120px;">Date Disbursed</th>
+            <th style="width:130px;">PCV No.</th>
+            <th style="width:150px;">PO / PRF No.</th>
+            <th style="min-width:180px;">Payee / Supplier</th>
+            <th style="min-width:160px;">Project / Dept</th>
+            <th style="width:150px;">Expense Type</th>
+            <th style="min-width:220px;">Particulars / Line Items</th>
+            <th style="width:130px; text-align:right;">Total Valuation</th>
+            <th style="width:110px; text-align:center;">Condition</th>
+            <th style="width:130px; text-align:center;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="pettyCashTableBody">
+          <!-- Dynamically populated -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Bottom Summary Badge Notice -->
+    <div style="margin-top:24px; padding:16px; text-align:center; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px;">
+      <div style="display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:50%; background:#22c55e; color:white; margin-bottom:6px;">
+        <i class="fa-solid fa-check"></i>
+      </div>
+      <div style="font-weight:700; color:#166534; font-size:0.95rem;">All Petty Cash Vouchers Recorded &amp; Accounted</div>
+      <div style="font-size:0.78rem; color:#15803d; margin-top:2px;">Disbursement entries are stored in the Masterfile Register and routed to respective accounting cost centers.</div>
+    </div>
+  </div>
+</div>
+
       <!-- ============================================================ -->
       <!-- VIEW 5: MATERIAL ISSUANCE SLIPS (MIS) -->
       <!-- ============================================================ -->
@@ -3773,271 +4038,6 @@
           </div>
         </div>
       </section>
-
-      <!-- ============================================================== -->
-      <!-- VIEW: PETTY CASH VOUCHER (PCV) -->
-      <!-- ============================================================== -->
-<!-- PETTY CASH ENTRY VIEW -->
-<div id="view-petty-cash" class="view-section">
-  <!-- FORM ENTRY CARD -->
-  <div class="data-card" style="margin-bottom: 24px; padding: 24px; border-radius: 12px; box-shadow: 0 4px 18px rgba(0,0,0,0.06); border: 1px solid var(--border); background: #ffffff;">
-    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:18px;">
-      <div>
-        <div style="font-size:0.75rem; font-weight:800; color:var(--accent); letter-spacing:1px; text-transform:uppercase;">
-          FINANCIAL DISBURSEMENT SYSTEM
-        </div>
-        <h2 style="margin:2px 0 4px; font-size:1.3rem; color:var(--primary); font-weight:800; display:flex; align-items:center; gap:10px;">
-          <i class="fa-solid fa-money-bill-wave" style="color:var(--accent);"></i> Petty Cash Voucher (PCV)
-        </h2>
-        <span style="font-size:0.82rem; color:var(--text-muted);">
-          Admin Entry &amp; Cash Disbursement Log
-        </span>
-      </div>
-      <div style="display:flex; gap:10px;">
-        <button type="button" class="btn-primary" onclick="exportPettyCashCSV()"
-          style="font-size:0.82rem; padding:8px 16px; background:#0284c7; border-radius:6px; font-weight:700;">
-          <i class="fa-solid fa-file-excel"></i> Export CSV
-        </button>
-      </div>
-    </div>
-
-    <form id="pettyCashEntryForm" novalidate onsubmit="event.preventDefault(); submitPettyCashVoucher(event);">
-      <!-- Top Metadata Grid (2-column layout matching the screenshot) -->
-      <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:16px; background:#f8fafc; border:1px solid var(--border); border-radius:8px; padding:18px; margin-bottom:20px;">
-        <!-- Row 1 -->
-        <div>
-          <label style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
-            <span style="color:var(--accent);">#</span> PCV No. <span style="color:#ef4444;">*</span>
-          </label>
-          <input type="text" id="pcVoucherNo" required placeholder="e.g. PCV-2026-0001"
-            style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; font-weight:800; font-family:monospace; color:var(--primary); background:white; box-sizing:border-box;">
-        </div>
-
-        <div>
-          <label style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
-            <i class="fa-solid fa-file-lines" style="color:var(--accent); margin-right:4px;"></i> PO No. / Reference / PRF No. <span style="color:#ef4444;">*</span>
-          </label>
-          <input type="text" id="pcReferenceNo" required placeholder="Type or select Reference No. (e.g. PRF-2026-001)"
-            style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; font-weight:700; color:var(--primary); background:white; box-sizing:border-box;">
-        </div>
-
-        <!-- Row 2 -->
-        <div>
-          <label style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
-            <i class="fa-solid fa-calendar-day" style="color:var(--accent); margin-right:4px;"></i> PCV Date <span style="color:#ef4444;">*</span>
-          </label>
-          <input type="date" id="pcDate" required
-            style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; font-weight:700; color:var(--primary); background:white; box-sizing:border-box;">
-        </div>
-
-        <div>
-          <label style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
-            <i class="fa-solid fa-diagram-project" style="color:var(--accent); margin-right:4px;"></i> Project / Charge To
-          </label>
-          <input type="text" id="pcProject" placeholder="e.g. Head Office, Skyway Project, Depot Maintenance"
-            style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; font-weight:700; color:var(--primary); background:white; box-sizing:border-box;">
-        </div>
-
-        <!-- Row 3 -->
-        <div>
-          <label style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
-            <i class="fa-solid fa-landmark" style="color:var(--accent); margin-right:4px;"></i> Company <span style="color:#ef4444;">*</span>
-          </label>
-          <select id="pcCompany" required onchange="handlePettyCashCompanyChange()"
-            style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; font-weight:700; color:var(--primary); background:white; box-sizing:border-box;">
-            <option value="" disabled selected>-- Select Company --</option>
-            <option value="RBI">R-II Builders, Inc. (RBI)</option>
-            <option value="RMRCI">R-II Metro Rail Transport Services, Inc. (RMRCI)</option>
-            <option value="PESC">Philippine Ecology Systems Corp. (PESC)</option>
-            <option value="RLAND">R-Land Development Inc. (RLAND)</option>
-            <option value="FRHI">First R-II Holdings Inc. (FRHI)</option>
-          </select>
-        </div>
-
-        <div>
-          <label style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
-            <i class="fa-solid fa-users" style="color:var(--accent); margin-right:4px;"></i> Department <span style="color:#ef4444;">*</span>
-          </label>
-          <select id="pcDepartment" required
-            style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; font-weight:700; color:var(--primary); background:white; box-sizing:border-box;">
-            <option value="" disabled selected>-- Select Department --</option>
-            <option value="Admin">Admin</option>
-            <option value="HR">HR</option>
-            <option value="Purchasing">Purchasing</option>
-            <option value="BDG">BDG</option>
-            <option value="Engineering">Engineering</option>
-            <option value="Accounting">Accounting</option>
-            <option value="Finance">Finance</option>
-            <option value="Operations">Operations</option>
-          </select>
-        </div>
-
-        <!-- Row 4 -->
-        <div>
-          <label style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
-            <i class="fa-solid fa-user-tag" style="color:var(--accent); margin-right:4px;"></i> Payee / Supplier Name <span style="color:#ef4444;">*</span>
-          </label>
-          <input type="text" id="pcPayee" required placeholder="Enter Payee or Supplier Name"
-            style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; font-weight:700; color:var(--primary); background:white; box-sizing:border-box;">
-        </div>
-
-        <div>
-          <label style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
-            <i class="fa-solid fa-tags" style="color:var(--accent); margin-right:4px;"></i> Expense Account / Item Type
-          </label>
-          <select id="pcExpenseAccount"
-            style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; font-weight:700; color:var(--primary); background:white; box-sizing:border-box;">
-            <option value="Office Supplies">Office Supplies</option>
-            <option value="Fuel &amp; Oil">Fuel &amp; Oil</option>
-            <option value="Meals &amp; Representation">Meals &amp; Representation</option>
-            <option value="Transportation &amp; Travel">Transportation &amp; Travel</option>
-            <option value="Repairs &amp; Maintenance">Repairs &amp; Maintenance</option>
-            <option value="Communication &amp; Load">Communication &amp; Load</option>
-            <option value="Tools &amp; Hardware">Tools &amp; Hardware</option>
-            <option value="Postage &amp; Delivery">Postage &amp; Delivery</option>
-            <option value="Taxes &amp; Permits">Taxes &amp; Permits</option>
-            <option value="Miscellaneous">Miscellaneous</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Line Items Table Header (Matching the screenshot exactly) -->
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:10px;">
-        <h3 style="margin:0; font-size:0.95rem; font-weight:800; color:var(--primary); display:flex; align-items:center; gap:8px;">
-          <i class="fa-solid fa-list-check" style="color:var(--accent);"></i> Disbursed Line Items (Item Description, Qty, UOM, Unit Cost &amp; Total)
-        </h3>
-        <div style="display:flex; gap:8px; align-items:center;">
-          <span style="font-size:0.75rem; color:var(--text-muted);">Items and descriptions for cash disbursement.</span>
-          <button type="button" class="btn-primary" onclick="addPettyCashItemRow()"
-            style="font-size:0.78rem; padding:6px 12px; background:#4f46e5; border-radius:4px; font-weight:700;">
-            <i class="fa-solid fa-plus"></i> Add Item
-          </button>
-        </div>
-      </div>
-
-      <!-- Line Items Grid Table -->
-      <div style="overflow-x:auto; margin-bottom:18px;">
-        <table style="width:100%; border-collapse:collapse; background:white; border-radius:6px; overflow:hidden; border:1px solid var(--border);">
-          <thead>
-            <tr style="background:#1e293b; color:white; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px;">
-              <th style="padding:10px 8px; width:45px; text-align:center;">#</th>
-              <th style="padding:10px 12px; min-width:280px; text-align:left;">Item Description <span style="color:#ef4444;">*</span></th>
-              <th style="padding:10px 8px; width:95px; text-align:center;">Qty <span style="color:#ef4444;">*</span></th>
-              <th style="padding:10px 8px; width:125px; text-align:center;">Unit of Measure</th>
-              <th style="padding:10px 10px; width:135px; text-align:right;">Unit Cost (₱) <span style="color:#ef4444;">*</span></th>
-              <th style="padding:10px 12px; width:150px; text-align:right;">Total Amount (₱) <span style="color:#ef4444;">*</span></th>
-              <th style="padding:10px 8px; width:50px; text-align:center;"></th>
-            </tr>
-          </thead>
-          <tbody id="pettyCashItemsBody">
-            <!-- Generated dynamic rows -->
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Bottom Summary & Action Row (Matching screenshot) -->
-      <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; border:1px solid var(--border); border-radius:8px; padding:16px 20px; flex-wrap:wrap; gap:16px;">
-        <div style="display:flex; align-items:center; gap:8px; font-size:0.84rem; color:#334155;">
-          <i class="fa-solid fa-user-check" style="color:var(--accent);"></i>
-          <span>Disbursed &amp; Certified by: <strong id="pcCustodianName" style="color:var(--primary);">System Admin</strong></span>
-        </div>
-        <div style="display:flex; align-items:center; gap:20px;">
-          <div style="font-size:1.05rem; font-weight:800; color:#334155;">
-            TOTAL AMOUNT: <span style="color:#16a34a; font-size:1.25rem;" id="pcTotalDisplay">₱ 0.00</span>
-          </div>
-          <div style="display:flex; gap:10px;">
-            <button type="button" class="btn-primary" onclick="resetPettyCashForm()"
-              style="background:#64748b; padding:10px 18px; font-size:0.85rem; border-radius:6px; cursor:pointer;">
-              <i class="fa-solid fa-rotate-left"></i> Reset
-            </button>
-            <button type="submit" class="btn-primary" id="btnSubmitPettyCash"
-              style="padding:10px 22px; font-size:0.85rem; font-weight:700; background:#16a34a; border-radius:6px; cursor:pointer;">
-              <i class="fa-solid fa-floppy-disk"></i> Submit Petty Cash Voucher
-            </button>
-          </div>
-        </div>
-      </div>
-    </form>
-  </div>
-
-  <!-- MASTER PETTY CASH TABLE & FILTER CARD -->
-  <div class="data-card" style="padding: 24px; border-radius: 12px; box-shadow: 0 4px 18px rgba(0,0,0,0.06); border: 1px solid var(--border); background: #ffffff;">
-    <!-- Filter Controls (Department, Search, Month, Date, Export CSV) -->
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; flex-wrap:wrap; gap:12px;">
-      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; flex:1;">
-        <select id="pcDeptFilter" onchange="renderPettyCashTable()"
-          style="padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-size:0.82rem; font-weight:600; color:var(--primary); background:white;">
-          <option value="ALL">All Departments</option>
-        </select>
-
-        <div class="search-box" style="margin:0; width:100%; max-width:320px;">
-          <i class="fa-solid fa-magnifying-glass"></i>
-          <input type="text" id="pcSearchInput" placeholder="Search PCV, PO, Payee, item..."
-            oninput="renderPettyCashTable()">
-        </div>
-
-        <select id="pcMonthFilter" onchange="renderPettyCashTable()"
-          style="padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-size:0.82rem; font-weight:600; color:var(--primary); background:white;">
-          <option value="ALL">All Months</option>
-          <option value="01">January</option>
-          <option value="02">February</option>
-          <option value="03">March</option>
-          <option value="04">April</option>
-          <option value="05">May</option>
-          <option value="06">June</option>
-          <option value="07">July</option>
-          <option value="08">August</option>
-          <option value="09">September</option>
-          <option value="10">October</option>
-          <option value="11">November</option>
-          <option value="12">December</option>
-        </select>
-
-        <input type="date" id="pcDateFilter" onchange="renderPettyCashTable()"
-          style="padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-size:0.82rem; font-weight:600; color:var(--primary); background:white;">
-      </div>
-
-      <div>
-        <button type="button" class="btn-primary" onclick="exportPettyCashCSV()"
-          style="font-size:0.82rem; padding:8px 16px; background:#0284c7; border-radius:6px; font-weight:700;">
-          <i class="fa-solid fa-file-excel"></i> Export CSV
-        </button>
-      </div>
-    </div>
-
-    <!-- Master Table -->
-    <div style="overflow-x:auto;">
-      <table class="dispatch-table" style="min-width: 1050px;">
-        <thead>
-          <tr>
-            <th style="width:120px;">Date Disbursed</th>
-            <th style="width:130px;">PCV No.</th>
-            <th style="width:150px;">PO / PRF No.</th>
-            <th style="min-width:180px;">Payee / Supplier</th>
-            <th style="min-width:160px;">Project / Dept</th>
-            <th style="width:150px;">Expense Type</th>
-            <th style="min-width:220px;">Particulars / Line Items</th>
-            <th style="width:130px; text-align:right;">Total Valuation</th>
-            <th style="width:110px; text-align:center;">Condition</th>
-            <th style="width:130px; text-align:center;">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="pettyCashTableBody">
-          <!-- Dynamically populated -->
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Bottom Summary Badge Notice -->
-    <div style="margin-top:24px; padding:16px; text-align:center; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px;">
-      <div style="display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:50%; background:#22c55e; color:white; margin-bottom:6px;">
-        <i class="fa-solid fa-check"></i>
-      </div>
-      <div style="font-weight:700; color:#166534; font-size:0.95rem;">All Petty Cash Vouchers Recorded &amp; Accounted</div>
-      <div style="font-size:0.78rem; color:#15803d; margin-top:2px;">Disbursement entries are stored in the Masterfile Register and routed to respective accounting cost centers.</div>
-    </div>
-  </div>
-</div>
 
       <!-- ============================================================== -->
       <!-- VIEW 7: DIRECTORY REGISTER (MASTER DATA MAPPING) -->
