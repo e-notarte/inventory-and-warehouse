@@ -3037,7 +3037,7 @@
         <div class="mrr-form-card">
           <div class="mrr-form-title-row">
             <i class="fa-solid fa-file-pen"></i>
-            <h2>Material Receiving Report (MRR)</h2>
+            <h2 id="mrrFormTitle">Material Receiving Report (MRR)</h2>
           </div>
           <p class="mrr-form-subtitle">Admin Entry</p>
 
@@ -3165,7 +3165,7 @@
                   <i class="fa-solid fa-rotate-left"></i> Reset
                 </button>
                 <button type="submit" class="btn-mrr-submit">
-                  <i class="fa-solid fa-circle-check"></i> Submit Receiving Report
+                  <i class="fa-solid fa-circle-check"></i> <span id="mrrSubmitLabel">Submit Receiving Report</span>
                 </button>
               </div>
             </div>
@@ -4629,6 +4629,7 @@
     let serviceRecords = [];
     let vehiclePmsRecords = [];
     let editingPoId = null;
+    let editingRrId = null;
     let capexRecords = [];
     let rrMasterfile = [];
     let stocks2025Items = [];
@@ -7028,6 +7029,7 @@
     }
 
     function resetMrrForm() {
+      editingRrId = null;
       const noInput = document.getElementById('mrrNoInput');
       if (noInput) noInput.value = getNextRrNumber();
 
@@ -7053,6 +7055,10 @@
         tbody.innerHTML = '';
         addMrrItemRow();
       }
+      const title = document.getElementById('mrrFormTitle');
+      if (title) title.textContent = 'Material Receiving Report (MRR)';
+      const submitLabel = document.getElementById('mrrSubmitLabel');
+      if (submitLabel) submitLabel.textContent = 'Submit Receiving Report';
       calcMrrFormTotals();
     }
 
@@ -7125,8 +7131,22 @@
       }
 
       const linkedPo = findMrrPoMatch(poNo, false);
-      const newRr = {
-        id: 'rr_' + Date.now(),
+      const existingRr = editingRrId ? receivingReports.find(r => r.id === editingRrId) : null;
+      if (editingRrId && !existingRr) {
+        showSystemAlert('Receiving Report Not Found', 'The receiving report could not be found for updating.', false);
+        return;
+      }
+
+      const preservedItems = existingRr && Array.isArray(existingRr.items) ? existingRr.items : [];
+      const updatedItems = lineItems.map((item, index) => {
+        const existingItem = preservedItems[index];
+        return existingItem && existingItem.item_code
+          ? { ...item, item_code: existingItem.item_code }
+          : item;
+      });
+      const updatedRr = {
+        ...(existingRr || {}),
+        id: existingRr?.id || 'rr_' + Date.now(),
         rr_no: rrNo,
         po_no: poNo,
         prf_no: linkedPo?.prf_no || '',
@@ -7135,21 +7155,30 @@
         project: project || 'Head Office',
         department: department || 'Admin',
         item_type: itemType || '',
-        dr_no: 'DR-' + Math.floor(10000 + Math.random() * 90000),
-        items: lineItems,
+        dr_no: existingRr?.dr_no || 'DR-' + Math.floor(10000 + Math.random() * 90000),
+        items: updatedItems,
         items_desc: itemsDesc,
         total_amount: grandTotal,
-        condition: 'Accepted in Good Condition',
-        inspector: 'System Admin',
-        created_at: new Date().toISOString()
+        condition: existingRr?.condition || 'Accepted in Good Condition',
+        inspector: existingRr?.inspector || 'System Admin',
+        created_at: existingRr?.created_at || new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
 
-      receivingReports.unshift(newRr);
+      if (existingRr) {
+        const index = receivingReports.findIndex(r => r.id === existingRr.id);
+        receivingReports[index] = updatedRr;
+      } else {
+        receivingReports.unshift(updatedRr);
+      }
       localStorage.setItem(RR_KEY, JSON.stringify(receivingReports));
-      syncRrToMasterfile(newRr, 'Active');
-      sbSyncBackground(() => sbUpsertRows('receiving_reports', [newRr], mapRrToSbFull, mapRrToSbCore, 'id'));
+      syncRrToMasterfile(updatedRr, 'Active');
+      sbSyncBackground(() => sbUpsertRows('receiving_reports', [updatedRr], mapRrToSbFull, mapRrToSbCore, 'id'));
 
-      showSystemAlert('Receiving Report Recorded', `MRR ${newRr.rr_no} saved and backed up to Masterfile.`);
+      showSystemAlert(
+        existingRr ? 'Receiving Report Updated' : 'Receiving Report Recorded',
+        `MRR ${updatedRr.rr_no} ${existingRr ? 'updated' : 'saved'} and backed up to Masterfile.`
+      );
       resetMrrForm();
       renderAll();
     }
@@ -7249,6 +7278,9 @@
             <button class="btn-slip-row" onclick="openDocumentSlip('rr', '${r.id}')" title="View Receiving Report Slip" style="margin-right:4px;">
               <i class="fa-solid fa-file-lines"></i> Slip
             </button>
+            <button class="btn btn-outline btn-sm" onclick="openUpdateRrForm('${r.id}')" title="Update Receiving Report" style="color:#0284c7; border-color:#bae6fd; margin-right:4px;">
+              <i class="fa-solid fa-pen-to-square"></i>
+            </button>
             <button class="btn btn-outline btn-sm" onclick="deleteRr('${r.id}')" title="Delete RR" style="color:#ef4444; border-color:#fee2e2;">
               <i class="fa-solid fa-trash"></i>
             </button>
@@ -7256,6 +7288,42 @@
         </tr>
       `;
       }).join('');
+    }
+
+    function openUpdateRrForm(id) {
+      const rr = receivingReports.find(r => r.id === id);
+      if (!rr) {
+        showSystemAlert('Receiving Report Not Found', 'The selected receiving report could not be found.', false);
+        return;
+      }
+
+      editingRrId = id;
+      switchView('view-receiving-report', document.querySelector('.nav-item[data-view="view-receiving-report"] a'));
+
+      document.getElementById('mrrNoInput').value = rr.rr_no || '';
+      document.getElementById('mrrPoSelect').value = rr.po_no || '';
+      setFormattedDateInputValue('mrrPoDateInput', rr.date || '');
+      document.getElementById('mrrProjectInput').value = rr.project || '';
+      document.getElementById('mrrDeptInput').value = rr.department || '';
+      document.getElementById('mrrSupplierInput').value = rr.supplier_name || '';
+      document.getElementById('mrrItemType').value = rr.item_type || '';
+
+      const tbody = document.getElementById('mrrItemsTableBody');
+      if (tbody) {
+        tbody.innerHTML = '';
+        const items = Array.isArray(rr.items) && rr.items.length
+          ? rr.items
+          : [{ desc: rr.items_desc || '', qty: 1, uom: 'Pcs', cost: rr.total_amount || 0 }];
+        items.forEach(item => addMrrItemRow(item));
+      }
+
+      const title = document.getElementById('mrrFormTitle');
+      if (title) title.textContent = 'Update Material Receiving Report (MRR)';
+      const submitLabel = document.getElementById('mrrSubmitLabel');
+      if (submitLabel) submitLabel.textContent = 'Update Receiving Report';
+      calcMrrFormTotals();
+      document.getElementById('mrrNoInput')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      document.getElementById('mrrNoInput')?.focus();
     }
 
     function deleteRr(id) {
@@ -9689,10 +9757,15 @@
     }
 
     async function sbDeleteRowDirect(table, id, matchCol = 'id') {
-      await fetch(`${SUPABASE_URL}/rest/v1/${table}?${matchCol}=eq.${encodeURIComponent(id)}`, {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${matchCol}=eq.${encodeURIComponent(id)}`, {
         method: 'DELETE',
         headers: sbHeaders({ 'Prefer': 'return=minimal' })
       });
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`Supabase delete failed for ${table}: ${res.status} ${errorText}`);
+      }
+      return { ok: true, status: res.status };
     }
 
     async function sbSyncSuppliesRequestsDirect(list) {
@@ -10090,19 +10163,13 @@
           return changed;
         };
 
-        await Promise.allSettled([
-          mergeRegistry('projects_registry', regProjects, REG_PROJECTS_KEY, r => ({ id: r.id, name: r.project_name, location: r.location || '' })),
-          mergeRegistry('departments_registry', regDepartments, REG_DEPTS_KEY, r => ({ id: r.id, name: r.department_name })),
-          mergeRegistry('suppliers_registry', regSuppliers, REG_SUPPLIERS_KEY, r => ({ id: r.id, name: r.supplier_name, address: r.address || '', tin: r.tin || '' })),
-          mergeRegistry('items_registry', regItems, REG_ITEMS_KEY, r => ({ id: r.id, code: r.item_code, description: r.description, uom: r.uom || 'PCS', unit_cost: Number(r.unit_cost) || 0 })),
-          mergeRegistry('chart_of_accounts_registry', regCoa, REG_COA_KEY, r => ({ id: r.id, code: r.account_code, title: r.account_title, category: r.category || '' })),
-          mergeRegistry('purchase_orders', purchaseOrders, PO_KEY, r => ({
-            id: r.id, po_no: r.po_no, prf_no: r.prf_no || '', date: r.date || '', project: r.project || '',
-            department: r.department || '', supplier_name: r.supplier_name || '',
-            items: mapSbItemsToLocal(r.items), items_desc: r.items_desc || '',
-            grand_total: Number(r.grand_total) || 0, status: r.status || 'Approved'
-          }), true),
-          mergeRegistry('receiving_reports', receivingReports, RR_KEY, r => {
+        const mergeReceivingReportsFromSb = async () => {
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/receiving_reports?select=*&limit=1000`, { headers: sbHeaders() });
+          if (!res.ok) return null;
+          const rows = await res.json();
+          if (!Array.isArray(rows)) return null;
+
+          const remoteReports = rows.map(r => {
             const localItems = mapSbItemsToLocal(r.items);
             return {
               id: r.id,
@@ -10123,7 +10190,26 @@
               inspector: r.inspector || r.received_by || 'System Admin',
               created_at: r.created_at || ''
             };
-          }, true),
+          });
+
+          receivingReports = remoteReports;
+          localStorage.setItem(RR_KEY, JSON.stringify(receivingReports));
+          return rows.length;
+        };
+
+        await Promise.allSettled([
+          mergeRegistry('projects_registry', regProjects, REG_PROJECTS_KEY, r => ({ id: r.id, name: r.project_name, location: r.location || '' })),
+          mergeRegistry('departments_registry', regDepartments, REG_DEPTS_KEY, r => ({ id: r.id, name: r.department_name })),
+          mergeRegistry('suppliers_registry', regSuppliers, REG_SUPPLIERS_KEY, r => ({ id: r.id, name: r.supplier_name, address: r.address || '', tin: r.tin || '' })),
+          mergeRegistry('items_registry', regItems, REG_ITEMS_KEY, r => ({ id: r.id, code: r.item_code, description: r.description, uom: r.uom || 'PCS', unit_cost: Number(r.unit_cost) || 0 })),
+          mergeRegistry('chart_of_accounts_registry', regCoa, REG_COA_KEY, r => ({ id: r.id, code: r.account_code, title: r.account_title, category: r.category || '' })),
+          mergeRegistry('purchase_orders', purchaseOrders, PO_KEY, r => ({
+            id: r.id, po_no: r.po_no, prf_no: r.prf_no || '', date: r.date || '', project: r.project || '',
+            department: r.department || '', supplier_name: r.supplier_name || '',
+            items: mapSbItemsToLocal(r.items), items_desc: r.items_desc || '',
+            grand_total: Number(r.grand_total) || 0, status: r.status || 'Approved'
+          }), true),
+          mergeReceivingReportsFromSb(),
           mergeRegistry('material_issuances', materialIssuances, MIS_KEY, r => {
             const localItems = mapSbItemsToLocal(r.items);
             return {
