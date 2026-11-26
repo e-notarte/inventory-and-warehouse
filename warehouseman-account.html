@@ -6885,6 +6885,314 @@
       return `${datePart}, ${timePart}`;
     }
 
+    
+    // ==============================================================
+    // RECYCLE BIN & SOFT-DELETE DATA RECOVERY SYSTEM
+    // ==============================================================
+    function mapRecycleBinToSb(item) {
+      return {
+        id: String(item.id),
+        source_module: item.source_module || '',
+        source_table: item.source_table || '',
+        record_id: String(item.record_id || ''),
+        record_identifier: item.record_identifier || '',
+        summary: item.summary || '',
+        record_data: typeof item.record_data === 'object' ? item.record_data : JSON.parse(item.record_data || '{}'),
+        deleted_by: item.deleted_by || 'Warehouseman (WA)',
+        deleted_at: item.deleted_at || new Date().toISOString(),
+        status: item.status || 'Deleted',
+        created_at: item.created_at || new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+    }
+
+    function moveToRecycleBin(moduleName, tableName, recordId, identifier, recordData, summary = '') {
+      const recycleItem = {
+        id: 'rec_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+        source_module: moduleName,
+        source_table: tableName,
+        record_id: String(recordId),
+        record_identifier: identifier || String(recordId),
+        summary: summary || (recordData ? (recordData.items_desc || recordData.description || recordData.purpose || recordData.name || '') : ''),
+        record_data: recordData,
+        deleted_by: 'Warehouseman (WA)',
+        deleted_at: new Date().toISOString(),
+        status: 'Deleted'
+      };
+
+      recycleBinItems.unshift(recycleItem);
+      localStorage.setItem(RECYCLE_BIN_KEY, JSON.stringify(recycleBinItems));
+      sbSyncBackground(() => sbUpsertRows('recycle_bin', [recycleItem], mapRecycleBinToSb, null, 'id'));
+      updateRecycleBinBadge();
+      renderRecycleBinTable();
+      return recycleItem;
+    }
+
+    function restoreFromRecycleBin(recycleId) {
+      const item = recycleBinItems.find(x => x.id === recycleId);
+      if (!item) return showSystemAlert('Error', 'Recycle bin record not found.', false);
+
+      const data = item.record_data;
+      const table = item.source_table;
+
+      showSystemConfirm('Restore Record', `Restore "${item.record_identifier}" back to ${item.source_module}?`, () => {
+        try {
+          if (table === 'purchase_orders') {
+            purchaseOrders.unshift(data);
+            localStorage.setItem(PO_KEY, JSON.stringify(purchaseOrders));
+            sbSyncBackground(() => sbUpsertRows('purchase_orders', [data], mapPoToSb, null, 'id'));
+          } else if (table === 'receiving_reports') {
+            receivingReports.unshift(data);
+            localStorage.setItem(RR_KEY, JSON.stringify(receivingReports));
+            syncRrToMasterfile(data, 'Active');
+            sbSyncBackground(() => sbUpsertRows('receiving_reports', [data], mapRrToSbFull, mapRrToSbCore, 'id'));
+          } else if (table === 'material_issuances') {
+            materialIssuances.unshift(data);
+            localStorage.setItem(MIS_KEY, JSON.stringify(materialIssuances));
+            sbSyncBackground(() => sbUpsertRows('material_issuances', [data], mapMisToSbFull, mapMisToSbCore, 'id'));
+          } else if (table === 'supplies_requests') {
+            suppliesRequests.unshift(data);
+            localStorage.setItem(SUP_KEY, JSON.stringify(suppliesRequests));
+            sbSyncBackground(() => sbSyncSuppliesRequests([data]));
+          } else if (table === 'petty_cash_vouchers') {
+            pettyCashVouchers.unshift(data);
+            localStorage.setItem(PCV_KEY, JSON.stringify(pettyCashVouchers));
+            sbSyncBackground(() => sbUpsertRows('petty_cash_vouchers', [data], mapPcvToSb, null, 'id'));
+          } else if (table === 'on_hand_inventory') {
+            inventoryItems.unshift(data);
+            saveInventoryItems();
+            sbSyncBackground(() => sbUpsertRows('on_hand_inventory', [data], mapInventoryToSb, null, 'item_code'));
+          } else if (table === 'fixed_assets_registry') {
+            faRegistry.unshift(data);
+            localStorage.setItem(FA_KEY, JSON.stringify(faRegistry));
+            sbSyncBackground(() => sbUpsertRows('fixed_assets_registry', [data], mapCategoryRecordToSb, null, 'id'));
+          } else if (table === 'services_registry') {
+            srvRegistry.unshift(data);
+            localStorage.setItem(SRV_KEY, JSON.stringify(srvRegistry));
+            sbSyncBackground(() => sbUpsertRows('services_registry', [data], mapCategoryRecordToSb, null, 'id'));
+          } else if (table === 'vehicle_pms_registry') {
+            vpmsRegistry.unshift(data);
+            localStorage.setItem(VPMS_KEY, JSON.stringify(vpmsRegistry));
+            sbSyncBackground(() => sbUpsertRows('vehicle_pms_registry', [data], mapCategoryRecordToSb, null, 'id'));
+          } else if (table === 'capex_registry') {
+            cpxRegistry.unshift(data);
+            localStorage.setItem(CPX_KEY, JSON.stringify(cpxRegistry));
+            sbSyncBackground(() => sbUpsertRows('capex_registry', [data], mapCategoryRecordToSb, null, 'id'));
+          } else if (table === 'projects_registry') {
+            regProjects.unshift(data);
+            localStorage.setItem(REG_PROJECTS_KEY, JSON.stringify(regProjects));
+            sbSyncBackground(() => sbUpsertRows('projects_registry', [data], mapProjectToSb, null, 'id'));
+            syncAppDropdowns();
+          } else if (table === 'departments_registry') {
+            regDepartments.unshift(data);
+            localStorage.setItem(REG_DEPTS_KEY, JSON.stringify(regDepartments));
+            sbSyncBackground(() => sbUpsertRows('departments_registry', [data], mapDeptToSb, null, 'id'));
+            syncAppDropdowns();
+          } else if (table === 'suppliers_registry') {
+            regSuppliers.unshift(data);
+            localStorage.setItem(REG_SUPPLIERS_KEY, JSON.stringify(regSuppliers));
+            sbSyncBackground(() => sbUpsertRows('suppliers_registry', [data], mapSupplierToSb, null, 'id'));
+            syncAppDropdowns();
+          } else if (table === 'items_registry') {
+            regItems.unshift(data);
+            localStorage.setItem(REG_ITEMS_KEY, JSON.stringify(regItems));
+            sbSyncBackground(() => sbUpsertRows('items_registry', [data], mapItemRegistryToSb, null, 'item_code'));
+          } else if (table === 'chart_of_accounts_registry') {
+            regCoa.unshift(data);
+            localStorage.setItem(REG_COA_KEY, JSON.stringify(regCoa));
+            sbSyncBackground(() => sbUpsertRows('chart_of_accounts_registry', [data], mapCoaToSb, null, 'id'));
+          } else if (table === 'item_types_registry') {
+            regItemTypes.unshift(data);
+            localStorage.setItem(REG_ITEM_TYPES_KEY, JSON.stringify(regItemTypes));
+            sbSyncBackground(() => sbUpsertRows('item_types_registry', [data], mapItemTypeToSb, null, 'id'));
+            syncAppDropdowns();
+          }
+
+          recycleBinItems = recycleBinItems.filter(x => x.id !== recycleId);
+          localStorage.setItem(RECYCLE_BIN_KEY, JSON.stringify(recycleBinItems));
+          sbSyncBackground(() => sbDeleteRow('recycle_bin', recycleId, 'id'));
+
+          renderAll();
+          renderRecycleBinTable();
+          updateRecycleBinBadge();
+          showSystemAlert('Record Restored', `"${item.record_identifier}" has been restored to ${item.source_module}.`, true);
+        } catch (err) {
+          console.error('Error restoring record:', err);
+          showSystemAlert('Restore Error', 'Could not restore record: ' + err.message, false);
+        }
+      });
+    }
+
+    function permanentlyDeleteRecycleItem(recycleId) {
+      const item = recycleBinItems.find(x => x.id === recycleId);
+      const label = item ? item.record_identifier : 'this record';
+      showSystemConfirm('Permanent Delete', `Permanently purge "${label}"? This action CANNOT be undone.`, () => {
+        recycleBinItems = recycleBinItems.filter(x => x.id !== recycleId);
+        localStorage.setItem(RECYCLE_BIN_KEY, JSON.stringify(recycleBinItems));
+        sbSyncBackground(() => sbDeleteRow('recycle_bin', recycleId, 'id'));
+        renderRecycleBinTable();
+        updateRecycleBinBadge();
+        showSystemAlert('Record Purged', `"${label}" was permanently removed.`, true);
+      }, { confirmText: 'Permanently Purge', isDanger: true });
+    }
+
+    function emptyRecycleBin() {
+      if (recycleBinItems.length === 0) {
+        showSystemAlert('Recycle Bin Empty', 'There are no deleted records to purge.', false);
+        return;
+      }
+      showSystemConfirm('Empty Recycle Bin', `Permanently purge ALL ${recycleBinItems.length} records in the Recycle Bin? This action CANNOT be undone.`, async () => {
+        const ids = recycleBinItems.map(x => x.id);
+        recycleBinItems = [];
+        localStorage.setItem(RECYCLE_BIN_KEY, JSON.stringify(recycleBinItems));
+        sbSyncBackground(async () => {
+          for (const id of ids) {
+            await sbDeleteRow('recycle_bin', id, 'id');
+          }
+        });
+        renderRecycleBinTable();
+        updateRecycleBinBadge();
+        showSystemAlert('Recycle Bin Cleared', 'All archived records have been permanently purged.', true);
+      }, { confirmText: 'Empty Recycle Bin', isDanger: true });
+    }
+
+    function updateRecycleBinBadge() {
+      const badge = document.getElementById('navRecycleBinCount');
+      if (badge) {
+        if (recycleBinItems.length > 0) {
+          badge.textContent = recycleBinItems.length;
+          badge.style.display = 'inline-block';
+        } else {
+          badge.style.display = 'none';
+        }
+      }
+
+      // Update stat cards
+      const statTotal = document.getElementById('recycleStatTotal');
+      if (statTotal) statTotal.textContent = recycleBinItems.length;
+
+      const transCount = recycleBinItems.filter(x =>
+        ['purchase_orders', 'receiving_reports', 'material_issuances', 'supplies_requests', 'petty_cash_vouchers'].includes(x.source_table)
+      ).length;
+      const statTrans = document.getElementById('recycleStatTransactions');
+      if (statTrans) statTrans.textContent = transCount;
+
+      const invCount = recycleBinItems.filter(x =>
+        ['on_hand_inventory', 'fixed_assets_registry', 'services_registry', 'vehicle_pms_registry', 'capex_registry'].includes(x.source_table)
+      ).length;
+      const statInv = document.getElementById('recycleStatInventory');
+      if (statInv) statInv.textContent = invCount;
+
+      const dirCount = recycleBinItems.filter(x =>
+        ['projects_registry', 'departments_registry', 'suppliers_registry', 'items_registry', 'chart_of_accounts_registry', 'item_types_registry'].includes(x.source_table)
+      ).length;
+      const statDir = document.getElementById('recycleStatDirectory');
+      if (statDir) statDir.textContent = dirCount;
+    }
+
+    function renderRecycleBinTable() {
+      populateMonthFilterOptions('recycleMonthFilter', recycleBinItems, m => m.deleted_at);
+      const search = (document.getElementById('recycleSearchInput')?.value || '').toLowerCase();
+      const moduleFilter = document.getElementById('recycleModuleFilter')?.value || 'ALL';
+      let list = recycleBinItems;
+
+      if (moduleFilter !== 'ALL') {
+        if (moduleFilter === 'Data Registry') {
+          list = list.filter(m => (m.source_module || '').startsWith('Data Registry'));
+        } else {
+          list = list.filter(m => (m.source_module || '').toLowerCase().includes(moduleFilter.toLowerCase()));
+        }
+      }
+      list = list.filter(m => matchesDateOrMonth(m.deleted_at, 'recycleDateFilter', 'recycleMonthFilter'));
+
+      if (search) {
+        list = list.filter(m =>
+          (m.record_identifier || '').toLowerCase().includes(search) ||
+          (m.source_module || '').toLowerCase().includes(search) ||
+          (m.summary || '').toLowerCase().includes(search) ||
+          (m.deleted_by || '').toLowerCase().includes(search) ||
+          formatDisplayDate(m.deleted_at, '').toLowerCase().includes(search)
+        );
+      }
+
+      const tbody = document.getElementById('recycleBinTableBody');
+      if (!tbody) return;
+
+      if (list.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" style="text-align:center; padding:48px 20px; color:var(--text-muted);">
+              <i class="fa-solid fa-trash-can" style="font-size:2.4rem; opacity:0.35; margin-bottom:12px; display:block; color:#ef4444;"></i>
+              <strong>Recycle Bin is Empty</strong>
+              <div style="font-size:0.8rem; margin-top:4px;">No deleted records found in this category. Any deleted records will appear here for safe recovery.</div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      const getModuleBadgeStyle = (mod) => {
+        if (mod.includes('Purchase Order')) return 'background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd;';
+        if (mod.includes('Receiving Report')) return 'background:#fef3c7; color:#b45309; border:1px solid #fde68a;';
+        if (mod.includes('Material Issuance')) return 'background:#ede9fe; color:#6d28d9; border:1px solid #ddd6fe;';
+        if (mod.includes('Supplies Request')) return 'background:#ecfdf5; color:#047857; border:1px solid #a7f3d0;';
+        if (mod.includes('Petty Cash')) return 'background:#ccfbf1; color:#0f766e; border:1px solid #99f6e4;';
+        if (mod.includes('Inventory')) return 'background:#fae8ff; color:#86198f; border:1px solid #f5d0fe;';
+        if (mod.includes('Data Registry')) return 'background:#ffe4e6; color:#be123c; border:1px solid #fecdd3;';
+        return 'background:#f1f5f9; color:#334155; border:1px solid #cbd5e1;';
+      };
+
+      tbody.innerHTML = list.map(item => {
+        const dateStr = item.deleted_at ? formatDisplayDate(item.deleted_at) : '—';
+        const timeStr = item.deleted_at ? new Date(item.deleted_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+        return `
+          <tr>
+            <td style="white-space:nowrap;">
+              <strong>${escapeHtml(dateStr)}</strong>
+              <div style="font-size:0.75rem; color:var(--text-muted);">${escapeHtml(timeStr)}</div>
+            </td>
+            <td>
+              <span class="badge" style="${getModuleBadgeStyle(item.source_module)} font-weight:700; font-size:0.75rem; padding:3px 8px; border-radius:6px;">
+                ${escapeHtml(item.source_module)}
+              </span>
+            </td>
+            <td>
+              <span class="code-badge" style="font-weight:700; color:var(--primary);">${escapeHtml(item.record_identifier)}</span>
+            </td>
+            <td style="max-width:320px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(item.summary)}">
+              ${escapeHtml(item.summary || '—')}
+            </td>
+            <td>
+              <div style="font-size:0.82rem; font-weight:600; color:var(--text-muted); display:flex; align-items:center; gap:6px;">
+                <i class="fa-solid fa-user-xmark" style="color:#ef4444; font-size:0.75rem;"></i>
+                ${escapeHtml(item.deleted_by || 'Warehouseman')}
+              </div>
+            </td>
+            <td style="text-align:center; white-space:nowrap;">
+              <button type="button" class="btn btn-outline btn-sm" style="color:#059669; border-color:#a7f3d0; background:#ecfdf5; font-weight:700; margin-right:4px;"
+                onclick="restoreFromRecycleBin('${item.id}')" title="Restore back to original location">
+                <i class="fa-solid fa-rotate-left"></i> Restore
+              </button>
+              <button type="button" class="btn btn-outline btn-sm" style="color:#dc2626; border-color:#fecaca; background:#fef2f2; font-weight:700;"
+                onclick="permanentlyDeleteRecycleItem('${item.id}')" title="Permanently delete from database">
+                <i class="fa-solid fa-trash"></i> Purge
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function exportRecycleBinCSV() {
+      if (recycleBinItems.length === 0) return showSystemAlert('No Data', 'No recycle bin records to export.', false);
+      let csv = 'Date Deleted,Source Module,Record Identifier,Summary,Deleted By,Source Table,Status\n';
+      recycleBinItems.forEach(item => {
+        csv += `"${item.deleted_at || ''}","${item.source_module || ''}","${(item.record_identifier || '').replace(/"/g, '""')}","${(item.summary || '').replace(/"/g, '""')}","${item.deleted_by || ''}","${item.source_table || ''}","${item.status || 'Deleted'}"\n`;
+      });
+      downloadCSV(csv, 'Recycle_Bin_Deleted_Log.csv');
+    }
+
+
     function renderSuppliesTable() {
       const search = (document.getElementById('suppliesSearchInput')?.value || '').toLowerCase();
       let list = suppliesRequests;
@@ -9206,7 +9514,7 @@
       const dateFilterVal = document.getElementById('pcDateFilter')?.value || '';
 
       const deptSelect = document.getElementById('pcDeptFilter');
-      if (deptSelect && deptSelect.options.length <= 1) {
+      if (deptSelect && deptSelect.options && deptSelect.options.length <= 1) {
         const depts = new Set(['Admin', 'HR', 'Purchasing', 'BDG', 'Engineering', 'Accounting', 'Finance', 'Operations']);
         pettyCashVouchers.forEach(v => { if (v.department) depts.add(v.department); });
         deptSelect.innerHTML = '<option value="ALL">All Departments</option>' +
