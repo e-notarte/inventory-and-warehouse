@@ -3585,16 +3585,16 @@
             <div class="table-responsive">
               <table class="mrr-items-table">
                 <thead>
-                <tr>
-                  <th>Date Issued</th>
-                  <th>MIS No.</th>
-                  <th>Recipient / Driver</th>
-                  <th>Project / Dept</th>
-                  <th>Issued Items</th>
-                  <th style="text-align:right;">Total Value (₱)</th>
-                  <th style="text-align:center;">Actions</th>
-                </tr>
-              </thead>
+                  <tr>
+                    <th style="width:40px; text-align:center;">#</th>
+                    <th>ITEM DESCRIPTION <span class="po-req">*</span></th>
+                    <th style="width:90px; text-align:center;">QTY <span class="po-req">*</span></th>
+                    <th style="width:160px;">UNIT OF MEASURE</th>
+                    <th style="width:130px; text-align:right;">UNIT COST (₱)</th>
+                    <th style="width:140px; text-align:right;">TOTAL AMOUNT (₱)</th>
+                    <th style="width:48px; text-align:center;"></th>
+                  </tr>
+                </thead>
                 <tbody id="misItemsTableBody">
                   <!-- Dynamic MIS Item Rows -->
                 </tbody>
@@ -3697,10 +3697,10 @@
                 <tr>
                   <th>Date Issued</th>
                   <th>MIS No.</th>
-                  <th>Ref / Req No.</th>
                   <th>Recipient / Driver</th>
-                  <th>Project / Dept</th>
-                  <th>Tagged Equipment / Plate</th>
+                  <th>Project / Charge To</th>
+                  <th>Department</th>
+                  <th>Purpose / Notes</th>
                   <th>Issued Items</th>
                   <th style="text-align:right;">Total Value (₱)</th>
                   <th style="text-align:center;">Actions</th>
@@ -8694,6 +8694,8 @@
           ref_no: '',
           date: misDateIso,
           recipient_name: recipient,
+          project: project,
+          department: dept,
           project_dept: project ? `${project} / ${dept}` : dept,
           tagged_plate: '',
           items: cleanItems,
@@ -8751,7 +8753,10 @@
       let list = materialIssuances;
 
       if (deptFilter !== 'ALL') {
-        list = list.filter(m => (m.project_dept || '').toLowerCase().includes(deptFilter.toLowerCase()));
+        list = list.filter(m => {
+          const d = m.department || (m.project_dept && m.project_dept.includes(' / ') ? m.project_dept.split(' / ')[1] : m.project_dept) || '';
+          return d.toLowerCase().includes(deptFilter.toLowerCase());
+        });
       }
       list = list.filter(m => matchesDateOrMonth(m.date, 'misDateFilter', 'misMonthFilter'));
 
@@ -8759,6 +8764,8 @@
         list = list.filter(m =>
           (m.mis_no || '').toLowerCase().includes(search) ||
           (m.recipient_name || '').toLowerCase().includes(search) ||
+          (m.project || '').toLowerCase().includes(search) ||
+          (m.department || '').toLowerCase().includes(search) ||
           (m.project_dept || '').toLowerCase().includes(search) ||
           (m.items_desc || '').toLowerCase().includes(search) ||
           (m.purpose || '').toLowerCase().includes(search) ||
@@ -8784,7 +8791,7 @@
       if (list.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="7" style="text-align:center; padding:48px 20px; color:var(--text-muted);">
+            <td colspan="9" style="text-align:center; padding:48px 20px; color:var(--text-muted);">
               <i class="fa-solid fa-hand-holding-hand" style="font-size:2rem; opacity:0.5; margin-bottom:10px; display:block;"></i>
               <strong>No Material Issuances Recorded</strong>
               <div style="font-size:0.8rem; margin-top:4px;">Fill out the form above to record warehouse stock issuances to projects and departments.</div>
@@ -8794,24 +8801,41 @@
         return;
       }
 
-      tbody.innerHTML = list.map(m => `
-        <tr>
-          <td>${escapeHtml(formatDisplayDate(m.date))}</td>
-          <td><span class="code-badge">${escapeHtml(m.mis_no)}</span></td>
-          <td><strong>${escapeHtml(m.recipient_name)}</strong></td>
-          <td>${escapeHtml(m.project_dept)}</td>
-          <td style="max-width:320px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(m.items_desc)}">${escapeHtml(m.items_desc)}</td>
-          <td style="text-align:right;"><strong style="color:var(--primary); font-size:0.88rem;">${formatCurrency(m.total_issuance_value)}</strong></td>
-          <td style="text-align:center; white-space:nowrap;">
-            <button class="btn-slip-row" onclick="openDocumentSlip('mis', '${m.id}')" title="View Material Issuance Slip" style="margin-right:4px;">
-              <i class="fa-solid fa-file-lines"></i> Slip
-            </button>
-            <button class="btn btn-outline btn-sm" onclick="deleteMis('${m.id}')" title="Delete MIS" style="color:#ef4444; border-color:#fee2e2;">
-              <i class="fa-solid fa-trash"></i>
-            </button>
-          </td>
-        </tr>
-      `).join('');
+      tbody.innerHTML = list.map(m => {
+        // Resolve project and department cleanly
+        let projDisplay = m.project || '';
+        let deptDisplay = m.department || '';
+        if (!projDisplay && !deptDisplay && m.project_dept) {
+          if (m.project_dept.includes(' / ')) {
+            const parts = m.project_dept.split(' / ');
+            projDisplay = parts[0].trim();
+            deptDisplay = parts[1].trim();
+          } else {
+            deptDisplay = m.project_dept.trim();
+          }
+        }
+
+        return `
+          <tr>
+            <td style="white-space:nowrap;">${escapeHtml(formatDisplayDate(m.date))}</td>
+            <td><span class="code-badge">${escapeHtml(m.mis_no)}</span></td>
+            <td><strong>${escapeHtml(m.recipient_name || '—')}</strong></td>
+            <td>${projDisplay ? `<span class="badge" style="background:#f1f5f9; color:#334155; font-weight:600;">${escapeHtml(projDisplay)}</span>` : '<span style="color:var(--text-muted);">—</span>'}</td>
+            <td>${deptDisplay ? `<span class="badge" style="background:#e0f2fe; color:#0369a1; font-weight:700;">${escapeHtml(deptDisplay)}</span>` : '<span style="color:var(--text-muted);">—</span>'}</td>
+            <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(m.purpose || '—')}">${escapeHtml(m.purpose || '—')}</td>
+            <td style="max-width:280px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(m.items_desc)}">${escapeHtml(m.items_desc || '—')}</td>
+            <td style="text-align:right; white-space:nowrap;"><strong style="color:var(--primary); font-size:0.88rem;">${formatCurrency(m.total_issuance_value)}</strong></td>
+            <td style="text-align:center; white-space:nowrap;">
+              <button class="btn-slip-row" onclick="openDocumentSlip('mis', '${m.id}')" title="View Material Issuance Slip" style="margin-right:4px;">
+                <i class="fa-solid fa-file-lines"></i> Slip
+              </button>
+              <button class="btn btn-outline btn-sm" onclick="deleteMis('${m.id}')" title="Delete MIS" style="color:#ef4444; border-color:#fee2e2;">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
     }
 
     function deleteMis(id) {
@@ -12240,13 +12264,23 @@
           }), true),
           mergeReceivingReportsFromSb(),
           mergeRegistry('material_issuances', materialIssuances, MIS_KEY, r => {
+            const deptVal = r.department || r.project_dept || 'Admin';
+            let projVal = r.project || '';
+            let actualDeptVal = deptVal;
+            if (!projVal && deptVal.includes(' / ')) {
+              const p = deptVal.split(' / ');
+              projVal = p[0].trim();
+              actualDeptVal = p[1].trim();
+            }
             const localItems = mapSbItemsToLocal(r.items);
             return {
               id: r.id,
               mis_no: r.mis_no || '',
               date: r.issue_date || r.date || '',
               recipient_name: r.issued_to || r.recipient_name || 'Personnel',
-              project_dept: r.department || r.project_dept || 'Admin',
+              project: projVal,
+              department: actualDeptVal,
+              project_dept: deptVal,
               purpose: r.purpose || '',
               tagged_plate: r.tagged_equipment_plate || r.tagged_plate || '',
               items: localItems,
