@@ -6626,6 +6626,7 @@
         rrMasterfile = Array.isArray(parsedMaster) ? parsedMaster : [];
       } catch (e) { rrMasterfile = []; }
       syncAllActiveRrsToMasterfile(false, true);
+        reconcileInventoryStockFromIssuances(true);
 
       // 9. Stocks from 2025 Carry-Over Register
       loadStocks2025();
@@ -6950,6 +6951,7 @@
             materialIssuances.unshift(data);
             localStorage.setItem(MIS_KEY, JSON.stringify(materialIssuances));
             sbSyncBackground(() => sbUpsertRows('material_issuances', [data], mapMisToSbFull, mapMisToSbCore, 'id'));
+            reconcileInventoryStockFromIssuances(true);
           } else if (table === 'supplies_requests') {
             suppliesRequests.unshift(data);
             localStorage.setItem(SUP_KEY, JSON.stringify(suppliesRequests));
@@ -8848,8 +8850,9 @@
         materialIssuances = materialIssuances.filter(m => m.id !== id);
         localStorage.setItem(MIS_KEY, JSON.stringify(materialIssuances));
         sbSyncBackground(() => sbDeleteRow('material_issuances', id, 'id'));
+        reconcileInventoryStockFromIssuances(true);
         renderAll();
-        showSystemAlert('Moved to Recycle Bin', `Material issuance "${label}" was moved to the Recycle Bin.`, true);
+        showSystemAlert('Moved to Recycle Bin', `Material issuance "${label}" was moved to the Recycle Bin. Inventory stock was restored.`, true);
       });
     }
 
@@ -8880,6 +8883,62 @@
     }
     
 // ==============================================================
+        // ==============================================================
+    // RECONCILE ON-HAND INVENTORY FROM ACTIVE MATERIAL ISSUANCES
+    // ==============================================================
+    function reconcileInventoryStockFromIssuances(syncToSb = true) {
+      if (!Array.isArray(inventoryItems) || inventoryItems.length === 0) return 0;
+      const issuedQtyByCode = new Map();
+      const issuedQtyByDesc = new Map();
+
+      materialIssuances.forEach(m => {
+        if (Array.isArray(m.items)) {
+          m.items.forEach(it => {
+            const qty = Number(it.qty) || 0;
+            const code = (it.item_code || '').trim().toLowerCase();
+            const desc = (it.desc || it.description || '').trim().toLowerCase();
+            if (code) issuedQtyByCode.set(code, (issuedQtyByCode.get(code) || 0) + qty);
+            if (desc) issuedQtyByDesc.set(desc, (issuedQtyByDesc.get(desc) || 0) + qty);
+          });
+        }
+      });
+
+      let changed = 0;
+      const changedItems = [];
+      inventoryItems.forEach(inv => {
+        const codeKey = (inv.item_code || '').trim().toLowerCase();
+        const descKey = (inv.description || '').trim().toLowerCase();
+
+        let actualIssued = 0;
+        if (codeKey && issuedQtyByCode.has(codeKey)) {
+          actualIssued = issuedQtyByCode.get(codeKey);
+        } else if (descKey && issuedQtyByDesc.has(descKey)) {
+          actualIssued = issuedQtyByDesc.get(descKey);
+        }
+
+        const curIssued = Number(inv.total_issued_qty) || 0;
+        const totalRec = Number(inv.total_received_qty) || 0;
+        const expectedOnHand = Math.max(0, totalRec - actualIssued);
+
+        if (curIssued !== actualIssued || Number(inv.on_hand_qty) !== expectedOnHand) {
+          inv.total_issued_qty = actualIssued;
+          inv.on_hand_qty = expectedOnHand;
+          inv.on_hand_value = inv.on_hand_qty * (parseFloat(inv.unit_cost) || 0);
+          inv.status = inv.on_hand_qty > 5 ? 'In Stock' : inv.on_hand_qty > 0 ? 'Low Stock' : 'Out of Stock';
+          changed++;
+          changedItems.push(inv);
+        }
+      });
+
+      if (changed > 0) {
+        saveInventoryItems();
+        if (syncToSb && changedItems.length > 0) {
+          sbSyncBackground(() => sbUpsertRows('on_hand_inventory', changedItems, mapInventoryToSb, null, 'item_code'));
+        }
+      }
+      return changed;
+    }
+
     // RENDER: ON-HAND INVENTORY MASTER
     // ==============================================================
     function renderStockTable() {
@@ -12111,12 +12170,36 @@
           };
         });
 
-        const mergeRegistry = async (table, localArr, storageKey, mapFromSb, prependNew = false) => {
+                const mergeRegistry = async (table, localArr, storageKey, mapFromSb, prependNew = false) => {
           const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=*&limit=1000`, { headers: sbHeaders() });
           if (!res.ok) return null;
           const rows = await res.json();
-          if (!Array.isArray(rows) || rows.length === 0) return null;
+          if (!Array.isArray(rows)) return null;
           let changed = 0;
+
+          const remoteMap = new Map();
+          rows.forEach(r => remoteMap.set(String(r.id), r));
+
+          const offlineQ = typeof getOfflineQueue === 'function' ? getOfflineQueue() : [];
+          const pendingIds = new Set();
+          offlineQ.forEach(q => {
+            if (q.id) pendingIds.add(String(q.id));
+            if (Array.isArray(q.records)) {
+              q.records.forEach(rec => { if (rec && rec.id) pendingIds.add(String(rec.id)); });
+            }
+          });
+
+          // 1. Remove deleted rows: if an item is absent in Supabase and not in our pending offline queue, it was deleted on another unit
+          for (let i = localArr.length - 1; i >= 0; i--) {
+            const item = localArr[i];
+            const localId = String(item.id || '');
+            if (localId && !remoteMap.has(localId) && !pendingIds.has(localId)) {
+              localArr.splice(i, 1);
+              changed++;
+            }
+          }
+
+          // 2. Add or update items from Supabase
           rows.forEach(r => {
             const mapped = mapFromSb(r);
             const idx = localArr.findIndex(x => String(x.id) === String(r.id));
@@ -12125,11 +12208,11 @@
               else localArr.push(mapped);
               changed++;
             } else {
-              // Sync updates from other users/devices into local copy
               localArr[idx] = { ...localArr[idx], ...mapped };
               changed++;
             }
           });
+
           if (changed > 0) localStorage.setItem(storageKey, JSON.stringify(localArr));
           return changed;
         };
@@ -12154,18 +12237,37 @@
           created_at: r.created_at || ''
         });
 
-        const mergeInventoryFromSb = async () => {
+                const mergeInventoryFromSb = async () => {
           const res = await fetch(`${SUPABASE_URL}/rest/v1/on_hand_inventory?select=*&limit=1000`, { headers: sbHeaders() });
           if (!res.ok) return null;
           const rows = await res.json();
-          if (!Array.isArray(rows) || rows.length === 0) return null;
+          if (!Array.isArray(rows)) return null;
           let changed = 0;
+
+          const remoteKeySet = new Set();
           rows.forEach(r => {
-            const exists = inventoryItems.some(x =>
-              String(x.item_id) === String(r.item_id) ||
-              (r.item_code && String(x.item_code || '').toLowerCase() === String(r.item_code).toLowerCase())
+            if (r.item_id) remoteKeySet.add(String(r.item_id));
+            if (r.item_code) remoteKeySet.add(String(r.item_code).trim().toLowerCase());
+
+            const local = inventoryItems.find(x =>
+              (r.item_id && String(x.item_id) === String(r.item_id)) ||
+              (r.item_code && String(x.item_code || '').trim().toLowerCase() === String(r.item_code).trim().toLowerCase())
             );
-            if (!exists) {
+
+            if (local) {
+              local.stock_2025_qty = Number(r.stock_2025_qty) || (local.stock_2025_qty || 0);
+              local.deliveries_2026_qty = Number(r.deliveries_2026_qty) || (local.deliveries_2026_qty || 0);
+              local.total_received_qty = Number(r.total_received_qty) || (local.total_received_qty || 0);
+              local.total_issued_qty = Number(r.total_issued_qty) || 0;
+              local.on_hand_qty = Number(r.on_hand_qty) || 0;
+              local.unit_cost = Number(r.unit_cost) || (local.unit_cost || 0);
+              local.on_hand_value = Number(r.on_hand_value) || (local.on_hand_qty * local.unit_cost);
+              local.status = r.status || (local.on_hand_qty > 5 ? 'In Stock' : local.on_hand_qty > 0 ? 'Low Stock' : 'Out of Stock');
+              if (r.description) local.description = r.description;
+              if (r.uom) local.uom = r.uom;
+              if (r.expense_account || r.category) local.expense_account = r.expense_account || r.category;
+              changed++;
+            } else {
               inventoryItems.push({
                 item_id: r.item_id || r.item_code,
                 item_code: r.item_code || r.item_id,
@@ -12185,6 +12287,20 @@
               changed++;
             }
           });
+
+          // Prune inventory items that were deleted from Supabase on other units
+          if (rows.length > 0) {
+            for (let i = inventoryItems.length - 1; i >= 0; i--) {
+              const item = inventoryItems[i];
+              const idMatch = item.item_id && remoteKeySet.has(String(item.item_id));
+              const codeMatch = item.item_code && remoteKeySet.has(String(item.item_code).trim().toLowerCase());
+              if (!idMatch && !codeMatch) {
+                inventoryItems.splice(i, 1);
+                changed++;
+              }
+            }
+          }
+
           if (changed > 0) saveInventoryItems();
           return changed;
         };
@@ -12343,6 +12459,7 @@
         ]);
 
         syncAllActiveRrsToMasterfile(false, true);
+        reconcileInventoryStockFromIssuances(true);
         populateItemDropdowns();
         renderAll();
         const mrrNoEl = document.getElementById('mrrNoInput');
