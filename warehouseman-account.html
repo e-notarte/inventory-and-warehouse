@@ -6916,7 +6916,7 @@
         record_identifier: identifier || String(recordId),
         summary: summary || (recordData ? (recordData.items_desc || recordData.description || recordData.purpose || recordData.name || '') : ''),
         record_data: recordData,
-        deleted_by: 'Warehouseman (WA)',
+        deleted_by: sessionStorage.getItem('userFullName') || 'Warehouseman (WA)',
         deleted_at: new Date().toISOString(),
         status: 'Deleted'
       };
