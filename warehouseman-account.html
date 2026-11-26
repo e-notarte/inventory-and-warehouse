@@ -3485,20 +3485,166 @@
       <!-- VIEW 5: MATERIAL ISSUANCE SLIPS (MIS) -->
       <!-- ============================================================ -->
       <section id="view-issuance" class="view-section">
-        <div class="view-header">
-          <div class="view-title-group">
-            <h2><i class="fa-solid fa-hand-holding-hand" style="color:var(--accent);"></i> Material Issuance Slips (MIS)
-            </h2>
-            <p>Track warehouse inventory items issued to departments.</p>
+        <!-- TOP CARD: MATERIAL ISSUANCE SLIP (MIS) REQUEST FORM -->
+        <div class="mrr-form-card">
+          <div class="mrr-form-title-row">
+            <i class="fa-solid fa-hand-holding-hand" style="color:var(--accent);"></i>
+            <h2 id="misFormTitle">Material Issuance Slip (MIS)</h2>
           </div>
-          <div class="view-action-group">
-            <button class="btn btn-outline" onclick="exportMisCSV()">
-              <i class="fa-solid fa-file-csv"></i> Export MIS CSV
-            </button>
-            <button class="btn btn-primary" onclick="openAddIssuanceModal()">
-              <i class="fa-solid fa-plus"></i> Issue Warehouse Materials
-            </button>
-          </div>
+          <p class="mrr-form-subtitle">Admin Entry &amp; Warehouse Stock Release Log</p>
+
+          <form id="misMainForm" onsubmit="event.preventDefault(); submitMisForm();">
+            <div class="mrr-grid-2">
+              <!-- MIS NO -->
+              <div class="mrr-field-group">
+                <label for="misNoInput">
+                  <i class="fa-solid fa-hashtag"></i> MIS No. <span class="po-req">*</span>
+                </label>
+                <input type="text" id="misNoInput" class="form-control-neat" placeholder="MIS-2026-0001" required>
+              </div>
+
+              <!-- SUPPLIES REQUEST / REF NO -->
+              <div class="mrr-field-group">
+                <label for="misReqSelect">
+                  <i class="fa-regular fa-file-lines"></i> Supplies Request / Ref No.
+                </label>
+                <input type="text" id="misReqSelect" list="misReqOptions" class="form-control-neat"
+                  placeholder="Type or select Supplies Request (e.g. REQ-2026-001)..." autocomplete="off" autocorrect="off"
+                  autocapitalize="none" spellcheck="false" oninput="onMisReqInput(this.value)"
+                  onchange="onMisReqChange(this.value)">
+                <datalist id="misReqOptions"></datalist>
+                <input type="hidden" id="misLinkedSupId">
+              </div>
+
+              <!-- ISSUANCE DATE -->
+              <div class="mrr-field-group">
+                <label for="misDateInput">
+                  <i class="fa-regular fa-calendar"></i> Issuance Date <span class="po-req">*</span>
+                </label>
+                <div class="date-picker-wrap">
+                  <input type="text" id="misDateInput" name="mis_date" class="form-control-neat date-text-input"
+                    placeholder="12-Nov-2026" autocomplete="off" autocorrect="off" autocapitalize="none"
+                    spellcheck="false" title="Format: DD-MMM-YYYY (e.g. 12-Nov-2026)" required>
+                  <button type="button" class="date-cal-btn" aria-label="Choose issuance date from calendar"
+                    title="Pick date">
+                    <i class="fa-regular fa-calendar"></i>
+                  </button>
+                  <input type="date" class="date-native-proxy" tabindex="-1" aria-hidden="true">
+                </div>
+              </div>
+
+              <!-- PROJECT / CHARGE TO -->
+              <div class="mrr-field-group">
+                <label for="misProjectInput">
+                  <i class="fa-solid fa-city"></i> Project / Charge To
+                </label>
+                <input type="text" id="misProjectInput" class="form-control-neat" placeholder="e.g. Head Office, Skyway Project, Depot Maintenance">
+              </div>
+
+              <!-- DEPARTMENT -->
+              <div class="mrr-field-group">
+                <label for="misDeptSelect">
+                  <i class="fa-solid fa-sitemap"></i> Department <span class="po-req">*</span>
+                </label>
+                <select id="misDeptSelect" class="form-control-neat" required>
+                  <option value="" disabled selected>-- Select Department --</option>
+                  <option value="Admin">Admin</option>
+                  <option value="Engineering">Engineering</option>
+                  <option value="Finance">Finance</option>
+                  <option value="Materials Management & Logistics">Materials Management & Logistics</option>
+                  <option value="Operations">Operations</option>
+                  <option value="Fleet">Fleet</option>
+                  <option value="Purchasing">Purchasing</option>
+                  <option value="BDG">BDG</option>
+                  <option value="HR">HR</option>
+                  <option value="Accounting">Accounting</option>
+                  <option value="180MLD">180MLD Pumping Station</option>
+                  <option value="QC-ESNP2">Payatas QC (QC-ESNP2)</option>
+                  <option value="VTFM">Vitas Transfer Yard (VTFM)</option>
+                </select>
+              </div>
+
+              <!-- RECIPIENT / DRIVER -->
+              <div class="mrr-field-group">
+                <label for="misRecipientInput">
+                  <i class="fa-solid fa-user-tag"></i> Recipient / Driver Name <span class="po-req">*</span>
+                </label>
+                <input type="text" id="misRecipientInput" class="form-control-neat" placeholder="Enter recipient or driver name" required>
+              </div>
+
+              <!-- TAGGED EQUIPMENT / PLATE -->
+              <div class="mrr-field-group">
+                <label for="misPlateInput">
+                  <i class="fa-solid fa-truck-pickup"></i> Tagged Equipment / Plate
+                </label>
+                <input type="text" id="misPlateInput" class="form-control-neat" placeholder="e.g. NKI-9501, Backhoe 03 (Optional)">
+              </div>
+
+              <!-- PURPOSE / NOTES -->
+              <div class="mrr-field-group">
+                <label for="misPurposeInput">
+                  <i class="fa-regular fa-clipboard"></i> Purpose / Notes
+                </label>
+                <input type="text" id="misPurposeInput" class="form-control-neat" placeholder="e.g. Vehicle PMS, site fabrication, office supplies">
+              </div>
+            </div>
+
+            <!-- ISSUED LINE ITEMS HEADER -->
+            <div class="mrr-items-section-header">
+              <div class="mrr-items-section-title">
+                <i class="fa-solid fa-list-check"></i>
+                <span>Issued Line Items (Item Description, Qty, UOM, Unit Cost &amp; Total)</span>
+              </div>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <span class="mrr-items-hint">Items and descriptions from warehouse inventory or request.</span>
+                <button type="button" class="btn btn-primary btn-sm" onclick="addMisItemRow()"
+                  style="font-size:0.78rem; padding:5px 12px; background:#4f46e5; border-color:#4f46e5;">
+                  <i class="fa-solid fa-plus"></i> Add Item
+                </button>
+              </div>
+            </div>
+
+            <!-- LINE ITEMS TABLE -->
+            <div class="table-responsive">
+              <table class="mrr-items-table">
+                <thead>
+                  <tr>
+                    <th style="width:40px; text-align:center;">#</th>
+                    <th>ITEM DESCRIPTION <span class="po-req">*</span></th>
+                    <th style="width:90px; text-align:center;">QTY <span class="po-req">*</span></th>
+                    <th style="width:160px;">UNIT OF MEASURE</th>
+                    <th style="width:130px; text-align:right;">UNIT COST (₱)</th>
+                    <th style="width:140px; text-align:right;">TOTAL AMOUNT (₱)</th>
+                    <th style="width:48px; text-align:center;"></th>
+                  </tr>
+                </thead>
+                <tbody id="misItemsTableBody">
+                  <!-- Dynamic MIS Item Rows -->
+                </tbody>
+              </table>
+              <datalist id="misInventoryCatalogDatalist"></datalist>
+            </div>
+
+            <!-- FORM FOOTER -->
+            <div class="mrr-form-footer">
+              <div class="mrr-footer-left">
+                <i class="fa-solid fa-user-check"></i>
+                <span>Inspected &amp; Issued by: <strong>Mark Edgar Tomagan</strong></span>
+              </div>
+              <div class="mrr-footer-right">
+                <div class="po-gt-group">
+                  <span class="po-gt-label">TOTAL AMOUNT:</span>
+                  <span class="po-gt-amount" id="misGrandTotalText">₱ 0.00</span>
+                </div>
+                <button type="button" class="btn-po-reset" onclick="resetMisForm()">
+                  <i class="fa-solid fa-rotate-left"></i> Reset
+                </button>
+                <button type="submit" class="btn-mrr-submit" style="background:#10b981; border-color:#10b981;">
+                  <i class="fa-solid fa-circle-check"></i> <span id="misSubmitLabel">Submit Material Issuance</span>
+                </button>
+              </div>
+            </div>
+          </form>
         </div>
 
         <!-- APPROVED REQUESTS READY FOR ISSUANCE BANNER -->
@@ -3513,41 +3659,80 @@
                 ready for warehouse stock release.</div>
             </div>
           </div>
-          <button class="btn btn-primary btn-sm" onclick="openAddIssuanceModalWithFirstApproved()"
+          <button class="btn btn-primary btn-sm" onclick="applyFirstApprovedRequestToMisForm()"
             style="background:#10b981; border-color:#10b981;">
             <i class="fa-solid fa-hand-holding-hand"></i> Fulfill Next Approved Request
           </button>
         </div>
 
+        <!-- BOTTOM CARD: MATERIAL ISSUANCES REGISTRY -->
         <div class="data-card">
-          <div class="data-card-body">
-            <div class="toolbar-bar">
-              <div class="search-input-wrap">
+          <div class="data-card-body" style="padding:16px 20px;">
+            <div class="po-registry-toolbar" style="margin-bottom:0;">
+              <select id="misDeptFilter" onchange="renderMisTable()" class="form-control-neat po-filter-select"
+                style="width:auto; height:38px; min-width:190px;">
+                <option value="ALL">All Departments (21)</option>
+                <option value="Admin">Admin</option>
+                <option value="Engineering">Engineering</option>
+                <option value="Finance">Finance</option>
+                <option value="Materials Management & Logistics">Materials Management & Logistics</option>
+                <option value="Operations">Operations</option>
+                <option value="Fleet">Fleet</option>
+                <option value="Purchasing">Purchasing</option>
+                <option value="BDG">BDG</option>
+                <option value="HR">HR</option>
+                <option value="Accounting">Accounting</option>
+                <option value="180MLD">180MLD Pumping Station</option>
+                <option value="QC-ESNP2">Payatas QC (QC-ESNP2)</option>
+                <option value="VTFM">Vitas Transfer Yard (VTFM)</option>
+              </select>
+              <div class="search-input-wrap" style="max-width:320px;">
                 <i class="fa-solid fa-search"></i>
-                <input type="text" id="misSearchInput" placeholder="Search MIS #, recipient, plate #, or purpose..."
+                <input type="text" id="misSearchInput" placeholder="Search MIS #, recipient, plate, or item"
                   oninput="renderMisTable()">
               </div>
+              <select id="misMonthFilter" onchange="onMonthFilterChange('misMonthFilter', 'misDateFilter', renderMisTable)"
+                class="form-control-neat" style="width:auto; height:38px; min-width:130px;"
+                aria-label="Filter Material Issuances by month">
+                <option value="ALL">All Months</option>
+              </select>
+              <div class="date-picker-wrap date-picker-filter">
+                <input type="text" id="misDateFilter" class="form-control-neat date-text-input" placeholder="12-Nov-2026"
+                  autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
+                  oninput="if (!this.value.trim() || parseCalendarDateParts(this.value)) onDateFilterChange('misDateFilter', 'misMonthFilter', renderMisTable)"
+                  onchange="onDateFilterChange('misDateFilter', 'misMonthFilter', renderMisTable)"
+                  aria-label="Filter Material Issuances by date (DD-MMM-YYYY)" title="Filter by date (e.g. 12-Nov-2026)">
+                <button type="button" class="date-cal-btn" aria-label="Choose filter date from calendar"
+                  title="Pick filter date">
+                  <i class="fa-regular fa-calendar"></i>
+                </button>
+                <input type="date" class="date-native-proxy" tabindex="-1" aria-hidden="true">
+              </div>
+              <button type="button" class="btn btn-primary btn-po-export" onclick="exportMisCSV()">
+                <i class="fa-solid fa-file-csv"></i> Export CSV
+              </button>
             </div>
+          </div>
 
-            <div class="table-responsive">
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>Date Issued</th>
-                    <th>MIS No.</th>
-                    <th>Recipient / Driver</th>
-                    <th>Project / Dept</th>
-                    <th>Tagged Equipment / Plate</th>
-                    <th>Issued Items</th>
-                    <th>Total Value (₱)</th>
-                    <th style="text-align:center;">Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="misTableBody">
-                  <!-- Populated via JS -->
-                </tbody>
-              </table>
-            </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Date Issued</th>
+                  <th>MIS No.</th>
+                  <th>Ref / Req No.</th>
+                  <th>Recipient / Driver</th>
+                  <th>Project / Dept</th>
+                  <th>Tagged Equipment / Plate</th>
+                  <th>Issued Items</th>
+                  <th style="text-align:right;">Total Value (₱)</th>
+                  <th style="text-align:center;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="misTableBody">
+                <!-- Populated via JS -->
+              </tbody>
+            </table>
           </div>
         </div>
       </section>
@@ -6439,6 +6624,7 @@
       renderStocks2025Table();
       renderAllDirectoryRegistries();
       populateMrrPoDropdown();
+        initMisForm();
       updateBadges();
     }
 
@@ -7733,18 +7919,481 @@
     // ==============================================================
     // RENDER: MATERIAL ISSUANCES (MIS)
     // ==============================================================
+    function getNextMisNumber() {
+      let maxNum = 0;
+      materialIssuances.forEach(m => {
+        if (!m.mis_no) return;
+        const match = m.mis_no.match(/MIS-(\d{4})-(\d+)/i) || m.mis_no.match(/(\d+)$/);
+        if (match) {
+          const num = parseInt(match[2] || match[1], 10);
+          if (num > maxNum) maxNum = num;
+        }
+      });
+      const year = new Date().getFullYear();
+      return `MIS-${year}-${String(maxNum + 1).padStart(4, '0')}`;
+    }
+
+    function initMisForm() {
+      const noInput = document.getElementById('misNoInput');
+      if (noInput && (!noInput.value || noInput.value.startsWith('MIS-'))) {
+        noInput.value = getNextMisNumber();
+      }
+      const dateInput = document.getElementById('misDateInput');
+      if (dateInput && !dateInput.value) {
+        setFormattedDateInputValue('misDateInput', formatTodayDisplayDate());
+      }
+      populateMisReqDropdown();
+      populateMisInventoryCatalogDatalist();
+      initFormattedDateInputs();
+
+      const tbody = document.getElementById('misItemsTableBody');
+      if (tbody && tbody.children.length === 0) {
+        addMisItemRow();
+      }
+      calcMisFormTotals();
+    }
+
+    function populateMisReqDropdown() {
+      const datalist = document.getElementById('misReqOptions');
+      if (!datalist) return;
+      const approvedOrPending = suppliesRequests.filter(s => s.status === 'Approved' || s.status === 'Pending');
+      datalist.innerHTML = approvedOrPending.map(s => {
+        const reqSummary = (s.requested_items || '').slice(0, 50);
+        return `<option value="${escapeHtml(s.reference)}">${escapeHtml(`${s.department} (${s.requestor || 'Personnel'}): ${reqSummary}`)}</option>`;
+      }).join('');
+    }
+
+    function populateMisInventoryCatalogDatalist() {
+      const datalist = document.getElementById('misInventoryCatalogDatalist');
+      if (!datalist) return;
+      datalist.innerHTML = inventoryItems.map(it => {
+        const stockLabel = `Stock: ${it.on_hand_qty || 0} ${it.uom || 'Pcs'} | ${formatCurrency(it.unit_cost || 0)}`;
+        return `<option value="${escapeHtml(it.description)}">${escapeHtml(stockLabel)}</option>`;
+      }).join('');
+    }
+
+    function addMisItemRow(itemData = {}) {
+      const tbody = document.getElementById('misItemsTableBody');
+      if (!tbody) return;
+      const rowIdx = tbody.children.length + 1;
+      const tr = document.createElement('tr');
+      tr.className = 'mis-item-row';
+      tr.innerHTML = `
+        <td style="text-align:center;"><span class="po-item-idx">${rowIdx}</span></td>
+        <td>
+          <input type="text" class="form-control-neat mis-item-desc" list="misInventoryCatalogDatalist"
+            placeholder="Type or select warehouse item..." value="${escapeHtml(itemData.desc || '')}"
+            oninput="onMisItemRowDescInput(this)" onchange="onMisItemRowDescChange(this)" required>
+        </td>
+        <td style="text-align:center;">
+          <input type="number" class="form-control-neat mis-item-qty" min="1" step="any"
+            value="${itemData.qty || 1}" style="text-align:center;" oninput="calcMisFormTotals()" required>
+        </td>
+        <td>
+          <select class="form-control-neat mis-item-uom" onchange="calcMisFormTotals()">
+            <option value="Pcs" ${itemData.uom === 'Pcs' || !itemData.uom ? 'selected' : ''}>Pcs</option>
+            <option value="Box" ${itemData.uom === 'Box' ? 'selected' : ''}>Box</option>
+            <option value="Ream" ${itemData.uom === 'Ream' ? 'selected' : ''}>Ream</option>
+            <option value="Roll" ${itemData.uom === 'Roll' ? 'selected' : ''}>Roll</option>
+            <option value="Set" ${itemData.uom === 'Set' ? 'selected' : ''}>Set</option>
+            <option value="Kg" ${itemData.uom === 'Kg' ? 'selected' : ''}>Kg</option>
+            <option value="Mtr" ${itemData.uom === 'Mtr' ? 'selected' : ''}>Mtr</option>
+            <option value="Ltr" ${itemData.uom === 'Ltr' ? 'selected' : ''}>Ltr</option>
+            <option value="Pack" ${itemData.uom === 'Pack' ? 'selected' : ''}>Pack</option>
+            <option value="Unit" ${itemData.uom === 'Unit' ? 'selected' : ''}>Unit</option>
+            <option value="Drum" ${itemData.uom === 'Drum' ? 'selected' : ''}>Drum</option>
+            <option value="Pair" ${itemData.uom === 'Pair' ? 'selected' : ''}>Pair</option>
+          </select>
+        </td>
+        <td>
+          <input type="number" step="0.01" min="0" class="form-control-neat mis-item-cost"
+            value="${itemData.cost !== undefined ? itemData.cost : '0.00'}" style="text-align:right;"
+            oninput="calcMisFormTotals()">
+        </td>
+        <td>
+          <div class="po-line-total-pill mis-item-row-total">₱ 0.00</div>
+        </td>
+        <td style="text-align:center;">
+          <button type="button" class="btn-po-delete-row" onclick="removeMisItemRow(this)" title="Delete Line Item">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+      calcMisFormTotals();
+    }
+
+    function removeMisItemRow(btn) {
+      const tbody = document.getElementById('misItemsTableBody');
+      if (!tbody) return;
+      const row = btn.closest('tr');
+      if (tbody.children.length > 1) {
+        row.remove();
+      } else {
+        const descInput = row.querySelector('.mis-item-desc');
+        const qtyInput = row.querySelector('.mis-item-qty');
+        const uomSelect = row.querySelector('.mis-item-uom');
+        const costInput = row.querySelector('.mis-item-cost');
+        if (descInput) descInput.value = '';
+        if (qtyInput) qtyInput.value = '1';
+        if (uomSelect) uomSelect.value = 'Pcs';
+        if (costInput) costInput.value = '0.00';
+      }
+      Array.from(tbody.children).forEach((r, idx) => {
+        const idxEl = r.querySelector('.po-item-idx');
+        if (idxEl) idxEl.textContent = idx + 1;
+      });
+      calcMisFormTotals();
+    }
+
+    function onMisItemRowDescInput(input) {
+      calcMisFormTotals();
+    }
+
+    function onMisItemRowDescChange(input) {
+      const val = (input.value || '').trim().toLowerCase();
+      if (!val) return;
+      const matched = inventoryItems.find(it => (it.description || '').toLowerCase() === val || (it.item_code || '').toLowerCase() === val);
+      if (matched) {
+        const row = input.closest('tr');
+        if (row) {
+          const costInput = row.querySelector('.mis-item-cost');
+          const uomSelect = row.querySelector('.mis-item-uom');
+          if (costInput && (!parseFloat(costInput.value) || parseFloat(costInput.value) === 0)) {
+            costInput.value = (matched.unit_cost || 0).toFixed(2);
+          }
+          if (uomSelect && matched.uom) {
+            Array.from(uomSelect.options).forEach(opt => {
+              if (opt.value.toLowerCase() === matched.uom.toLowerCase()) {
+                uomSelect.value = opt.value;
+              }
+            });
+          }
+        }
+      }
+      calcMisFormTotals();
+    }
+
+    function calcMisFormTotals() {
+      const tbody = document.getElementById('misItemsTableBody');
+      if (!tbody) return;
+      let grandTotal = 0;
+      const rows = tbody.querySelectorAll('.mis-item-row');
+      rows.forEach(row => {
+        const qty = parseFloat(row.querySelector('.mis-item-qty')?.value) || 0;
+        const cost = parseFloat(row.querySelector('.mis-item-cost')?.value) || 0;
+        const lineTotal = qty * cost;
+        grandTotal += lineTotal;
+        const totalBox = row.querySelector('.mis-item-row-total');
+        if (totalBox) {
+          totalBox.textContent = formatCurrency(lineTotal);
+        }
+      });
+
+      const gtDisplay = document.getElementById('misGrandTotalText');
+      if (gtDisplay) {
+        gtDisplay.textContent = formatCurrency(grandTotal);
+      }
+    }
+
+    function onMisReqInput(refNo) {
+      const trimmed = String(refNo || '').trim().toLowerCase();
+      if (!trimmed) {
+        document.getElementById('misLinkedSupId').value = '';
+        return;
+      }
+      const matched = suppliesRequests.find(s => String(s.reference || '').trim().toLowerCase() === trimmed);
+      if (matched) {
+        applySuppliesRequestToMisForm(matched);
+      }
+    }
+
+    function onMisReqChange(refNo) {
+      const trimmed = String(refNo || '').trim().toLowerCase();
+      if (!trimmed) return;
+      const matched = suppliesRequests.find(s =>
+        String(s.reference || '').trim().toLowerCase() === trimmed ||
+        String(s.reference || '').trim().toLowerCase().includes(trimmed)
+      );
+      if (matched) {
+        const input = document.getElementById('misReqSelect');
+        if (input && input.value !== matched.reference) input.value = matched.reference;
+        applySuppliesRequestToMisForm(matched);
+      }
+    }
+
+    function applySuppliesRequestToMisForm(req) {
+      if (!req) return;
+      document.getElementById('misLinkedSupId').value = req.id || '';
+      if (document.getElementById('misDeptSelect') && req.department) {
+        const deptSelect = document.getElementById('misDeptSelect');
+        const matchOpt = Array.from(deptSelect.options).find(o => o.value.toLowerCase() === req.department.toLowerCase());
+        if (matchOpt) deptSelect.value = matchOpt.value;
+      }
+      if (document.getElementById('misRecipientInput')) {
+        document.getElementById('misRecipientInput').value = req.requestor || '';
+      }
+      if (document.getElementById('misPurposeInput')) {
+        document.getElementById('misPurposeInput').value = `Fulfilling ${req.reference}: ${(req.purpose || req.requested_items || '').slice(0, 80)}`;
+      }
+
+      // Populate line items
+      const tbody = document.getElementById('misItemsTableBody');
+      if (tbody) {
+        tbody.innerHTML = '';
+        if (Array.isArray(req.items) && req.items.length > 0) {
+          req.items.forEach(it => {
+            addMisItemRow({
+              desc: it.description || it.desc || '',
+              qty: it.qty || 1,
+              uom: it.uom || 'Pcs',
+              cost: it.unit_cost || it.cost || 0
+            });
+          });
+        } else if (req.requested_items) {
+          const matchedItem = inventoryItems.find(it =>
+            (req.requested_items || '').toLowerCase().includes(it.description.toLowerCase()) ||
+            it.description.toLowerCase().includes((req.requested_items || '').slice(0, 15).toLowerCase())
+          );
+          addMisItemRow({
+            desc: matchedItem ? matchedItem.description : req.requested_items,
+            qty: 1,
+            uom: matchedItem ? matchedItem.uom : 'Pcs',
+            cost: matchedItem ? matchedItem.unit_cost : 0
+          });
+        } else {
+          addMisItemRow();
+        }
+      }
+      calcMisFormTotals();
+    }
+
+    function applyFirstApprovedRequestToMisForm() {
+      const firstApproved = suppliesRequests.find(s => s.status === 'Approved');
+      if (!firstApproved) {
+        showSystemAlert('No Approved Requests', 'There are no approved supplies requests awaiting issuance.', false);
+        return;
+      }
+      const reqInput = document.getElementById('misReqSelect');
+      if (reqInput) reqInput.value = firstApproved.reference;
+      applySuppliesRequestToMisForm(firstApproved);
+      document.getElementById('misMainForm')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function resetMisForm() {
+      const noInput = document.getElementById('misNoInput');
+      if (noInput) noInput.value = getNextMisNumber();
+
+      const reqSelect = document.getElementById('misReqSelect');
+      if (reqSelect) reqSelect.value = '';
+      const linkedId = document.getElementById('misLinkedSupId');
+      if (linkedId) linkedId.value = '';
+
+      setFormattedDateInputValue('misDateInput', formatTodayDisplayDate());
+
+      const projInput = document.getElementById('misProjectInput');
+      if (projInput) projInput.value = '';
+
+      const deptSelect = document.getElementById('misDeptSelect');
+      if (deptSelect) deptSelect.value = '';
+
+      const recipInput = document.getElementById('misRecipientInput');
+      if (recipInput) recipInput.value = '';
+
+      const plateInput = document.getElementById('misPlateInput');
+      if (plateInput) plateInput.value = '';
+
+      const purposeInput = document.getElementById('misPurposeInput');
+      if (purposeInput) purposeInput.value = '';
+
+      const tbody = document.getElementById('misItemsTableBody');
+      if (tbody) {
+        tbody.innerHTML = '';
+        addMisItemRow();
+      }
+      calcMisFormTotals();
+    }
+
+    function submitMisForm() {
+      const misNo = (document.getElementById('misNoInput')?.value || '').trim();
+      if (!misNo) {
+        showSystemAlert('Missing MIS No.', 'Please enter or generate an MIS Number.', false);
+        document.getElementById('misNoInput')?.focus();
+        return;
+      }
+
+      const rawMisDate = document.getElementById('misDateInput')?.value.trim() || '';
+      const misDateIso = tryToIsoDate(rawMisDate);
+      if (!rawMisDate || !misDateIso) {
+        showSystemAlert('Missing or Invalid Date', 'Please enter Issuance Date in DD-MMM-YYYY format (e.g. 12-Nov-2026).', false);
+        document.getElementById('misDateInput')?.focus();
+        return;
+      }
+
+      const dept = (document.getElementById('misDeptSelect')?.value || '').trim();
+      if (!dept) {
+        showSystemAlert('Missing Department', 'Please select the Department receiving the materials.', false);
+        document.getElementById('misDeptSelect')?.focus();
+        return;
+      }
+
+      const recipient = (document.getElementById('misRecipientInput')?.value || '').trim();
+      if (!recipient) {
+        showSystemAlert('Missing Recipient', 'Please enter the Recipient or Driver name.', false);
+        document.getElementById('misRecipientInput')?.focus();
+        return;
+      }
+
+      const tbody = document.getElementById('misItemsTableBody');
+      const rows = tbody ? tbody.querySelectorAll('.mis-item-row') : [];
+      const items = [];
+      let grandTotal = 0;
+
+      for (const row of rows) {
+        const desc = (row.querySelector('.mis-item-desc')?.value || '').trim();
+        const qty = parseFloat(row.querySelector('.mis-item-qty')?.value) || 0;
+        const uom = (row.querySelector('.mis-item-uom')?.value || 'Pcs').trim();
+        const cost = parseFloat(row.querySelector('.mis-item-cost')?.value) || 0;
+        if (!desc) {
+          showSystemAlert('Incomplete Item Description', 'Please specify a description for all line items.', false);
+          row.querySelector('.mis-item-desc')?.focus();
+          return;
+        }
+        if (qty <= 0) {
+          showSystemAlert('Invalid Quantity', `Quantity for item "${desc}" must be at least 1.`, false);
+          row.querySelector('.mis-item-qty')?.focus();
+          return;
+        }
+        const rowTotal = qty * cost;
+        grandTotal += rowTotal;
+
+        // Match with inventory
+        const matchedItem = inventoryItems.find(it =>
+          (it.description || '').toLowerCase() === desc.toLowerCase() ||
+          (it.item_code || '').toLowerCase() === desc.toLowerCase()
+        );
+
+        items.push({
+          item_code: matchedItem ? (matchedItem.item_code || '') : '',
+          desc: desc,
+          qty: qty,
+          uom: uom,
+          cost: cost,
+          rowTotal: rowTotal,
+          _matchedInv: matchedItem || null
+        });
+      }
+
+      if (items.length === 0) {
+        showSystemAlert('No Line Items', 'Please add at least one line item to issue.', false);
+        return;
+      }
+
+      const executeSave = () => {
+        const project = (document.getElementById('misProjectInput')?.value || '').trim();
+        const plate = (document.getElementById('misPlateInput')?.value || '').trim();
+        const purpose = (document.getElementById('misPurposeInput')?.value || '').trim();
+        const linkedSupId = (document.getElementById('misLinkedSupId')?.value || '').trim() || null;
+        const refNo = (document.getElementById('misReqSelect')?.value || '').trim();
+
+        const itemsDesc = items.map(it => `${it.desc} (${it.qty} ${it.uom})`).join(', ');
+
+        const cleanItems = items.map(it => ({
+          item_code: it.item_code,
+          desc: it.desc,
+          qty: it.qty,
+          uom: it.uom,
+          cost: it.cost,
+          rowTotal: it.rowTotal
+        }));
+
+        const newMis = {
+          id: 'mis_' + Date.now(),
+          mis_no: misNo,
+          ref_no: refNo || '',
+          date: misDateIso,
+          recipient_name: recipient,
+          project_dept: project ? `${project} / ${dept}` : dept,
+          tagged_plate: plate,
+          items: cleanItems,
+          items_desc: itemsDesc,
+          total_issuance_value: grandTotal,
+          purpose: purpose || (refNo ? `Fulfilling ${refNo}` : 'Warehouse Material Issuance'),
+          linked_supplies_id: linkedSupId
+        };
+
+        materialIssuances.unshift(newMis);
+        localStorage.setItem(MIS_KEY, JSON.stringify(materialIssuances));
+        sbSyncBackground(() => sbUpsertRows('material_issuances', [newMis], mapMisToSbFull, mapMisToSbCore, 'id'));
+
+        // Deduct inventory items
+        const updatedInvItems = [];
+        items.forEach(it => {
+          if (it._matchedInv) {
+            const inv = it._matchedInv;
+            inv.total_issued_qty = (parseFloat(inv.total_issued_qty) || 0) + it.qty;
+            inv.on_hand_qty = Math.max(0, (parseFloat(inv.on_hand_qty) || 0) - it.qty);
+            inv.on_hand_value = inv.on_hand_qty * (parseFloat(inv.unit_cost) || 0);
+            updatedInvItems.push(inv);
+          }
+        });
+        if (updatedInvItems.length > 0) {
+          saveInventoryItems();
+          sbSyncBackground(() => sbUpsertRows('on_hand_inventory', updatedInvItems, mapInventoryToSb, null, 'item_code'));
+        }
+
+        // If linked to supplies request, update status to Issued
+        if (linkedSupId) {
+          const supReq = suppliesRequests.find(s => s.id === linkedSupId);
+          if (supReq) {
+            supReq.status = 'Issued';
+            localStorage.setItem(SUP_KEY, JSON.stringify(suppliesRequests));
+            sbSyncBackground(() => sbSyncSuppliesRequests([supReq]));
+          }
+        }
+
+        resetMisForm();
+        renderAll();
+        showSystemAlert('Material Issuance Recorded', `MIS ${newMis.mis_no} logged. Inventory stock updated successfully.`);
+      };
+
+      // Check for low stock warning
+      const lowStockItems = items.filter(it => it._matchedInv && it.qty > (it._matchedInv.on_hand_qty || 0));
+      if (lowStockItems.length > 0) {
+        const itemNames = lowStockItems.map(it => `"${it.desc}" (Requested: ${it.qty}, On-hand: ${it._matchedInv.on_hand_qty})`).join(', ');
+        showSystemConfirm(
+          'Low Stock Warning',
+          `The following item(s) exceed current on-hand stock: ${itemNames}. Proceed with issuance anyway?`,
+          executeSave,
+          { confirmText: 'Proceed Anyway', isDanger: false }
+        );
+        return;
+      }
+
+      executeSave();
+    }
+
     function renderMisTable() {
+      populateMonthFilterOptions('misMonthFilter', materialIssuances, m => m.date);
       const search = (document.getElementById('misSearchInput')?.value || '').toLowerCase();
+      const deptFilter = document.getElementById('misDeptFilter')?.value || 'ALL';
       let list = materialIssuances;
+
+      if (deptFilter !== 'ALL') {
+        list = list.filter(m => (m.project_dept || '').toLowerCase().includes(deptFilter.toLowerCase()));
+      }
+      list = list.filter(m => matchesDateOrMonth(m.date, 'misDateFilter', 'misMonthFilter'));
 
       if (search) {
         list = list.filter(m =>
           (m.mis_no || '').toLowerCase().includes(search) ||
+          (m.ref_no || '').toLowerCase().includes(search) ||
           (m.recipient_name || '').toLowerCase().includes(search) ||
           (m.project_dept || '').toLowerCase().includes(search) ||
           (m.tagged_plate || '').toLowerCase().includes(search) ||
           (m.items_desc || '').toLowerCase().includes(search) ||
-          (m.purpose || '').toLowerCase().includes(search)
+          (m.purpose || '').toLowerCase().includes(search) ||
+          formatDisplayDate(m.date, '').toLowerCase().includes(search)
         );
       }
 
@@ -7762,16 +8411,14 @@
       }
 
       const tbody = document.getElementById('misTableBody');
+      if (!tbody) return;
       if (list.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="8" style="text-align:center; padding:48px 20px; color:var(--text-muted);">
+            <td colspan="9" style="text-align:center; padding:48px 20px; color:var(--text-muted);">
               <i class="fa-solid fa-hand-holding-hand" style="font-size:2rem; opacity:0.5; margin-bottom:10px; display:block;"></i>
               <strong>No Material Issuances Recorded</strong>
-              <div style="font-size:0.8rem; margin-top:4px;">Issue parts, materials, and supplies to company vehicles and site engineers.</div>
-              <button class="btn btn-primary btn-sm" onclick="openAddIssuanceModal()" style="margin-top:14px;">
-                <i class="fa-solid fa-plus"></i> Issue Warehouse Materials
-              </button>
+              <div style="font-size:0.8rem; margin-top:4px;">Fill out the form above to record warehouse stock issuances to projects and departments.</div>
             </td>
           </tr>
         `;
@@ -7782,11 +8429,12 @@
         <tr>
           <td>${escapeHtml(formatDisplayDate(m.date))}</td>
           <td><span class="code-badge">${escapeHtml(m.mis_no)}</span></td>
+          <td>${m.ref_no || m.linked_supplies_id ? `<span class="badge" style="background:#e0f2fe; color:#0369a1; font-weight:700;">${escapeHtml(m.ref_no || 'Linked Request')}</span>` : '<span style="color:var(--text-muted);">Direct</span>'}</td>
           <td><strong>${escapeHtml(m.recipient_name)}</strong></td>
           <td>${escapeHtml(m.project_dept)}</td>
           <td>${m.tagged_plate ? `<span class="code-badge">${escapeHtml(m.tagged_plate)}</span>` : '—'}</td>
-          <td>${escapeHtml(m.items_desc)}</td>
-          <td><strong style="color:var(--primary); font-size:0.88rem;">${formatCurrency(m.total_issuance_value)}</strong></td>
+          <td style="max-width:280px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(m.items_desc)}">${escapeHtml(m.items_desc)}</td>
+          <td style="text-align:right;"><strong style="color:var(--primary); font-size:0.88rem;">${formatCurrency(m.total_issuance_value)}</strong></td>
           <td style="text-align:center; white-space:nowrap;">
             <button class="btn-slip-row" onclick="openDocumentSlip('mis', '${m.id}')" title="View Material Issuance Slip" style="margin-right:4px;">
               <i class="fa-solid fa-file-lines"></i> Slip
@@ -7797,193 +8445,6 @@
           </td>
         </tr>
       `).join('');
-    }
-
-    function populateMisSuppliesDropdown() {
-      const sel = document.getElementById('mMisSuppliesSelect');
-      if (!sel) return;
-      const currentVal = sel.value;
-      const approvedList = suppliesRequests.filter(s => s.status === 'Approved');
-      sel.innerHTML = '<option value="">-- Direct Issuance (No linked supplies request) --</option>';
-      approvedList.forEach(s => {
-        const opt = document.createElement('option');
-        opt.value = s.id;
-        opt.textContent = `${s.reference} - ${s.department} (${s.requestor || 'Personnel'}): ${s.requested_items.slice(0, 45)}...`;
-        sel.appendChild(opt);
-      });
-      if (currentVal && approvedList.some(s => s.id === currentVal)) {
-        sel.value = currentVal;
-      }
-    }
-
-    function onMisSuppliesSelect(supId) {
-      const linkedInput = document.getElementById('mMisLinkedSupId');
-      if (!supId) {
-        if (linkedInput) linkedInput.value = '';
-        return;
-      }
-      const req = suppliesRequests.find(s => s.id === supId);
-      if (req) {
-        if (linkedInput) linkedInput.value = req.id;
-        if (document.getElementById('mMisDept')) document.getElementById('mMisDept').value = req.department || 'Admin';
-        if (document.getElementById('mMisRecipient')) document.getElementById('mMisRecipient').value = req.requestor || 'Department Personnel';
-        if (document.getElementById('mMisPurpose')) document.getElementById('mMisPurpose').value = `Fulfilling Requisition ${req.reference}: ${req.requested_items}`;
-
-        // Attempt to auto-match catalog item if requisition mentions description
-        const reqText = (req.requested_items || '').toLowerCase();
-        const matchedItem = inventoryItems.find(it => reqText.includes(it.description.toLowerCase()) || it.description.toLowerCase().includes(reqText.slice(0, 15)));
-        if (matchedItem) {
-          const itemSelect = document.getElementById('mMisItemSelect');
-          if (itemSelect) {
-            itemSelect.value = matchedItem.item_id;
-            onMisItemChange(matchedItem.item_id);
-          }
-        }
-      }
-    }
-
-    function openAddIssuanceModal(presetSupId) {
-      let maxNum = 0;
-      materialIssuances.forEach(m => {
-        if (!m.mis_no) return;
-        const match = m.mis_no.match(/MIS-(\d{4})-(\d+)/i) || m.mis_no.match(/(\d+)$/);
-        if (match) {
-          const num = parseInt(match[2] || match[1], 10);
-          if (num > maxNum) maxNum = num;
-        }
-      });
-      const year = new Date().getFullYear();
-      document.getElementById('mMisNo').value = `MIS-${year}-${String(maxNum + 1).padStart(4, '0')}`;
-      setFormattedDateInputValue('mMisDate', formatTodayDisplayDate());
-      document.getElementById('mMisPlate').value = '';
-      document.getElementById('mMisRecipient').value = '';
-      document.getElementById('mMisDept').value = 'Admin';
-      document.getElementById('mMisItemSelect').value = '';
-      document.getElementById('mMisQty').value = '1';
-      document.getElementById('mMisUnitCost').value = '0.00';
-      document.getElementById('mMisTotalVal').value = '₱ 0.00';
-      document.getElementById('mMisPurpose').value = '';
-      document.getElementById('mMisLinkedSupId').value = '';
-
-      populateMisSuppliesDropdown();
-
-      if (presetSupId) {
-        const sel = document.getElementById('mMisSuppliesSelect');
-        if (sel) {
-          sel.value = presetSupId;
-          onMisSuppliesSelect(presetSupId);
-        }
-      }
-      openModal('modalIssuance');
-    }
-
-    function openAddIssuanceModalWithFirstApproved() {
-      const firstApproved = suppliesRequests.find(s => s.status === 'Approved');
-      if (firstApproved) {
-        openAddIssuanceModal(firstApproved.id);
-      } else {
-        openAddIssuanceModal();
-      }
-    }
-
-    function onMisItemChange(itemId) {
-      const item = inventoryItems.find(x => x.item_id === itemId);
-      if (item) {
-        document.getElementById('mMisUnitCost').value = (item.unit_cost || 0).toFixed(2);
-        recalcMisTotal();
-      }
-    }
-
-    function recalcMisTotal() {
-      const qty = parseFloat(document.getElementById('mMisQty')?.value) || 0;
-      const cost = parseFloat(document.getElementById('mMisUnitCost')?.value) || 0;
-      const total = qty * cost;
-      document.getElementById('mMisTotalVal').value = formatCurrency(total);
-    }
-
-    function handleIssuanceSubmit(e) {
-      e.preventDefault();
-      const itemId = document.getElementById('mMisItemSelect').value;
-      const item = inventoryItems.find(x => x.item_id === itemId);
-      const qty = parseFloat(document.getElementById('mMisQty').value) || 1;
-      const cost = parseFloat(document.getElementById('mMisUnitCost').value) || 0;
-      const total = qty * cost;
-
-      if (!itemId || !item) {
-        showSystemAlert('Missing Stock Item', 'Please choose a warehouse stock item to issue and deduct.', false);
-        document.getElementById('mMisItemSelect')?.focus();
-        return;
-      }
-
-      const rawMisDate = document.getElementById('mMisDate')?.value.trim() || '';
-      const misDateIso = tryToIsoDate(rawMisDate);
-      if (!rawMisDate || !misDateIso) {
-        showSystemAlert('Missing or Invalid Date', 'Please enter Date Issued in DD-MMM-YYYY format (e.g. 12-Nov-2026).', false);
-        document.getElementById('mMisDate')?.focus();
-        return;
-      }
-
-      const executeIssuanceSave = () => {
-        const linkedSupId = document.getElementById('mMisLinkedSupId')?.value;
-
-        const newMis = {
-          id: 'mis_' + Date.now(),
-          mis_no: document.getElementById('mMisNo').value.trim(),
-          date: misDateIso,
-          recipient_name: document.getElementById('mMisRecipient').value.trim(),
-          project_dept: document.getElementById('mMisDept').value.trim(),
-          tagged_plate: document.getElementById('mMisPlate').value.trim(),
-          items: [{
-            item_code: item.item_code || '',
-            desc: item.description,
-            qty: qty,
-            uom: item.uom || 'PCS',
-            cost: cost,
-            rowTotal: total
-          }],
-          items_desc: `${item.description} (${qty} ${item.uom})`,
-          total_issuance_value: total,
-          purpose: document.getElementById('mMisPurpose').value.trim(),
-          linked_supplies_id: linkedSupId || null
-        };
-
-        materialIssuances.unshift(newMis);
-        localStorage.setItem(MIS_KEY, JSON.stringify(materialIssuances));
-        sbSyncBackground(() => sbUpsertRows('material_issuances', [newMis], mapMisToSbFull, mapMisToSbCore, 'id'));
-
-        // Auto deduct from on-hand stock if matched item
-        item.total_issued_qty = (parseFloat(item.total_issued_qty) || 0) + qty;
-        item.on_hand_qty = Math.max(0, item.on_hand_qty - qty);
-        item.on_hand_value = item.on_hand_qty * item.unit_cost;
-        saveInventoryItems();
-        sbSyncBackground(() => sbUpsertRows('on_hand_inventory', [item], mapInventoryToSb, null, 'item_code'));
-
-        // If linked to an approved supplies request, update status to Issued!
-        if (linkedSupId) {
-          const supReq = suppliesRequests.find(s => s.id === linkedSupId);
-          if (supReq) {
-            supReq.status = 'Issued';
-            localStorage.setItem(SUP_KEY, JSON.stringify(suppliesRequests));
-            sbSyncBackground(() => sbSyncSuppliesRequests([supReq]));
-          }
-        }
-
-        closeModal('modalIssuance');
-        renderAll();
-        showSystemAlert('Material Issuance Recorded', `MIS ${newMis.mis_no} logged. Stock deducted from on-hand inventory.`);
-      };
-
-      if (qty > item.on_hand_qty) {
-        showSystemConfirm(
-          'Low Stock Warning',
-          `Requested issuance quantity (${qty} ${item.uom}) exceeds current on-hand balance (${item.on_hand_qty} ${item.uom}). Proceed with issuance anyway?`,
-          executeIssuanceSave,
-          { confirmText: 'Proceed Anyway', isDanger: false }
-        );
-        return;
-      }
-
-      executeIssuanceSave();
     }
 
     function deleteMis(id) {
@@ -7998,7 +8459,37 @@
       });
     }
 
-    // ==============================================================
+    // Modal backward compatibility functions
+    function populateMisSuppliesDropdown() {
+      populateMisReqDropdown();
+    }
+    function onMisSuppliesSelect(supId) {
+      const req = suppliesRequests.find(s => s.id === supId);
+      if (req) applySuppliesRequestToMisForm(req);
+    }
+    function openAddIssuanceModal(presetSupId) {
+      if (presetSupId) {
+        const req = suppliesRequests.find(s => s.id === presetSupId);
+        if (req) applySuppliesRequestToMisForm(req);
+      }
+      showView('issuance');
+      document.getElementById('misMainForm')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    function openAddIssuanceModalWithFirstApproved() {
+      applyFirstApprovedRequestToMisForm();
+    }
+    function onMisItemChange() {
+      // legacy
+    }
+    function recalcMisTotal() {
+      calcMisFormTotals();
+    }
+    function handleIssuanceSubmit(e) {
+      if (e) e.preventDefault();
+      submitMisForm();
+    }
+    
+// ==============================================================
     // RENDER: ON-HAND INVENTORY MASTER
     // ==============================================================
     function renderStockTable() {
@@ -10279,9 +10770,9 @@
 
     function exportMisCSV() {
       if (materialIssuances.length === 0) return showSystemAlert('No Data to Export', 'There are no Material Issuance records to export.', false);
-      let csv = 'Date,MIS No,Recipient,Department,Plate,Items,Total Value\n';
+      let csv = 'Date,MIS No,Ref No,Recipient,Department,Plate,Items,Total Value\n';
       materialIssuances.forEach(m => {
-        csv += `"${formatDisplayDate(m.date, '')}","${m.mis_no}","${m.recipient_name}","${m.project_dept}","${m.tagged_plate || ''}","${m.items_desc}",${m.total_issuance_value}\n`;
+        csv += `"${formatDisplayDate(m.date, '')}","${m.mis_no}","${m.ref_no || ''}","${m.recipient_name}","${m.project_dept}","${m.tagged_plate || ''}","${m.items_desc}",${m.total_issuance_value}\n`;
       });
       downloadCSV(csv, 'Warehouse_Material_Issuances.csv');
     }
