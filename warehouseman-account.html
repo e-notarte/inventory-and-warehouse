@@ -2506,7 +2506,15 @@
         display: inline !important;
       }
     }
-    .sidebar-footer-dev { font-size: 0.72rem; color: var(--accent, #f59e0b); font-weight: 700; letter-spacing: 0.2px; margin-top: 2px; display: block; }
+
+    .sidebar-footer-dev {
+      font-size: 0.72rem;
+      color: var(--accent, #f59e0b);
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      margin-top: 2px;
+      display: block;
+    }
   </style>
 </head>
 
@@ -2548,8 +2556,8 @@
       </button>
 
       <div class="header-account">
-        <button type="button" id="accountButton" class="account-button" aria-haspopup="menu"
-          aria-expanded="false" aria-controls="accountMenu">
+        <button type="button" id="accountButton" class="account-button" aria-haspopup="menu" aria-expanded="false"
+          aria-controls="accountMenu">
           <span class="account-name" id="headerUserName">Warehouseman</span>
           <span class="user-avatar" id="headerUserAvatar">SA</span>
         </button>
@@ -2713,14 +2721,15 @@
                 <i class="fa-solid fa-trash-can-arrow-up" style="color:#ef4444;"></i>
                 <span>Recycle Bin</span>
               </div>
-              <span class="nav-badge" id="navRecycleBinCount" style="display:none; background:#ef4444; color:white;">0</span>
+              <span class="nav-badge" id="navRecycleBinCount"
+                style="display:none; background:#ef4444; color:white;">0</span>
             </a>
           </li>
         </ul>
 
       </div>
 
-      
+
       <!-- SIDEBAR FOOTER -->
       <div class="sidebar-footer">
         <strong>Inventory & Warehouse Module</strong>
@@ -3258,237 +3267,268 @@
         </div>
       </section>
 
-<!-- ============================================================== -->
+      <!-- ============================================================== -->
       <!-- VIEW: PETTY CASH VOUCHER (PCV) -->
       <!-- ============================================================== -->
-<!-- PETTY CASH ENTRY VIEW -->
-<div id="view-petty-cash" class="view-section">
-  <!-- FORM ENTRY CARD -->
-  <div class="data-card" style="margin-bottom: 24px; padding: 24px; border-radius: 12px; box-shadow: 0 4px 18px rgba(0,0,0,0.06); border: 1px solid var(--border); background: #ffffff;">
-    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:18px;">
-      <div>
-        <div style="font-size:0.75rem; font-weight:800; color:var(--accent); letter-spacing:1px; text-transform:uppercase;">
-          FINANCIAL DISBURSEMENT SYSTEM
-        </div>
-        <h2 style="margin:2px 0 4px; font-size:1.3rem; color:var(--primary); font-weight:800; display:flex; align-items:center; gap:10px;">
-          <i class="fa-solid fa-money-bill-wave" style="color:var(--accent);"></i> Petty Cash Voucher (PCV)
-        </h2>
-        <span style="font-size:0.82rem; color:var(--text-muted);">
-          Admin Entry &amp; Cash Disbursement Log
-        </span>
-      </div>
-      <div style="display:flex; gap:10px;">
-        <button type="button" class="btn-primary" onclick="exportPettyCashCSV()"
-          style="font-size:0.82rem; padding:8px 16px; background:#0284c7; border-radius:6px; font-weight:700;">
-          <i class="fa-solid fa-file-excel"></i> Export CSV
-        </button>
-      </div>
-    </div>
-
-    <form id="pettyCashEntryForm" novalidate onsubmit="event.preventDefault(); submitPettyCashVoucher(event);">
-      <!-- Top Metadata Grid (2-column layout) -->
-      <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:16px; background:#f8fafc; border:1px solid var(--border); border-radius:8px; padding:18px; margin-bottom:20px;">
-        <!-- Row 1 -->
-        <div>
-          <label style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
-            <span style="color:var(--accent);">#</span> PCV No. <span style="color:#ef4444;">*</span>
-          </label>
-          <input type="text" id="pcVoucherNo" required placeholder="e.g. PCV-2026-0001"
-            style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; font-weight:800; font-family:monospace; color:var(--primary); background:white; box-sizing:border-box;">
-        </div>
-
-        <div>
-          <label style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
-            <i class="fa-solid fa-calendar-day" style="color:var(--accent); margin-right:4px;"></i> PCV Date <span style="color:#ef4444;">*</span>
-          </label>
-          <input type="date" id="pcDate" required
-            style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; font-weight:700; color:var(--primary); background:white; box-sizing:border-box;">
-        </div>
-
-        <!-- Row 2 -->
-        <div>
-          <label style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
-            <i class="fa-solid fa-users" style="color:var(--accent); margin-right:4px;"></i> Department <span style="color:#ef4444;">*</span>
-          </label>
-          <select id="pcDepartment" required
-            style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; font-weight:700; color:var(--primary); background:white; box-sizing:border-box;">
-            <option value="" disabled selected>-- Select Department --</option>
-            <option value="Admin">Admin</option>
-            <option value="HR">HR</option>
-            <option value="Purchasing">Purchasing</option>
-            <option value="BDG">BDG</option>
-            <option value="Engineering">Engineering</option>
-            <option value="Accounting">Accounting</option>
-            <option value="Finance">Finance</option>
-            <option value="Operations">Operations</option>
-          </select>
-        </div>
-
-        <div>
-          <label style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
-            <i class="fa-solid fa-user-tag" style="color:var(--accent); margin-right:4px;"></i> Payee / Supplier Name <span style="color:#ef4444;">*</span>
-          </label>
-          <input type="text" id="pcPayee" required placeholder="Enter Payee or Supplier Name"
-            style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; font-weight:700; color:var(--primary); background:white; box-sizing:border-box;">
-        </div>
-
-        <!-- Row 3: Expense Account -->
-        <div style="grid-column: 1 / -1;">
-          <label style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
-            <i class="fa-solid fa-tags" style="color:var(--accent); margin-right:4px;"></i> Expense Account / Item Type
-          </label>
-          <select id="pcExpenseAccount"
-            style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; font-weight:700; color:var(--primary); background:white; box-sizing:border-box;">
-            <option value="Office Supplies">Office Supplies</option>
-            <option value="Fuel &amp; Oil">Fuel &amp; Oil</option>
-            <option value="Meals &amp; Representation">Meals &amp; Representation</option>
-            <option value="Transportation &amp; Travel">Transportation &amp; Travel</option>
-            <option value="Repairs &amp; Maintenance">Repairs &amp; Maintenance</option>
-            <option value="Communication &amp; Load">Communication &amp; Load</option>
-            <option value="Tools &amp; Hardware">Tools &amp; Hardware</option>
-            <option value="Postage &amp; Delivery">Postage &amp; Delivery</option>
-            <option value="Taxes &amp; Permits">Taxes &amp; Permits</option>
-            <option value="Miscellaneous">Miscellaneous</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Line Items Table Header (Matching the screenshot exactly) -->
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:10px;">
-        <h3 style="margin:0; font-size:0.95rem; font-weight:800; color:var(--primary); display:flex; align-items:center; gap:8px;">
-          <i class="fa-solid fa-list-check" style="color:var(--accent);"></i> Disbursed Line Items (Item Description, Qty, UOM, Unit Cost &amp; Total)
-        </h3>
-        <div style="display:flex; gap:8px; align-items:center;">
-          <span style="font-size:0.75rem; color:var(--text-muted);">Items and descriptions for cash disbursement.</span>
-          <button type="button" class="btn-primary" onclick="addPettyCashItemRow()"
-            style="font-size:0.78rem; padding:6px 12px; background:#4f46e5; border-radius:4px; font-weight:700;">
-            <i class="fa-solid fa-plus"></i> Add Item
-          </button>
-        </div>
-      </div>
-
-      <!-- Line Items Grid Table -->
-      <div style="overflow-x:auto; margin-bottom:18px;">
-        <table style="width:100%; border-collapse:collapse; background:white; border-radius:6px; overflow:hidden; border:1px solid var(--border);">
-          <thead>
-            <tr style="background:#1e293b; color:white; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px;">
-              <th style="padding:10px 8px; width:45px; text-align:center;">#</th>
-              <th style="padding:10px 12px; min-width:280px; text-align:left;">Item Description <span style="color:#ef4444;">*</span></th>
-              <th style="padding:10px 8px; width:95px; text-align:center;">Qty <span style="color:#ef4444;">*</span></th>
-              <th style="padding:10px 8px; width:125px; text-align:center;">Unit of Measure</th>
-              <th style="padding:10px 10px; width:135px; text-align:right;">Unit Cost (₱) <span style="color:#ef4444;">*</span></th>
-              <th style="padding:10px 12px; width:150px; text-align:right;">Total Amount (₱) <span style="color:#ef4444;">*</span></th>
-              <th style="padding:10px 8px; width:50px; text-align:center;"></th>
-            </tr>
-          </thead>
-          <tbody id="pettyCashItemsBody">
-            <!-- Generated dynamic rows -->
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Bottom Summary & Action Row (Matching screenshot) -->
-      <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; border:1px solid var(--border); border-radius:8px; padding:16px 20px; flex-wrap:wrap; gap:16px;">
-        <div style="display:flex; align-items:center; gap:8px; font-size:0.84rem; color:#334155;">
-          <i class="fa-solid fa-user-check" style="color:var(--accent);"></i>
-          <span>Disbursed &amp; Certified by: <strong id="pcCustodianName" style="color:var(--primary);">System Admin</strong></span>
-        </div>
-        <div style="display:flex; align-items:center; gap:20px;">
-          <div style="font-size:1.05rem; font-weight:800; color:#334155;">
-            TOTAL AMOUNT: <span style="color:#16a34a; font-size:1.25rem;" id="pcTotalDisplay">₱ 0.00</span>
+      <!-- PETTY CASH ENTRY VIEW -->
+      <div id="view-petty-cash" class="view-section">
+        <!-- FORM ENTRY CARD -->
+        <div class="data-card"
+          style="margin-bottom: 24px; padding: 24px; border-radius: 12px; box-shadow: 0 4px 18px rgba(0,0,0,0.06); border: 1px solid var(--border); background: #ffffff;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:18px;">
+            <div>
+              <div
+                style="font-size:0.75rem; font-weight:800; color:var(--accent); letter-spacing:1px; text-transform:uppercase;">
+                FINANCIAL DISBURSEMENT SYSTEM
+              </div>
+              <h2
+                style="margin:2px 0 4px; font-size:1.3rem; color:var(--primary); font-weight:800; display:flex; align-items:center; gap:10px;">
+                <i class="fa-solid fa-money-bill-wave" style="color:var(--accent);"></i> Petty Cash Voucher (PCV)
+              </h2>
+              <span style="font-size:0.82rem; color:var(--text-muted);">
+                Admin Entry &amp; Cash Disbursement Log
+              </span>
+            </div>
+            <div style="display:flex; gap:10px;">
+              <button type="button" class="btn-primary" onclick="exportPettyCashCSV()"
+                style="font-size:0.82rem; padding:8px 16px; background:#0284c7; border-radius:6px; font-weight:700;">
+                <i class="fa-solid fa-file-excel"></i> Export CSV
+              </button>
+            </div>
           </div>
-          <div style="display:flex; gap:10px;">
-            <button type="button" class="btn-primary" onclick="resetPettyCashForm()"
-              style="background:#64748b; padding:10px 18px; font-size:0.85rem; border-radius:6px; cursor:pointer;">
-              <i class="fa-solid fa-rotate-left"></i> Reset
-            </button>
-            <button type="submit" class="btn-primary" id="btnSubmitPettyCash"
-              style="padding:10px 22px; font-size:0.85rem; font-weight:700; background:#16a34a; border-radius:6px; cursor:pointer;">
-              <i class="fa-solid fa-floppy-disk"></i> Submit Petty Cash Voucher
-            </button>
+
+          <form id="pettyCashEntryForm" novalidate onsubmit="event.preventDefault(); submitPettyCashVoucher(event);">
+            <!-- Top Metadata Grid (2-column layout) -->
+            <div
+              style="display:grid; grid-template-columns: repeat(2, 1fr); gap:16px; background:#f8fafc; border:1px solid var(--border); border-radius:8px; padding:18px; margin-bottom:20px;">
+              <!-- Row 1 -->
+              <div>
+                <label
+                  style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
+                  <span style="color:var(--accent);">#</span> PCV No. <span style="color:#ef4444;">*</span>
+                </label>
+                <input type="text" id="pcVoucherNo" required placeholder="e.g. PCV-2026-0001"
+                  style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; font-weight:800; font-family:monospace; color:var(--primary); background:white; box-sizing:border-box;">
+              </div>
+
+              <div>
+                <label
+                  style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
+                  <i class="fa-solid fa-calendar-day" style="color:var(--accent); margin-right:4px;"></i> PCV Date <span
+                    style="color:#ef4444;">*</span>
+                </label>
+                <input type="date" id="pcDate" required
+                  style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; font-weight:700; color:var(--primary); background:white; box-sizing:border-box;">
+              </div>
+
+              <!-- Row 2 -->
+              <div>
+                <label
+                  style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
+                  <i class="fa-solid fa-users" style="color:var(--accent); margin-right:4px;"></i> Department <span
+                    style="color:#ef4444;">*</span>
+                </label>
+                <select id="pcDepartment" required
+                  style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; font-weight:700; color:var(--primary); background:white; box-sizing:border-box;">
+                  <option value="" disabled selected>-- Select Department --</option>
+                  <option value="Admin">Admin</option>
+                  <option value="HR">HR</option>
+                  <option value="Purchasing">Purchasing</option>
+                  <option value="BDG">BDG</option>
+                  <option value="Engineering">Engineering</option>
+                  <option value="Accounting">Accounting</option>
+                  <option value="Finance">Finance</option>
+                  <option value="Operations">Operations</option>
+                </select>
+              </div>
+
+              <div>
+                <label
+                  style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
+                  <i class="fa-solid fa-user-tag" style="color:var(--accent); margin-right:4px;"></i> Payee / Supplier
+                  Name <span style="color:#ef4444;">*</span>
+                </label>
+                <input type="text" id="pcPayee" required placeholder="Enter Payee or Supplier Name"
+                  style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; font-weight:700; color:var(--primary); background:white; box-sizing:border-box;">
+              </div>
+
+              <!-- Row 3: Expense Account -->
+              <div style="grid-column: 1 / -1;">
+                <label
+                  style="display:block; font-size:0.78rem; font-weight:800; color:#334155; margin-bottom:5px; text-transform:uppercase;">
+                  <i class="fa-solid fa-tags" style="color:var(--accent); margin-right:4px;"></i> Expense Account / Item
+                  Type
+                </label>
+                <select id="pcExpenseAccount"
+                  style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; font-weight:700; color:var(--primary); background:white; box-sizing:border-box;">
+                  <option value="Office Supplies">Office Supplies</option>
+                  <option value="Fuel &amp; Oil">Fuel &amp; Oil</option>
+                  <option value="Meals &amp; Representation">Meals &amp; Representation</option>
+                  <option value="Transportation &amp; Travel">Transportation &amp; Travel</option>
+                  <option value="Repairs &amp; Maintenance">Repairs &amp; Maintenance</option>
+                  <option value="Communication &amp; Load">Communication &amp; Load</option>
+                  <option value="Tools &amp; Hardware">Tools &amp; Hardware</option>
+                  <option value="Postage &amp; Delivery">Postage &amp; Delivery</option>
+                  <option value="Taxes &amp; Permits">Taxes &amp; Permits</option>
+                  <option value="Miscellaneous">Miscellaneous</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Line Items Table Header (Matching the screenshot exactly) -->
+            <div
+              style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:10px;">
+              <h3
+                style="margin:0; font-size:0.95rem; font-weight:800; color:var(--primary); display:flex; align-items:center; gap:8px;">
+                <i class="fa-solid fa-list-check" style="color:var(--accent);"></i> Disbursed Line Items (Item
+                Description, Qty, UOM, Unit Cost &amp; Total)
+              </h3>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <span style="font-size:0.75rem; color:var(--text-muted);">Items and descriptions for cash
+                  disbursement.</span>
+                <button type="button" class="btn-primary" onclick="addPettyCashItemRow()"
+                  style="font-size:0.78rem; padding:6px 12px; background:#4f46e5; border-radius:4px; font-weight:700;">
+                  <i class="fa-solid fa-plus"></i> Add Item
+                </button>
+              </div>
+            </div>
+
+            <!-- Line Items Grid Table -->
+            <div style="overflow-x:auto; margin-bottom:18px;">
+              <table
+                style="width:100%; border-collapse:collapse; background:white; border-radius:6px; overflow:hidden; border:1px solid var(--border);">
+                <thead>
+                  <tr
+                    style="background:#1e293b; color:white; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px;">
+                    <th style="padding:10px 8px; width:45px; text-align:center;">#</th>
+                    <th style="padding:10px 12px; min-width:280px; text-align:left;">Item Description <span
+                        style="color:#ef4444;">*</span></th>
+                    <th style="padding:10px 8px; width:95px; text-align:center;">Qty <span
+                        style="color:#ef4444;">*</span></th>
+                    <th style="padding:10px 8px; width:125px; text-align:center;">Unit of Measure</th>
+                    <th style="padding:10px 10px; width:135px; text-align:right;">Unit Cost (₱) <span
+                        style="color:#ef4444;">*</span></th>
+                    <th style="padding:10px 12px; width:150px; text-align:right;">Total Amount (₱) <span
+                        style="color:#ef4444;">*</span></th>
+                    <th style="padding:10px 8px; width:50px; text-align:center;"></th>
+                  </tr>
+                </thead>
+                <tbody id="pettyCashItemsBody">
+                  <!-- Generated dynamic rows -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Bottom Summary & Action Row (Matching screenshot) -->
+            <div
+              style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; border:1px solid var(--border); border-radius:8px; padding:16px 20px; flex-wrap:wrap; gap:16px;">
+              <div style="display:flex; align-items:center; gap:8px; font-size:0.84rem; color:#334155;">
+                <i class="fa-solid fa-user-check" style="color:var(--accent);"></i>
+                <span>Disbursed &amp; Certified by: <strong id="pcCustodianName" style="color:var(--primary);">System
+                    Admin</strong></span>
+              </div>
+              <div style="display:flex; align-items:center; gap:20px;">
+                <div style="font-size:1.05rem; font-weight:800; color:#334155;">
+                  TOTAL AMOUNT: <span style="color:#16a34a; font-size:1.25rem;" id="pcTotalDisplay">₱ 0.00</span>
+                </div>
+                <div style="display:flex; gap:10px;">
+                  <button type="button" class="btn-primary" onclick="resetPettyCashForm()"
+                    style="background:#64748b; padding:10px 18px; font-size:0.85rem; border-radius:6px; cursor:pointer;">
+                    <i class="fa-solid fa-rotate-left"></i> Reset
+                  </button>
+                  <button type="submit" class="btn-primary" id="btnSubmitPettyCash"
+                    style="padding:10px 22px; font-size:0.85rem; font-weight:700; background:#16a34a; border-radius:6px; cursor:pointer;">
+                    <i class="fa-solid fa-floppy-disk"></i> Submit Petty Cash Voucher
+                  </button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- MASTER PETTY CASH TABLE & FILTER CARD -->
+        <div class="data-card"
+          style="padding: 24px; border-radius: 12px; box-shadow: 0 4px 18px rgba(0,0,0,0.06); border: 1px solid var(--border); background: #ffffff;">
+          <!-- Filter Controls (Department, Search, Month, Date, Export CSV) -->
+          <div
+            style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; flex-wrap:wrap; gap:12px;">
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; flex:1;">
+              <select id="pcDeptFilter" onchange="renderPettyCashTable()"
+                style="padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-size:0.82rem; font-weight:600; color:var(--primary); background:white;">
+                <option value="ALL">All Departments</option>
+              </select>
+
+              <div class="search-box" style="margin:0; width:100%; max-width:320px;">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="pcSearchInput" placeholder="Search PCV, PO, Payee, item..."
+                  oninput="renderPettyCashTable()">
+              </div>
+
+              <select id="pcMonthFilter" onchange="renderPettyCashTable()"
+                style="padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-size:0.82rem; font-weight:600; color:var(--primary); background:white;">
+                <option value="ALL">All Months</option>
+                <option value="01">January</option>
+                <option value="02">February</option>
+                <option value="03">March</option>
+                <option value="04">April</option>
+                <option value="05">May</option>
+                <option value="06">June</option>
+                <option value="07">July</option>
+                <option value="08">August</option>
+                <option value="09">September</option>
+                <option value="10">October</option>
+                <option value="11">November</option>
+                <option value="12">December</option>
+              </select>
+
+              <input type="date" id="pcDateFilter" onchange="renderPettyCashTable()"
+                style="padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-size:0.82rem; font-weight:600; color:var(--primary); background:white;">
+            </div>
+
+            <div>
+              <button type="button" class="btn-primary" onclick="exportPettyCashCSV()"
+                style="font-size:0.82rem; padding:8px 16px; background:#0284c7; border-radius:6px; font-weight:700;">
+                <i class="fa-solid fa-file-excel"></i> Export CSV
+              </button>
+            </div>
+          </div>
+
+          <!-- Master Table -->
+          <div style="overflow-x:auto;">
+            <table class="dispatch-table" style="min-width: 1050px;">
+              <thead>
+                <tr>
+                  <th style="width:120px;">Date Disbursed</th>
+                  <th style="width:130px;">PCV No.</th>
+                  <th style="min-width:180px;">Payee / Supplier</th>
+                  <th style="width:140px;">Department</th>
+                  <th style="width:150px;">Expense Type</th>
+                  <th style="min-width:220px;">Particulars / Line Items</th>
+                  <th style="width:130px; text-align:right;">Total Valuation</th>
+                  <th style="width:110px; text-align:center;">Condition</th>
+                  <th style="width:130px; text-align:center;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="pettyCashTableBody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Bottom Summary Badge Notice -->
+          <div
+            style="margin-top:24px; padding:16px; text-align:center; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px;">
+            <div
+              style="display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:50%; background:#22c55e; color:white; margin-bottom:6px;">
+              <i class="fa-solid fa-check"></i>
+            </div>
+            <div style="font-weight:700; color:#166534; font-size:0.95rem;">All Petty Cash Vouchers Recorded &amp;
+              Accounted</div>
+            <div style="font-size:0.78rem; color:#15803d; margin-top:2px;">Disbursement entries are stored in the
+              Masterfile Register and routed to respective accounting cost centers.</div>
           </div>
         </div>
       </div>
-    </form>
-  </div>
-
-  <!-- MASTER PETTY CASH TABLE & FILTER CARD -->
-  <div class="data-card" style="padding: 24px; border-radius: 12px; box-shadow: 0 4px 18px rgba(0,0,0,0.06); border: 1px solid var(--border); background: #ffffff;">
-    <!-- Filter Controls (Department, Search, Month, Date, Export CSV) -->
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; flex-wrap:wrap; gap:12px;">
-      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; flex:1;">
-        <select id="pcDeptFilter" onchange="renderPettyCashTable()"
-          style="padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-size:0.82rem; font-weight:600; color:var(--primary); background:white;">
-          <option value="ALL">All Departments</option>
-        </select>
-
-        <div class="search-box" style="margin:0; width:100%; max-width:320px;">
-          <i class="fa-solid fa-magnifying-glass"></i>
-          <input type="text" id="pcSearchInput" placeholder="Search PCV, PO, Payee, item..."
-            oninput="renderPettyCashTable()">
-        </div>
-
-        <select id="pcMonthFilter" onchange="renderPettyCashTable()"
-          style="padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-size:0.82rem; font-weight:600; color:var(--primary); background:white;">
-          <option value="ALL">All Months</option>
-          <option value="01">January</option>
-          <option value="02">February</option>
-          <option value="03">March</option>
-          <option value="04">April</option>
-          <option value="05">May</option>
-          <option value="06">June</option>
-          <option value="07">July</option>
-          <option value="08">August</option>
-          <option value="09">September</option>
-          <option value="10">October</option>
-          <option value="11">November</option>
-          <option value="12">December</option>
-        </select>
-
-        <input type="date" id="pcDateFilter" onchange="renderPettyCashTable()"
-          style="padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-size:0.82rem; font-weight:600; color:var(--primary); background:white;">
-      </div>
-
-      <div>
-        <button type="button" class="btn-primary" onclick="exportPettyCashCSV()"
-          style="font-size:0.82rem; padding:8px 16px; background:#0284c7; border-radius:6px; font-weight:700;">
-          <i class="fa-solid fa-file-excel"></i> Export CSV
-        </button>
-      </div>
-    </div>
-
-    <!-- Master Table -->
-    <div style="overflow-x:auto;">
-      <table class="dispatch-table" style="min-width: 1050px;">
-        <thead>
-          <tr>
-            <th style="width:120px;">Date Disbursed</th>
-            <th style="width:130px;">PCV No.</th>
-            <th style="min-width:180px;">Payee / Supplier</th>
-            <th style="width:140px;">Department</th>
-            <th style="width:150px;">Expense Type</th>
-            <th style="min-width:220px;">Particulars / Line Items</th>
-            <th style="width:130px; text-align:right;">Total Valuation</th>
-            <th style="width:110px; text-align:center;">Condition</th>
-            <th style="width:130px; text-align:center;">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="pettyCashTableBody">
-          <!-- Dynamically populated -->
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Bottom Summary Badge Notice -->
-    <div style="margin-top:24px; padding:16px; text-align:center; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px;">
-      <div style="display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:50%; background:#22c55e; color:white; margin-bottom:6px;">
-        <i class="fa-solid fa-check"></i>
-      </div>
-      <div style="font-weight:700; color:#166534; font-size:0.95rem;">All Petty Cash Vouchers Recorded &amp; Accounted</div>
-      <div style="font-size:0.78rem; color:#15803d; margin-top:2px;">Disbursement entries are stored in the Masterfile Register and routed to respective accounting cost centers.</div>
-    </div>
-  </div>
-</div>
 
       <!-- ============================================================ -->
       <!-- VIEW 5: MATERIAL ISSUANCE SLIPS (MIS) -->
@@ -3552,9 +3592,10 @@
               <!-- RECIPIENT / DRIVER -->
               <div class="mrr-field-group">
                 <label for="misRecipientInput">
-                  <i class="fa-solid fa-user-tag"></i> Recipient / Driver Name <span class="po-req">*</span>
+                  <i class="fa-solid fa-user-tag"></i> Recipient Name <span class="po-req">*</span>
                 </label>
-                <input type="text" id="misRecipientInput" class="form-control-neat" placeholder="Enter recipient or driver name" required>
+                <input type="text" id="misRecipientInput" class="form-control-neat"
+                  placeholder="Enter recipient or driver name" required>
               </div>
 
               <!-- PURPOSE / NOTES -->
@@ -3562,7 +3603,8 @@
                 <label for="misPurposeInput">
                   <i class="fa-regular fa-clipboard"></i> Purpose / Notes
                 </label>
-                <input type="text" id="misPurposeInput" class="form-control-neat" placeholder="e.g. Vehicle PMS, site fabrication, office supplies">
+                <input type="text" id="misPurposeInput" class="form-control-neat"
+                  placeholder="e.g. Vehicle PMS, site fabrication, office supplies">
               </div>
             </div>
 
@@ -3668,17 +3710,20 @@
                 <input type="text" id="misSearchInput" placeholder="Search MIS #, recipient, plate, or item"
                   oninput="renderMisTable()">
               </div>
-              <select id="misMonthFilter" onchange="onMonthFilterChange('misMonthFilter', 'misDateFilter', renderMisTable)"
+              <select id="misMonthFilter"
+                onchange="onMonthFilterChange('misMonthFilter', 'misDateFilter', renderMisTable)"
                 class="form-control-neat" style="width:auto; height:38px; min-width:130px;"
                 aria-label="Filter Material Issuances by month">
                 <option value="ALL">All Months</option>
               </select>
               <div class="date-picker-wrap date-picker-filter">
-                <input type="text" id="misDateFilter" class="form-control-neat date-text-input" placeholder="12-Nov-2026"
-                  autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
+                <input type="text" id="misDateFilter" class="form-control-neat date-text-input"
+                  placeholder="12-Nov-2026" autocomplete="off" autocorrect="off" autocapitalize="none"
+                  spellcheck="false"
                   oninput="if (!this.value.trim() || parseCalendarDateParts(this.value)) onDateFilterChange('misDateFilter', 'misMonthFilter', renderMisTable)"
                   onchange="onDateFilterChange('misDateFilter', 'misMonthFilter', renderMisTable)"
-                  aria-label="Filter Material Issuances by date (DD-MMM-YYYY)" title="Filter by date (e.g. 12-Nov-2026)">
+                  aria-label="Filter Material Issuances by date (DD-MMM-YYYY)"
+                  title="Filter by date (e.g. 12-Nov-2026)">
                 <button type="button" class="date-cal-btn" aria-label="Choose filter date from calendar"
                   title="Pick filter date">
                   <i class="fa-regular fa-calendar"></i>
@@ -4206,7 +4251,8 @@
               <i class="fa-solid fa-coins"></i> Chart of Accounts <span class="badge" id="badgeDirCoa">0</span>
             </button>
             <button type="button" class="dir-tab-btn" onclick="switchDirTab('itemtypes', this)">
-              <i class="fa-solid fa-layer-group"></i> Item Types Registry <span class="badge" id="badgeDirItemTypes">0</span>
+              <i class="fa-solid fa-layer-group"></i> Item Types Registry <span class="badge"
+                id="badgeDirItemTypes">0</span>
             </button>
           </div>
         </div>
@@ -4703,41 +4749,50 @@
               <h2>Item Type Registration Encoder</h2>
             </div>
             <p class="po-form-subtitle">
-              Encoder form to accomplish new Item Type classifications and configure automatic inventory routing targets.
+              Encoder form to accomplish new Item Type classifications and configure automatic inventory routing
+              targets.
             </p>
 
             <form id="formItemTypeEncoder" onsubmit="event.preventDefault(); submitItemTypeEncoder();">
               <div class="dir-grid-2">
                 <div class="po-field-group">
-                  <label for="encItemTypeName"><i class="fa-solid fa-tag"></i> ITEM TYPE NAME <span class="po-req">*</span></label>
-                  <input type="text" id="encItemTypeName" class="form-control-neat" placeholder="e.g. Electrical &amp; Hardware" required>
+                  <label for="encItemTypeName"><i class="fa-solid fa-tag"></i> ITEM TYPE NAME <span
+                      class="po-req">*</span></label>
+                  <input type="text" id="encItemTypeName" class="form-control-neat"
+                    placeholder="e.g. Electrical &amp; Hardware" required>
                 </div>
                 <div class="po-field-group">
-                  <label for="encItemTypeTarget"><i class="fa-solid fa-share-nodes"></i> ROUTED TARGET / MODULE <span class="po-req">*</span></label>
+                  <label for="encItemTypeTarget"><i class="fa-solid fa-share-nodes"></i> ROUTED TARGET / MODULE <span
+                      class="po-req">*</span></label>
                   <select id="encItemTypeTarget" class="form-control-neat" required>
                     <option value="On-Hand Inventory">On-Hand Inventory (Consumables/Warehouse)</option>
                     <option value="Direct Project Charge">Direct Project Charge (Construction Materials)</option>
                     <option value="Fixed Asset Registry">Fixed Asset Registry (Equipment/Machinery)</option>
                     <option value="Services Registry">Services Registry (Labor/Rentals)</option>
-                    <option value="Vehicle Repair & PMS Registry">Vehicle Repair &amp; PMS Registry (Fleet/Maintenance)</option>
+                    <option value="Vehicle Repair & PMS Registry">Vehicle Repair &amp; PMS Registry (Fleet/Maintenance)
+                    </option>
                     <option value="Capex Registry">Capex Registry (Capital Outlay)</option>
                   </select>
                 </div>
               </div>
               <div class="po-field-group" style="margin-bottom:14px;">
                 <label for="encItemTypeDesc"><i class="fa-solid fa-file-lines"></i> DESCRIPTION / SCOPE</label>
-                <input type="text" id="encItemTypeDesc" class="form-control-neat" placeholder="e.g. General electrical conduit, wires, breakers, switches and panelboards">
+                <input type="text" id="encItemTypeDesc" class="form-control-neat"
+                  placeholder="e.g. General electrical conduit, wires, breakers, switches and panelboards">
               </div>
 
-              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-top:14px; padding-top:12px; border-top:1px solid var(--border);">
+              <div
+                style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-top:14px; padding-top:12px; border-top:1px solid var(--border);">
                 <div style="font-size:0.8rem; color:var(--text-muted);">
                   Header: <strong>No. | Item Type Name | Target Destination | Description / Scope</strong>
                 </div>
                 <div style="display:flex; gap:8px;">
-                  <button type="button" class="btn btn-outline" onclick="document.getElementById('formItemTypeEncoder').reset()">
+                  <button type="button" class="btn btn-outline"
+                    onclick="document.getElementById('formItemTypeEncoder').reset()">
                     <i class="fa-solid fa-rotate-left"></i> Reset
                   </button>
-                  <button type="submit" class="btn btn-primary" style="background:#10b981; border-color:#10b981; color:#fff;">
+                  <button type="submit" class="btn btn-primary"
+                    style="background:#10b981; border-color:#10b981; color:#fff;">
                     <i class="fa-solid fa-plus"></i> Save Item Type to Registry
                   </button>
                 </div>
@@ -4747,14 +4802,19 @@
 
           <!-- ITEM TYPES DATA TABLE CARD -->
           <div class="card" style="margin-top:20px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+            <div
+              style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
               <div>
-                <h3 style="margin:0; font-size:1.15rem; font-weight:700;"><i class="fa-solid fa-list-check" style="color:#d97706; margin-right:8px;"></i>Item Types Registry</h3>
-                <div style="font-size:0.82rem; color:var(--text-muted); margin-top:2px;" id="itemTypesTableCount">Showing all registered item types</div>
+                <h3 style="margin:0; font-size:1.15rem; font-weight:700;"><i class="fa-solid fa-list-check"
+                    style="color:#d97706; margin-right:8px;"></i>Item Types Registry</h3>
+                <div style="font-size:0.82rem; color:var(--text-muted); margin-top:2px;" id="itemTypesTableCount">
+                  Showing all registered item types</div>
               </div>
               <div style="display:flex; gap:10px;">
-                <input type="text" id="searchItemTypesInput" class="form-control-neat" placeholder="Search item type or target..." style="width:260px;" oninput="renderItemTypesTable()">
-                <button class="btn btn-outline btn-sm" onclick="exportItemTypesCSV()"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+                <input type="text" id="searchItemTypesInput" class="form-control-neat"
+                  placeholder="Search item type or target..." style="width:260px;" oninput="renderItemTypesTable()">
+                <button class="btn btn-outline btn-sm" onclick="exportItemTypesCSV()"><i
+                    class="fa-solid fa-file-csv"></i> Export CSV</button>
               </div>
             </div>
 
@@ -4780,7 +4840,7 @@
 
       </section>
 
-    
+
       <!-- ============================================================ -->
       <!-- VIEW 15: RECYCLE BIN & DATA RECOVERY ARCHIVE -->
       <!-- ============================================================ -->
@@ -4788,15 +4848,18 @@
         <div class="view-header">
           <div class="view-title-group">
             <h2>
-              <i class="fa-solid fa-trash-can-arrow-up" style="color:#ef4444;"></i> Recycle Bin &amp; Data Recovery Archive
+              <i class="fa-solid fa-trash-can-arrow-up" style="color:#ef4444;"></i> Recycle Bin &amp; Data Recovery
+              Archive
             </h2>
-            <p>Safely restore deleted records or permanently purge archived entries. Synchronized with Supabase cloud.</p>
+            <p>Safely restore deleted records or permanently purge archived entries. Synchronized with Supabase cloud.
+            </p>
           </div>
           <div class="view-action-group">
             <button type="button" class="btn btn-outline" onclick="exportRecycleBinCSV()">
               <i class="fa-solid fa-file-csv"></i> Export Deleted Log
             </button>
-            <button type="button" class="btn btn-danger" onclick="emptyRecycleBin()" style="background:#ef4444; border-color:#ef4444; color:white;">
+            <button type="button" class="btn btn-danger" onclick="emptyRecycleBin()"
+              style="background:#ef4444; border-color:#ef4444; color:white;">
               <i class="fa-solid fa-trash"></i> Empty Recycle Bin
             </button>
           </div>
@@ -4808,7 +4871,8 @@
             <div class="stat-content">
               <span class="stat-label">Total In Recycle Bin</span>
               <div class="stat-value" id="recycleStatTotal">0</div>
-              <div class="stat-trend" style="color:var(--text-muted); font-size:0.75rem;">Archived items awaiting restoration or purge</div>
+              <div class="stat-trend" style="color:var(--text-muted); font-size:0.75rem;">Archived items awaiting
+                restoration or purge</div>
             </div>
             <div class="stat-icon" style="background:#fee2e2; color:#ef4444;">
               <i class="fa-solid fa-trash-can"></i>
@@ -4819,7 +4883,8 @@
             <div class="stat-content">
               <span class="stat-label">Transactions &amp; Orders</span>
               <div class="stat-value" id="recycleStatTransactions">0</div>
-              <div class="stat-trend" style="color:var(--text-muted); font-size:0.75rem;">POs, Receiving Reports, MIS &amp; PCV</div>
+              <div class="stat-trend" style="color:var(--text-muted); font-size:0.75rem;">POs, Receiving Reports, MIS
+                &amp; PCV</div>
             </div>
             <div class="stat-icon" style="background:#dbeafe; color:#3b82f6;">
               <i class="fa-solid fa-file-invoice"></i>
@@ -4830,7 +4895,8 @@
             <div class="stat-content">
               <span class="stat-label">Stock &amp; Assets</span>
               <div class="stat-value" id="recycleStatInventory">0</div>
-              <div class="stat-trend" style="color:var(--text-muted); font-size:0.75rem;">Inventory items, fixed assets &amp; services</div>
+              <div class="stat-trend" style="color:var(--text-muted); font-size:0.75rem;">Inventory items, fixed assets
+                &amp; services</div>
             </div>
             <div class="stat-icon" style="background:#dcfce7; color:#10b981;">
               <i class="fa-solid fa-boxes-stacked"></i>
@@ -4841,7 +4907,8 @@
             <div class="stat-content">
               <span class="stat-label">Directory &amp; Master Data</span>
               <div class="stat-value" id="recycleStatDirectory">0</div>
-              <div class="stat-trend" style="color:var(--text-muted); font-size:0.75rem;">Suppliers, items, projects &amp; depts</div>
+              <div class="stat-trend" style="color:var(--text-muted); font-size:0.75rem;">Suppliers, items, projects
+                &amp; depts</div>
             </div>
             <div class="stat-icon" style="background:#fef3c7; color:#f59e0b;">
               <i class="fa-solid fa-address-book"></i>
@@ -4853,8 +4920,8 @@
         <div class="data-card">
           <div class="data-card-body" style="padding:16px 20px;">
             <div class="po-registry-toolbar" style="margin-bottom:0; flex-wrap:wrap; gap:10px;">
-              <select id="recycleModuleFilter" onchange="renderRecycleBinTable()" class="form-control-neat po-filter-select"
-                style="width:auto; height:38px; min-width:210px;">
+              <select id="recycleModuleFilter" onchange="renderRecycleBinTable()"
+                class="form-control-neat po-filter-select" style="width:auto; height:38px; min-width:210px;">
                 <option value="ALL">All Modules (Total)</option>
                 <option value="Purchase Order">Purchase Orders (PO)</option>
                 <option value="Receiving Report">Receiving Reports (MRR)</option>
@@ -4875,15 +4942,17 @@
                   oninput="renderRecycleBinTable()">
               </div>
 
-              <select id="recycleMonthFilter" onchange="onMonthFilterChange('recycleMonthFilter', 'recycleDateFilter', renderRecycleBinTable)"
+              <select id="recycleMonthFilter"
+                onchange="onMonthFilterChange('recycleMonthFilter', 'recycleDateFilter', renderRecycleBinTable)"
                 class="form-control-neat" style="width:auto; height:38px; min-width:130px;"
                 aria-label="Filter Recycle Bin by month">
                 <option value="ALL">All Months</option>
               </select>
 
               <div class="date-picker-wrap date-picker-filter">
-                <input type="text" id="recycleDateFilter" class="form-control-neat date-text-input" placeholder="12-Nov-2026"
-                  autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
+                <input type="text" id="recycleDateFilter" class="form-control-neat date-text-input"
+                  placeholder="12-Nov-2026" autocomplete="off" autocorrect="off" autocapitalize="none"
+                  spellcheck="false"
                   oninput="if (!this.value.trim() || parseCalendarDateParts(this.value)) onDateFilterChange('recycleDateFilter', 'recycleMonthFilter', renderRecycleBinTable)"
                   onchange="onDateFilterChange('recycleDateFilter', 'recycleMonthFilter', renderRecycleBinTable)"
                   aria-label="Filter Recycle Bin by date (DD-MMM-YYYY)" title="Filter by date (e.g. 12-Nov-2026)">
@@ -4921,7 +4990,7 @@
         </div>
       </section>
 
-      </main>
+    </main>
   </div>
 
   <!-- ============================================================== -->
@@ -6626,7 +6695,7 @@
         rrMasterfile = Array.isArray(parsedMaster) ? parsedMaster : [];
       } catch (e) { rrMasterfile = []; }
       syncAllActiveRrsToMasterfile(false, true);
-        reconcileInventoryStockFromIssuances(true);
+      reconcileInventoryStockFromIssuances(true);
 
       // 9. Stocks from 2025 Carry-Over Register
       loadStocks2025();
@@ -6747,7 +6816,7 @@
       renderAllDirectoryRegistries();
       renderRecycleBinTable();
       populateMrrPoDropdown();
-        initMisForm();
+      initMisForm();
       updateBadges();
       updateRecycleBinBadge();
     }
@@ -6886,7 +6955,7 @@
       return `${datePart}, ${timePart}`;
     }
 
-    
+
     // ==============================================================
     // RECYCLE BIN & SOFT-DELETE DATA RECOVERY SYSTEM
     // ==============================================================
@@ -8857,7 +8926,7 @@
     }
 
     // Modal backward compatibility functions
-    function populateMisSuppliesDropdown() {}
+    function populateMisSuppliesDropdown() { }
     function onMisSuppliesSelect(supId) {
       const req = suppliesRequests.find(s => s.id === supId);
       if (req) applySuppliesRequestToMisForm(req);
@@ -8873,7 +8942,7 @@
     function openAddIssuanceModalWithFirstApproved() {
       applyFirstApprovedRequestToMisForm();
     }
-    function onMisItemChange() {}
+    function onMisItemChange() { }
     function recalcMisTotal() {
       calcMisFormTotals();
     }
@@ -8881,9 +8950,9 @@
       if (e) e.preventDefault();
       submitMisForm();
     }
-    
-// ==============================================================
-        // ==============================================================
+
+    // ==============================================================
+    // ==============================================================
     // RECONCILE ON-HAND INVENTORY FROM ACTIVE MATERIAL ISSUANCES
     // ==============================================================
     function reconcileInventoryStockFromIssuances(syncToSb = true) {
@@ -11593,7 +11662,7 @@
     let isFlushingOfflineQueue = false;
 
     const SB_MAPPERS = {
-    mapRecycleBinToSb,
+      mapRecycleBinToSb,
       mapProjectToSb,
       mapDeptToSb,
       mapSupplierToSb,
@@ -11716,29 +11785,29 @@
             res = { ok: true };
           } else {
             // Auto-repair legacy conflict column for on_hand_inventory
-          if (op.table === 'on_hand_inventory' && op.onConflict === 'item_id') {
-            op.onConflict = 'item_code';
+            if (op.table === 'on_hand_inventory' && op.onConflict === 'item_id') {
+              op.onConflict = 'item_code';
+            }
+            const mapper = SB_MAPPERS[op.mapper] || ((x) => x);
+            const fallback = op.fallbackMapper ? SB_MAPPERS[op.fallbackMapper] : null;
+            res = await sbUpsertRowsDirect(op.table, op.records, mapper, fallback, op.onConflict || 'id');
           }
-          const mapper = SB_MAPPERS[op.mapper] || ((x) => x);
-          const fallback = op.fallbackMapper ? SB_MAPPERS[op.fallbackMapper] : null;
-          res = await sbUpsertRowsDirect(op.table, op.records, mapper, fallback, op.onConflict || 'id');
-        }
 
-        if (!res || res.ok === false) {
+          if (!res || res.ok === false) {
+            op.retries = (op.retries || 0) + 1;
+            if (op.retries < 4) {
+              failedQueue.push(op);
+            } else {
+              console.warn(`[Auto-Sync] Dropping permanently rejected operation after ${op.retries} attempts on "${op.table}":`, res?.error || res);
+            }
+          }
+        } catch (e) {
+          console.warn('[Auto-Sync] Failed to sync offline item:', e);
           op.retries = (op.retries || 0) + 1;
           if (op.retries < 4) {
             failedQueue.push(op);
-          } else {
-            console.warn(`[Auto-Sync] Dropping permanently rejected operation after ${op.retries} attempts on "${op.table}":`, res?.error || res);
           }
         }
-      } catch (e) {
-        console.warn('[Auto-Sync] Failed to sync offline item:', e);
-        op.retries = (op.retries || 0) + 1;
-        if (op.retries < 4) {
-          failedQueue.push(op);
-        }
-      }
       }
 
       isFlushingOfflineQueue = false;
@@ -12170,7 +12239,7 @@
           };
         });
 
-                const mergeRegistry = async (table, localArr, storageKey, mapFromSb, prependNew = false) => {
+        const mergeRegistry = async (table, localArr, storageKey, mapFromSb, prependNew = false) => {
           const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=*&limit=1000`, { headers: sbHeaders() });
           if (!res.ok) return null;
           const rows = await res.json();
@@ -12237,7 +12306,7 @@
           created_at: r.created_at || ''
         });
 
-                const mergeInventoryFromSb = async () => {
+        const mergeInventoryFromSb = async () => {
           const res = await fetch(`${SUPABASE_URL}/rest/v1/on_hand_inventory?select=*&limit=1000`, { headers: sbHeaders() });
           if (!res.ok) return null;
           const rows = await res.json();
