@@ -2707,6 +2707,15 @@
               </div>
             </a>
           </li>
+          <li class="nav-item" data-view="view-recycle-bin">
+            <a href="javascript:void(0)" onclick="switchView('view-recycle-bin', this)">
+              <div class="nav-label-wrap">
+                <i class="fa-solid fa-trash-can-arrow-up" style="color:#ef4444;"></i>
+                <span>Recycle Bin</span>
+              </div>
+              <span class="nav-badge" id="navRecycleBinCount" style="display:none; background:#ef4444; color:white;">0</span>
+            </a>
+          </li>
         </ul>
 
       </div>
@@ -4771,7 +4780,148 @@
 
       </section>
 
-    </main>
+    
+      <!-- ============================================================ -->
+      <!-- VIEW 15: RECYCLE BIN & DATA RECOVERY ARCHIVE -->
+      <!-- ============================================================ -->
+      <section id="view-recycle-bin" class="view-section">
+        <div class="view-header">
+          <div class="view-title-group">
+            <h2>
+              <i class="fa-solid fa-trash-can-arrow-up" style="color:#ef4444;"></i> Recycle Bin &amp; Data Recovery Archive
+            </h2>
+            <p>Safely restore deleted records or permanently purge archived entries. Synchronized with Supabase cloud.</p>
+          </div>
+          <div class="view-action-group">
+            <button type="button" class="btn btn-outline" onclick="exportRecycleBinCSV()">
+              <i class="fa-solid fa-file-csv"></i> Export Deleted Log
+            </button>
+            <button type="button" class="btn btn-danger" onclick="emptyRecycleBin()" style="background:#ef4444; border-color:#ef4444; color:white;">
+              <i class="fa-solid fa-trash"></i> Empty Recycle Bin
+            </button>
+          </div>
+        </div>
+
+        <!-- RECYCLE BIN METRIC CARDS -->
+        <div class="stat-grid" style="margin-bottom:20px;">
+          <div class="stat-card" style="border-left:4px solid #ef4444;">
+            <div class="stat-content">
+              <span class="stat-label">Total In Recycle Bin</span>
+              <div class="stat-value" id="recycleStatTotal">0</div>
+              <div class="stat-trend" style="color:var(--text-muted); font-size:0.75rem;">Archived items awaiting restoration or purge</div>
+            </div>
+            <div class="stat-icon" style="background:#fee2e2; color:#ef4444;">
+              <i class="fa-solid fa-trash-can"></i>
+            </div>
+          </div>
+
+          <div class="stat-card" style="border-left:4px solid #3b82f6;">
+            <div class="stat-content">
+              <span class="stat-label">Transactions &amp; Orders</span>
+              <div class="stat-value" id="recycleStatTransactions">0</div>
+              <div class="stat-trend" style="color:var(--text-muted); font-size:0.75rem;">POs, Receiving Reports, MIS &amp; PCV</div>
+            </div>
+            <div class="stat-icon" style="background:#dbeafe; color:#3b82f6;">
+              <i class="fa-solid fa-file-invoice"></i>
+            </div>
+          </div>
+
+          <div class="stat-card" style="border-left:4px solid #10b981;">
+            <div class="stat-content">
+              <span class="stat-label">Stock &amp; Assets</span>
+              <div class="stat-value" id="recycleStatInventory">0</div>
+              <div class="stat-trend" style="color:var(--text-muted); font-size:0.75rem;">Inventory items, fixed assets &amp; services</div>
+            </div>
+            <div class="stat-icon" style="background:#dcfce7; color:#10b981;">
+              <i class="fa-solid fa-boxes-stacked"></i>
+            </div>
+          </div>
+
+          <div class="stat-card" style="border-left:4px solid #f59e0b;">
+            <div class="stat-content">
+              <span class="stat-label">Directory &amp; Master Data</span>
+              <div class="stat-value" id="recycleStatDirectory">0</div>
+              <div class="stat-trend" style="color:var(--text-muted); font-size:0.75rem;">Suppliers, items, projects &amp; depts</div>
+            </div>
+            <div class="stat-icon" style="background:#fef3c7; color:#f59e0b;">
+              <i class="fa-solid fa-address-book"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- RECYCLE BIN DATA CARD -->
+        <div class="data-card">
+          <div class="data-card-body" style="padding:16px 20px;">
+            <div class="po-registry-toolbar" style="margin-bottom:0; flex-wrap:wrap; gap:10px;">
+              <select id="recycleModuleFilter" onchange="renderRecycleBinTable()" class="form-control-neat po-filter-select"
+                style="width:auto; height:38px; min-width:210px;">
+                <option value="ALL">All Modules (Total)</option>
+                <option value="Purchase Order">Purchase Orders (PO)</option>
+                <option value="Receiving Report">Receiving Reports (MRR)</option>
+                <option value="Material Issuance">Material Issuances (MIS)</option>
+                <option value="Supplies Request">Supplies Requests</option>
+                <option value="Petty Cash">Petty Cash Vouchers (PCV)</option>
+                <option value="Inventory Stock">Inventory Stock Items</option>
+                <option value="Fixed Assets">Fixed Assets</option>
+                <option value="Services">Services</option>
+                <option value="Vehicle Repair &amp; Maintenance">Vehicle Repair &amp; PMS</option>
+                <option value="Capital Expenditure">Capital Expenditure (Capex)</option>
+                <option value="Data Registry">Data Registry Entries</option>
+              </select>
+
+              <div class="search-input-wrap" style="max-width:320px;">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" id="recycleSearchInput" placeholder="Search reference, details, or user..."
+                  oninput="renderRecycleBinTable()">
+              </div>
+
+              <select id="recycleMonthFilter" onchange="onMonthFilterChange('recycleMonthFilter', 'recycleDateFilter', renderRecycleBinTable)"
+                class="form-control-neat" style="width:auto; height:38px; min-width:130px;"
+                aria-label="Filter Recycle Bin by month">
+                <option value="ALL">All Months</option>
+              </select>
+
+              <div class="date-picker-wrap date-picker-filter">
+                <input type="text" id="recycleDateFilter" class="form-control-neat date-text-input" placeholder="12-Nov-2026"
+                  autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
+                  oninput="if (!this.value.trim() || parseCalendarDateParts(this.value)) onDateFilterChange('recycleDateFilter', 'recycleMonthFilter', renderRecycleBinTable)"
+                  onchange="onDateFilterChange('recycleDateFilter', 'recycleMonthFilter', renderRecycleBinTable)"
+                  aria-label="Filter Recycle Bin by date (DD-MMM-YYYY)" title="Filter by date (e.g. 12-Nov-2026)">
+                <button type="button" class="date-cal-btn" aria-label="Choose filter date from calendar"
+                  title="Pick filter date">
+                  <i class="fa-regular fa-calendar"></i>
+                </button>
+                <input type="date" class="date-native-proxy" tabindex="-1" aria-hidden="true">
+              </div>
+
+              <button type="button" class="btn btn-outline btn-sm" onclick="emptyRecycleBin()"
+                style="color:#ef4444; border-color:#fca5a5; margin-left:auto; font-weight:700;">
+                <i class="fa-solid fa-trash-can"></i> Empty Trash
+              </button>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Date &amp; Time Deleted</th>
+                  <th>Source Module</th>
+                  <th>Record Identifier</th>
+                  <th>Details / Particulars</th>
+                  <th>Deleted By</th>
+                  <th style="text-align:center;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="recycleBinTableBody">
+                <!-- Populated via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      </main>
   </div>
 
   <!-- ============================================================== -->
@@ -5102,6 +5252,9 @@
   <!-- ============================================================== -->
   <script>
     // Storage keys
+    const RECYCLE_BIN_KEY = 'warehouse_recycle_bin_data';
+    let recycleBinItems = [];
+    try { recycleBinItems = JSON.parse(localStorage.getItem(RECYCLE_BIN_KEY) || '[]'); } catch (e) { recycleBinItems = []; }
     const PO_KEY = 'purchase_orders_data';
     const RR_KEY = 'receiving_reports_data';
     const MIS_KEY = 'material_issuances_data';
@@ -6591,9 +6744,11 @@
       renderRrMasterfileTable();
       renderStocks2025Table();
       renderAllDirectoryRegistries();
+      renderRecycleBinTable();
       populateMrrPoDropdown();
         initMisForm();
       updateBadges();
+      updateRecycleBinBadge();
     }
 
     function updateBadges() {
@@ -8354,12 +8509,15 @@
     function deleteMis(id) {
       const target = materialIssuances.find(m => m.id === id);
       const label = target ? target.mis_no : 'this issuance record';
-      showSystemConfirm('Delete Material Issuance', `Remove material issuance "${label}" from the registry?`, () => {
+      showSystemConfirm('Delete Material Issuance', `Move material issuance "${label}" to Recycle Bin?`, () => {
+        if (target) {
+          moveToRecycleBin('Material Issuance', 'material_issuances', id, label, target, `${target.recipient_name} - ${target.items_desc || ''}`);
+        }
         materialIssuances = materialIssuances.filter(m => m.id !== id);
         localStorage.setItem(MIS_KEY, JSON.stringify(materialIssuances));
         sbSyncBackground(() => sbDeleteRow('material_issuances', id, 'id'));
         renderAll();
-        showSystemAlert('Issuance Deleted', `Material issuance "${label}" has been removed.`, true);
+        showSystemAlert('Moved to Recycle Bin', `Material issuance "${label}" was moved to the Recycle Bin.`, true);
       });
     }
 
@@ -11044,6 +11202,7 @@
     let isFlushingOfflineQueue = false;
 
     const SB_MAPPERS = {
+    mapRecycleBinToSb,
       mapProjectToSb,
       mapDeptToSb,
       mapSupplierToSb,
@@ -11561,6 +11720,43 @@
               localStorage.setItem(SUP_KEY, JSON.stringify(suppliesRequests));
             }
           }
+        }
+
+        // 1B. Pull Recycle Bin from Supabase (safe check)
+        try {
+          const recRes = await fetch(`${SUPABASE_URL}/rest/v1/recycle_bin?select=*&limit=500`, { headers: sbHeaders() });
+          if (recRes.ok) {
+            const remoteRecycle = await recRes.json();
+            if (Array.isArray(remoteRecycle)) {
+              let recChanged = 0;
+              remoteRecycle.forEach(r => {
+                const mapped = {
+                  id: r.id,
+                  source_module: r.source_module || '',
+                  source_table: r.source_table || '',
+                  record_id: String(r.record_id || ''),
+                  record_identifier: r.record_identifier || '',
+                  summary: r.summary || '',
+                  record_data: typeof r.record_data === 'object' ? r.record_data : JSON.parse(r.record_data || '{}'),
+                  deleted_by: r.deleted_by || 'Warehouseman',
+                  deleted_at: r.deleted_at || '',
+                  status: r.status || 'Deleted'
+                };
+                const idx = recycleBinItems.findIndex(x => String(x.id) === String(r.id));
+                if (idx === -1) {
+                  recycleBinItems.unshift(mapped);
+                  recChanged++;
+                }
+              });
+              if (recChanged > 0) {
+                localStorage.setItem(RECYCLE_BIN_KEY, JSON.stringify(recycleBinItems));
+                renderRecycleBinTable();
+                updateRecycleBinBadge();
+              }
+            }
+          }
+        } catch (e) {
+          console.log('[Recycle Bin] Note: Supabase recycle_bin sync:', e.message);
         }
 
         // 2. Pull Master Data Registries, POs, Receiving Reports & Material Issuances

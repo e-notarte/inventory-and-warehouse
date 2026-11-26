@@ -375,6 +375,24 @@ CREATE TABLE IF NOT EXISTS petty_cash_vouchers (
 );
 
 -- ====================================================================
+
+-- 18. RECYCLE BIN & DATA RECOVERY ARCHIVE
+CREATE TABLE IF NOT EXISTS recycle_bin (
+    id TEXT PRIMARY KEY,
+    source_module TEXT NOT NULL,
+    source_table TEXT NOT NULL,
+    record_id TEXT NOT NULL,
+    record_identifier TEXT NOT NULL,
+    summary TEXT,
+    record_data JSONB NOT NULL,
+    deleted_by TEXT DEFAULT 'Warehouseman',
+    deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    status TEXT DEFAULT 'Deleted',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- ====================================================================
 -- PART 3: ROW LEVEL SECURITY (RLS) POLICIES (IDEMPOTENT)
 -- ====================================================================
 ALTER TABLE projects_registry ENABLE ROW LEVEL SECURITY;
@@ -454,3 +472,7 @@ CREATE POLICY "Allow public read/write for stocks_2025" ON stocks_2025 FOR ALL U
 DROP POLICY IF EXISTS "Allow public read/write for petty_cash_vouchers" ON petty_cash_vouchers;
 CREATE POLICY "Allow public read/write for petty_cash_vouchers" ON petty_cash_vouchers FOR ALL USING (true) WITH CHECK (true);
 
+
+ALTER TABLE recycle_bin ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow public read/write for recycle_bin" ON recycle_bin;
+CREATE POLICY "Allow public read/write for recycle_bin" ON recycle_bin FOR ALL USING (true) WITH CHECK (true);
