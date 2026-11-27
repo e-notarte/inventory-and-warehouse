@@ -7708,6 +7708,9 @@
         tbody.innerHTML = '';
         addPoItemRow();
       }
+      const discountInput = document.getElementById('poDiscountInput');
+      if (discountInput) discountInput.value = '';
+
       const title = document.getElementById('poFormTitle');
       if (title) title.textContent = 'Purchase Order (PO)';
       const submitLabel = document.getElementById('poSubmitLabel');
@@ -7794,6 +7797,8 @@
         return;
       }
 
+      const discountVal = Math.max(0, parseFloat(document.getElementById('poDiscountInput')?.value) || 0);
+      const netGrandTotal = Math.max(0, grandTotal - discountVal);
       const itemsDesc = lineItems.map(item => `${item.desc} (${item.qty} ${item.uom.split(' ')[0]})`).join(', ');
 
       if (editingPoId) {
@@ -7814,7 +7819,9 @@
           supplier_name: supplierVal,
           items: lineItems,
           items_desc: itemsDesc,
-          grand_total: grandTotal,
+          subtotal: grandTotal,
+          discount: discountVal,
+          grand_total: netGrandTotal,
           status: existingPo.status || 'Approved',
           updated_at: new Date().toISOString()
         };
@@ -7851,7 +7858,9 @@
           supplier_name: supplierVal,
           items: lineItems,
           items_desc: itemsDesc,
-          grand_total: grandTotal,
+          subtotal: grandTotal,
+          discount: discountVal,
+          grand_total: netGrandTotal,
           status: 'Approved',
           created_at: new Date().toISOString()
         };
@@ -7972,6 +7981,9 @@
         }];
         items.forEach(item => addPoItemRow(item));
       }
+
+      const discountInput = document.getElementById('poDiscountInput');
+      if (discountInput) discountInput.value = (po.discount && Number(po.discount) > 0) ? po.discount : '';
 
       const title = document.getElementById('poFormTitle');
       if (title) title.textContent = 'Update Purchase Order (PO)';
