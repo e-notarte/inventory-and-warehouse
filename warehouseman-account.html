@@ -26,6 +26,7 @@
   <!-- <script src="on_hand_inventory_data.js"></script> -->
   <script src="stocks_2025_data.js"></script>
   <script src="migrated_2026_data.js"></script>
+  <script src="migrated_mis_data.js"></script>
 
   <style>
     :root {
@@ -5516,6 +5517,9 @@
     // Number & Currency Formatters
     function formatCurrency(val) {
       const num = parseFloat(val) || 0;
+      if (num < 0) {
+        return '-₱ ' + Math.abs(num).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      }
       return '₱ ' + num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
@@ -6885,6 +6889,33 @@
         });
       }
       localStorage.setItem(MIGRATION_2026_KEY, '1');
+
+      // 3. Material Issuances (MIS) Migration
+      const misSrc = typeof migratedMisData !== 'undefined'
+        ? migratedMisData
+        : (window.migratedMisData || null);
+
+      let misAdded = 0;
+      if (misSrc && Array.isArray(misSrc.materialIssuances) && misSrc.materialIssuances.length > 0 && localStorage.getItem('warehouse_migrated_mis_applied_v1') !== '1') {
+        const existingMisIds = new Set(materialIssuances.map(m => String(m.id)));
+        const existingMisNos = new Set(materialIssuances.map(m => String(m.mis_no || '').trim().toUpperCase()));
+        misSrc.materialIssuances.forEach(rawMis => {
+          const misKey = String(rawMis.mis_no || '').trim().toUpperCase();
+          if (!existingMisIds.has(String(rawMis.id)) && (!misKey || !existingMisNos.has(misKey))) {
+            materialIssuances.push(JSON.parse(JSON.stringify(rawMis)));
+            existingMisIds.add(String(rawMis.id));
+            if (misKey) existingMisNos.add(misKey);
+            misAdded++;
+          }
+        });
+
+        if (misAdded > 0) {
+          localStorage.setItem(MIS_KEY, JSON.stringify(materialIssuances));
+          sbSyncBackground(() => sbUpsertRows('material_issuances', materialIssuances, mapMisToSbFull, mapMisToSbCore, 'id'));
+          reconcileInventoryStockFromIssuances(true);
+        }
+        localStorage.setItem('warehouse_migrated_mis_applied_v1', '1');
+      }
     }
 
     function populateItemDropdowns() {
@@ -7608,7 +7639,7 @@
           </select>
         </td>
         <td>
-          <input type="number" step="0.01" min="0" class="form-control-neat po-item-cost" value="${itemData.cost !== undefined ? itemData.cost : '0.00'}" style="text-align:right;" oninput="calcPoFormTotals()" required>
+          <input type="number" step="0.01" class="form-control-neat po-item-cost" value="${itemData.cost !== undefined ? itemData.cost : '0.00'}" style="text-align:right;" oninput="calcPoFormTotals()" required>
         </td>
         <td>
           <div class="po-line-total-pill po-item-row-total">₱ 0.00</div>
@@ -8186,7 +8217,7 @@
           </select>
         </td>
         <td>
-          <input type="number" step="0.01" min="0" class="form-control-neat mrr-item-cost" value="${itemData.cost !== undefined ? itemData.cost : '0.00'}" style="text-align:right;" oninput="calcMrrFormTotals()" required>
+          <input type="number" step="0.01" class="form-control-neat mrr-item-cost" value="${itemData.cost !== undefined ? itemData.cost : '0.00'}" style="text-align:right;" oninput="calcMrrFormTotals()" required>
         </td>
         <td>
           <div class="po-line-total-pill mrr-item-row-total">₱ 0.00</div>
@@ -8663,7 +8694,7 @@
           </select>
         </td>
         <td>
-          <input type="number" step="0.01" min="0" class="form-control-neat mis-item-cost"
+          <input type="number" step="0.01" class="form-control-neat mis-item-cost"
             value="${itemData.cost !== undefined ? itemData.cost : '0.00'}" style="text-align:right;"
             oninput="calcMisFormTotals()">
         </td>
@@ -9533,7 +9564,7 @@
           </select>
         </td>
         <td>
-          <input type="number" step="0.01" min="0" class="form-control-neat pc-item-cost" value="${costVal.toFixed(2)}"
+          <input type="number" step="0.01" class="form-control-neat pc-item-cost" value="${costVal.toFixed(2)}"
             style="text-align:right;" oninput="calcPettyCashTotals()" required>
         </td>
         <td>
